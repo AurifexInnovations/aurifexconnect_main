@@ -1,7 +1,6 @@
 package com.erp.Dto.Request;
 
 import lombok.*;
-
 import java.time.YearMonth;
 
 @Getter
@@ -16,4 +15,5 @@ public class SalaryRequest {
     private Integer workingDays;
     private Integer paidDays;
     private String remarks;
+    
 }

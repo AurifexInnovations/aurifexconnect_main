@@ -9,6 +9,8 @@ import lombok.*;
 public class SalaryResponse {
     private long id;
     private UserResponse user;
+    private String firstName;
+    private String lastName;
     private YearMonth month;
     private long baseSalary;
     private long deductions;

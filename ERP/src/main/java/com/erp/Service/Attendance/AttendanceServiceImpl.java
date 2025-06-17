@@ -2,7 +2,8 @@ package com.erp.Service.Attendance;
 
 import com.erp.Dto.Request.AttendanceRequest;
 import com.erp.Dto.Request.Param;
-import com.erp.Dto.Response.AttendanceResponse;
+import com.erp.Dto.Response.*;
+import com.erp.Enum.AttendanceStatus;
 import com.erp.Exception.Attendance.AttendanceAlreadyExistsException;
 import com.erp.Exception.Attendance.AttendanceInvalidException;
 import com.erp.Exception.Attendance.AttendanceNotFoundException;
@@ -15,7 +16,6 @@ import com.erp.Repository.User.UserRepository;
 import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-
 import java.time.*;
 import java.util.*;
 
@@ -112,7 +112,7 @@ public class AttendanceServiceImpl implements AttendanceService {
     }
 
     @Override
-    public AttendanceResponse getAttendanceById(Param param) {
+    public AttendanceResponse getByAttendanceId(Param param) {
         Attendance attendance = attendanceRepository.findById(param.getId())
                 .orElseThrow(() -> new AttendanceNotFoundException("Attendance not found."));
         return attendanceMapper.mapToResponse(attendance);
@@ -250,4 +250,57 @@ public class AttendanceServiceImpl implements AttendanceService {
         if (days == 0.5) return "Half day";
         return days + " days";
     }
+
+    @Override
+    public List<AttendanceChartResponse> getMonthlyAttendanceAnalytics(AttendanceRequest request) {
+        final Long userId = request.getUserId();
+        final LocalDate fromDate = request.getFromDate();
+        final LocalDate toDate = request.getToDate();
+
+        List<Attendance> attendanceList = attendanceRepository.findByUserIdAndDateBetween(userId, fromDate, toDate);
+
+        List<AttendanceChartResponse> responseList = new ArrayList<>();
+        LocalDate currentDate = fromDate;
+
+        while (!currentDate.isAfter(toDate)) {
+            final LocalDate dateToCheck = currentDate;
+            boolean isPresent = attendanceList.stream().anyMatch(a -> a.getDate().isEqual(dateToCheck));
+            AttendanceChartResponse response = new AttendanceChartResponse();
+            response.setDate(currentDate);
+            response.setStatus(isPresent ? AttendanceStatus.PRESENT.name() : AttendanceStatus.LEAVE.name());
+            responseList.add(response);
+            currentDate = currentDate.plusDays(1);
+        }
+
+        return responseList;
+    }
+
+    @Override
+    public AttendanceSummaryChartResponse getAttendanceSummaryAnalytics(AttendanceRequest request) {
+        final Long userId = request.getUserId();
+        final LocalDate fromDate = request.getFromDate();
+        final LocalDate toDate = request.getToDate();
+
+        List<Attendance> attendanceList = attendanceRepository.findByUserIdAndDateBetween(userId, fromDate, toDate);
+
+        int presentDays = 0;
+        int absentDays = 0;
+
+        LocalDate currentDate = fromDate;
+        while (!currentDate.isAfter(toDate)) {
+            final LocalDate dateToCheck = currentDate;
+            boolean isPresent = attendanceList.stream().anyMatch(a -> a.getDate().isEqual(dateToCheck));
+            if (isPresent) presentDays++;
+            else absentDays++;
+            currentDate = currentDate.plusDays(1);
+        }
+
+        AttendanceSummaryChartResponse response = new AttendanceSummaryChartResponse();
+        response.setPresentDays(presentDays);
+        response.setAbsentDays(absentDays);
+        return response;
+    }
+
+
+
 }

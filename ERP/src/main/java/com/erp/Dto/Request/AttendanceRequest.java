@@ -13,4 +13,6 @@ public class AttendanceRequest {
     private LocalDate date;
     private LocalDateTime checkInTime;
     private LocalDateTime checkOutTime;
+    private LocalDate fromDate;
+    private LocalDate toDate;
 }

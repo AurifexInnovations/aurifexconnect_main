@@ -2,7 +2,9 @@ package com.erp.Service.SalaryService;
 
 import com.erp.Dto.Request.Param;
 import com.erp.Dto.Request.SalaryRequest;
+import com.erp.Dto.Response.MonthlySalaryResponse;
 import com.erp.Dto.Response.SalaryResponse;
+import com.erp.Dto.Response.SalarySummaryResponse;
 import com.erp.Enum.AmountStatus;
 import com.erp.Exception.Salary.SalaryNotFoundException;
 import com.erp.Exception.User.UserNotFoundException;
@@ -16,6 +18,7 @@ import com.erp.Service.Attendance.AttendanceService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import java.time.YearMonth;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
@@ -57,7 +60,6 @@ public class SalaryServiceImpl implements SalaryService {
         if (salary.getAmountStatus() == null) {
             salary.setAmountStatus(AmountStatus.PENDING);
         }
-
         salaryRepository.save(salary);
         return salaryMapper.mapToResponse(salary);
     }
@@ -124,5 +126,40 @@ public class SalaryServiceImpl implements SalaryService {
         return salaryRepository.findByUserIdAndMonth(userId, month)
                 .orElseThrow(() -> new SalaryNotFoundException(
                         "Salary not found for User ID: " + userId + ", Month: " + month));
+    }
+
+
+    @Override
+    public SalarySummaryResponse getTotalSalaryPaid(YearMonth startMonth, YearMonth endMonth) {
+        List<Salary> salaries = salaryRepository.findByPaymentDateBetweenAndAmountStatus(
+                startMonth, endMonth, AmountStatus.PAID);
+
+        double totalAmount = salaries.stream()
+                .mapToDouble(Salary::getNetSalary)
+                .sum();
+
+        SalarySummaryResponse response = new SalarySummaryResponse();
+        response.setLabel("Total");
+        response.setAmount(totalAmount);
+        return response;
+    }
+
+    @Override
+    public List<MonthlySalaryResponse> getMonthlySalaryOverview(int year) {
+        List<MonthlySalaryResponse> monthlyList = new ArrayList<>();
+
+        for (int month = 1; month <= 12; month++) {
+            YearMonth ym = YearMonth.of(year, month);
+
+            List<Salary> salaries = salaryRepository.findByPaymentDateAndAmountStatus(ym, AmountStatus.PAID);
+
+            double total = salaries.stream()
+                    .mapToDouble(Salary::getNetSalary)
+                    .sum();
+
+            monthlyList.add(new MonthlySalaryResponse(ym.getMonth().name(), total));
+        }
+
+        return monthlyList;
     }
 }

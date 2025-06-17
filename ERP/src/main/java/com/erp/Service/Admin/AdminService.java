@@ -17,4 +17,5 @@ public interface AdminService {
     AdminResponse deleteAdminById(CommonParam commonParam);
 
     List<AdminResponse> findAdminByIdOrName(CommonParam commonParam);
+
 }

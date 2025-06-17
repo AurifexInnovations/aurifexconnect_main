@@ -2,7 +2,9 @@ package com.erp.Controller.Attendance;
 
 import com.erp.Dto.Request.AttendanceRequest;
 import com.erp.Dto.Request.Param;
+import com.erp.Dto.Response.AttendanceChartResponse;
 import com.erp.Dto.Response.AttendanceResponse;
+import com.erp.Dto.Response.AttendanceSummaryChartResponse;
 import com.erp.Service.Attendance.AttendanceService;
 import com.erp.Utility.ListResponseStructure;
 import com.erp.Utility.ResponseBuilder;
@@ -12,10 +14,10 @@ import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import jakarta.validation.Valid;
 import lombok.AllArgsConstructor;
+import java.util.List;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-import java.util.List;
 
 @RestController
 @AllArgsConstructor
@@ -71,18 +73,18 @@ public class AttendanceController {
         return ResponseBuilder.success(HttpStatus.OK, "Attendance updated successfully", response);
     }
 
-    @PostMapping("/getAttendance")
+    @PostMapping("/user/record")
     @Operation(
-            summary = "Get Attendance By User ID",
-            description = "Fetch attendance record by User ID"
+            summary = "Get Attendance By Attendance ID",
+            description = "Fetch attendance record by Attendance ID"
     )
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "Attendance record found"),
             @ApiResponse(responseCode = "404", description = "Attendance record not found")
     })
-    public ResponseEntity<ResponseStructure<AttendanceResponse>> getAttendanceById(
+    public ResponseEntity<ResponseStructure<AttendanceResponse>> getByAttendanceId(
             @Valid @RequestBody Param param) {
-        AttendanceResponse response = attendanceService.getAttendanceById(param);
+        AttendanceResponse response = attendanceService.getByAttendanceId(param);
         return ResponseBuilder.success(HttpStatus.OK, "Attendance record found", response);
     }
 
@@ -160,5 +162,27 @@ public class AttendanceController {
             @Valid @RequestBody AttendanceRequest request) {
         AttendanceResponse response = attendanceService.deleteAllAttendances(request);
         return ResponseBuilder.success(HttpStatus.OK, "Attendances Deleted Successfully!", response);
+    }
+
+    @PostMapping("/analytics/monthly") //line chart or bar chart
+    @Operation(summary = "Monthly Attendance Chart Data", description = "Get day-wise attendance (present/absent) for charting")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "Monthly attendance chart data fetched")
+    })
+    public ResponseEntity<ListResponseStructure<AttendanceChartResponse>> getMonthlyAttendanceAnalytics(
+            @Valid @RequestBody AttendanceRequest request) {
+        List<AttendanceChartResponse> responses = attendanceService.getMonthlyAttendanceAnalytics(request);
+        return ResponseBuilder.success(HttpStatus.OK, "Monthly attendance chart data fetched", responses);
+    }
+
+    @PostMapping("/analytics/summary") //Pie Chart
+    @Operation(summary = "Monthly Summary Count", description = "Get number of present and absent days")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "Monthly summary data fetched")
+    })
+    public ResponseEntity<ResponseStructure<AttendanceSummaryChartResponse>> getAttendanceSummaryAnalytics(
+            @Valid @RequestBody AttendanceRequest request) {
+        AttendanceSummaryChartResponse response = attendanceService.getAttendanceSummaryAnalytics(request);
+        return ResponseBuilder.success(HttpStatus.OK, "Monthly summary data fetched", response);
     }
 }

@@ -2,7 +2,9 @@ package com.erp.Controller.Salary;
 
 import com.erp.Dto.Request.Param;
 import com.erp.Dto.Request.SalaryRequest;
+import com.erp.Dto.Response.MonthlySalaryResponse;
 import com.erp.Dto.Response.SalaryResponse;
+import com.erp.Dto.Response.SalarySummaryResponse;
 import com.erp.Service.SalaryService.SalaryService;
 import com.erp.Utility.ListResponseStructure;
 import com.erp.Utility.ResponseBuilder;
@@ -11,8 +13,11 @@ import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import jakarta.validation.Valid;
 import lombok.AllArgsConstructor;
+import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.*;
 import org.springframework.web.bind.annotation.*;
+
+import java.time.YearMonth;
 import java.util.List;
 
 @RestController
@@ -120,5 +125,22 @@ public class SalaryController {
     public ResponseEntity<ResponseStructure<SalaryResponse>> deleteSalaryByUserAndMonth(@RequestBody SalaryRequest request) {
         SalaryResponse response = salaryService.deleteSalaryByUserAndMonth(request);
         return ResponseBuilder.success(HttpStatus.OK, "Salary record deleted successfully!", response);
+    }
+
+    @GetMapping("/total")
+    public ResponseEntity<ResponseStructure<SalarySummaryResponse>> getTotalSalaryPaid(
+            @RequestParam("startDate") @DateTimeFormat(pattern = "yyyy-MM") YearMonth startDate,
+            @RequestParam("endDate") @DateTimeFormat(pattern = "yyyy-MM") YearMonth endDate) {
+
+        SalarySummaryResponse response = salaryService.getTotalSalaryPaid(startDate, endDate);
+        return ResponseBuilder.success(HttpStatus.OK, "Total salary paid fetched successfully", response);
+    }
+
+    @GetMapping("/monthly")
+    public ResponseEntity<ListResponseStructure<MonthlySalaryResponse>> getMonthlySalaryOverview(
+            @RequestParam("year") int year) {
+
+        List<MonthlySalaryResponse> response = salaryService.getMonthlySalaryOverview(year);
+        return ResponseBuilder.success(HttpStatus.OK, "Monthly salary overview fetched successfully", response);
     }
 }

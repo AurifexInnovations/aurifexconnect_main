@@ -39,6 +39,7 @@ public class AttendanceAPITest {
         userRepository.save(user);
         userId = user.getId();
     }
+
     @Test
     void testCheckIn() throws Exception {
         Param param = new Param();
