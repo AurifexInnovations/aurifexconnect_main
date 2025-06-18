@@ -300,7 +300,4 @@ public class AttendanceServiceImpl implements AttendanceService {
         response.setAbsentDays(absentDays);
         return response;
     }
-
-
-
 }
