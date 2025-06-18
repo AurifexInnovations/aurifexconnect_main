@@ -6,7 +6,6 @@ import com.erp.Enum.VoucherType;
 import com.erp.Exception.Inventory_Exception.InsufficientStockException;
 import com.erp.Exception.Ledger.LedgerNotFoundException;
 import com.erp.Exception.Master.MasterNotFoundException;
-import com.erp.Exception.Tax.IllegalTaxException;
 import com.erp.Exception.Tax.TaxNotFoundException;
 import com.erp.Exception.Voucher.VoucherNotFound;
 import com.erp.Mapper.LineItems.LineItemsMapper;
@@ -21,7 +20,6 @@ import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
-import java.math.BigDecimal;
 import java.util.*;
 import java.util.stream.Stream;
 
@@ -91,7 +89,7 @@ public class LineItemsServiceImpl implements LineItemService {
                 double taxAmount = switch (tax.getTaxType()) {
                     case PERCENTAGE -> baseAmount * (tax.getTaxRate().doubleValue() / 100);
                     case FIXED_AMOUNT -> tax.getTaxRate().doubleValue() * quantity;
-                    default -> throw new IllegalTaxException("Unknown tax type");
+                    default -> throw new TaxNotFoundException("Unknown tax type");
                 };
 
                 lineItemTax.setTaxAmount(taxAmount);
