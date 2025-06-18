@@ -1,6 +1,6 @@
 package com.erp.Service.User;
 
-import com.erp.Dto.Request.CommonParam;
+import com.erp.Dto.Request.CommanParam;
 import com.erp.Dto.Request.RoleRequest;
 import com.erp.Dto.Request.UserRequest;
 import com.erp.Dto.Request.UserUpdateRequest;
@@ -104,15 +104,15 @@ public class UserServiceImpl implements UserServices {
     }
 
     @Override
-    public UserResponse deleteUserById(CommonParam commonParamId) {
+    public UserResponse deleteUserById(CommanParam commanParamId) {
 
         Admin currentUser = (Admin) userIdentity.getCurrentUser();
         if (currentUser == null) {
             throw new SecurityException("No authenticated user found");
         }
 
-        User user = userRepository.findById(commonParamId.getId())
-                .orElseThrow(()-> new UserNotFoundException("User not found with this id: "+commonParamId.getId()));
+        User user = userRepository.findById(commanParamId.getId())
+                .orElseThrow(()-> new UserNotFoundException("User not found with this id: "+ commanParamId.getId()));
 
         user.setActive(false);
         userRepository.save(user);
@@ -121,14 +121,14 @@ public class UserServiceImpl implements UserServices {
     }
 
     @Override
-    public List<UserResponse> findByIdOrName(CommonParam commonParamIdOrName) {
+    public List<UserResponse> findByIdOrName(CommanParam commanParamIdOrName) {
 
         Admin currentUser = (Admin) userIdentity.getCurrentUser();
         if (currentUser == null) {
             throw new SecurityException("No authenticated user found");
         }
 
-        List<User> users = Collections.singletonList(userRepository.findByIdOrFirstNameAndIsActiveTrue(commonParamIdOrName.getId(), commonParamIdOrName.getName())
+        List<User> users = Collections.singletonList(userRepository.findByIdOrFirstNameAndIsActiveTrue(commanParamIdOrName.getId(), commanParamIdOrName.getName())
                 .orElseThrow(() -> new UserNotFoundException(("User not found !"))));
 
         return userMapper.mapToListOfUserResponse(users);

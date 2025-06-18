@@ -1,9 +1,8 @@
 package com.erp.Controller.ServiceType;
 
-import com.erp.Dto.Request.CommonParam;
+import com.erp.Dto.Request.CommanParam;
 import com.erp.Dto.Request.ServiceRequest;
 import com.erp.Dto.Response.ServiceResponse;
-import com.erp.Enum.ServiceStatus;
 import com.erp.Service.ServiceType.ServiceType;
 import com.erp.Utility.ListResponseStructure;
 import com.erp.Utility.ResponseBuilder;
@@ -74,7 +73,7 @@ public class ServicesController {
                             content = @Content(schema = @Schema(implementation = SimpleErrorResponse.class)))
             }
     )
-    public ResponseEntity<ListResponseStructure<ServiceResponse>> findByIdOrServiceName(@RequestBody CommonParam param) {
+    public ResponseEntity<ListResponseStructure<ServiceResponse>> findByIdOrServiceName(@RequestBody CommanParam param) {
         List<ServiceResponse> servicesResponse = serviceTypeService.findByIdOrServiceName(param);
         return ResponseBuilder.success(HttpStatus.OK, "Services retrieved successfully!!", servicesResponse);
     }
@@ -90,7 +89,7 @@ public class ServicesController {
                             content = @Content(schema = @Schema(implementation = SimpleErrorResponse.class)))
             }
     )
-    public ResponseEntity<ResponseStructure<ServiceResponse>> deleteByServiceId(@RequestBody CommonParam param) {
+    public ResponseEntity<ResponseStructure<ServiceResponse>> deleteByServiceId(@RequestBody CommanParam param) {
         ServiceResponse response = serviceTypeService.deleteByServiceId(param);
         return ResponseBuilder.success(HttpStatus.OK, "Service deleted successfully!!", response);
     }

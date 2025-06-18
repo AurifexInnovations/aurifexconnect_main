@@ -6,20 +6,26 @@ import com.erp.Enum.VoucherType;
 import com.erp.Exception.Inventory_Exception.InsufficientStockException;
 import com.erp.Exception.Ledger.LedgerNotFoundException;
 import com.erp.Exception.Master.MasterNotFoundException;
+import com.erp.Exception.Tax.IllegalTaxException;
+import com.erp.Exception.Tax.TaxNotFoundException;
 import com.erp.Exception.Voucher.VoucherNotFound;
 import com.erp.Mapper.LineItems.LineItemsMapper;
-import com.erp.Model.Inventory;
-import com.erp.Model.LineItems;
-import com.erp.Model.Master;
+import com.erp.Model.*;
 import com.erp.Repository.Inventory.InventoryRepository;
+import com.erp.Repository.LineItemTaxRepository;
 import com.erp.Repository.LineItems.LineItemsRepository;
 import com.erp.Repository.Master.MasterRepository;
+import com.erp.Repository.Tax.TaxRepository;
 import jakarta.transaction.Transactional;
 import lombok.AllArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
-import java.util.List;
+import java.math.BigDecimal;
+import java.util.*;
+import java.util.stream.Stream;
 
+@Slf4j
 @Service
 @AllArgsConstructor
 public class LineItemsServiceImpl implements LineItemService {
@@ -28,6 +34,8 @@ public class LineItemsServiceImpl implements LineItemService {
     private final LineItemsMapper lineItemsMapper;
     private final InventoryRepository inventoryRepository;
     private final MasterRepository masterRepository;
+    private final TaxRepository taxRepository;
+    private final LineItemTaxRepository lineItemTaxRepository;
 
     @Override
     @Transactional
@@ -39,16 +47,15 @@ public class LineItemsServiceImpl implements LineItemService {
         Master master = masterRepository.findById(request.getMasterId())
                 .orElseThrow(() -> new MasterNotFoundException("Invalid Master ID: " + request.getMasterId()));
 
-
         Long masterLedgerId = master.getLedger() != null ? master.getLedger().getLedgerId() : null;
-
         long ledgerId = request.getLedgerId();
         double quantity = request.getQuantity();
 
-        if (masterLedgerId == null || masterLedgerId.longValue() != ledgerId) {
+        if (masterLedgerId == null || masterLedgerId != ledgerId) {
             throw new LedgerNotFoundException("Ledger does not match the master voucher.");
         }
 
+        // Adjust inventory based on voucher
         switch (master.getVoucherType()) {
             case SALES    -> processSalesItem(inventory, quantity);
             case PURCHASE -> processPurchaseItem(inventory, quantity);
@@ -56,7 +63,7 @@ public class LineItemsServiceImpl implements LineItemService {
         }
 
         double unitPrice = inventory.getItemCost();
-        double totalPrice = unitPrice * quantity;
+        double baseAmount = unitPrice * quantity;
 
         LineItems lineItem = new LineItems();
         lineItem.setInventory(inventory);
@@ -64,12 +71,47 @@ public class LineItemsServiceImpl implements LineItemService {
         lineItem.setItemName(inventory.getItemName());
         lineItem.setQuantity(quantity);
         lineItem.setUnitPrice(unitPrice);
-        lineItem.setTotalPrice(totalPrice);
         lineItem.setVoucherType(master.getVoucherType());
+        lineItem.setBaseAmount(baseAmount);
+
+        List<LineItemTax> lineItemTaxes = new ArrayList<>();
+        double totalTaxAmount = 0.0;
+
+        if (master.getVoucherType() == VoucherType.SALES) {
+            Set<Tax> taxes = new HashSet<>(Optional.ofNullable(inventory.getTaxes()).orElse(Collections.emptyList()));
+            log.info("Taxes for Inventory {}: {}", inventory.getItemId(), taxes);
+            if(taxes.isEmpty()){
+                log.warn("No Taxes Configure1 {}", inventory.getItemName());
+            }
+            for (Tax tax : taxes) {
+                LineItemTax lineItemTax = new LineItemTax();
+                lineItemTax.setTax(tax);
+                lineItemTax.setLineItems(lineItem);
+
+                double taxAmount = switch (tax.getTaxType()) {
+                    case PERCENTAGE -> baseAmount * (tax.getTaxRate().doubleValue() / 100);
+                    case FIXED_AMOUNT -> tax.getTaxRate().doubleValue() * quantity;
+                    default -> throw new IllegalTaxException("Unknown tax type");
+                };
+
+                lineItemTax.setTaxAmount(taxAmount);
+                totalTaxAmount += taxAmount;
+                lineItemTaxes.add(lineItemTax);
+            }
+
+            lineItem.setLineItemTaxes(lineItemTaxes);
+            lineItem.setTotalPrice(baseAmount + totalTaxAmount);
+        } else {
+            lineItem.setTotalPrice(baseAmount);
+        }
 
         lineItemsRepository.save(lineItem);
 
-        // Update master amount
+        if (!lineItemTaxes.isEmpty()) {
+            // Link now that lineItem is saved and has an ID
+            lineItemTaxRepository.saveAll(lineItemTaxes);
+        }
+
         updateMasterTotal(master);
 
         return lineItemsMapper.mapToLineItem(lineItem);
@@ -89,19 +131,33 @@ public class LineItemsServiceImpl implements LineItemService {
     }
 
     private void updateMasterTotal(Master master) {
-
         if (master.getVoucherType() != VoucherType.SALES) {
             throw new VoucherNotFound("Invalid Voucher Type ");
         }
 
         List<LineItems> lineItemsList = lineItemsRepository.findByMaster_MasterId(master.getMasterId());
-        double totalAmount = lineItemsList.stream()
-                .mapToDouble(LineItems::getTotalPrice)
+
+        double totalBaseAmount = lineItemsList.stream()
+                .mapToDouble(LineItems::getBaseAmount)
                 .sum();
 
-        master.setAmount(totalAmount);
+        double totalTaxAmount = lineItemsList.stream()
+                .flatMap(li -> {
+                    List<LineItemTax> taxes = li.getLineItemTaxes();
+                    return taxes != null ? taxes.stream() : Stream.empty();
+                })
+                .mapToDouble(LineItemTax::getTaxAmount)
+                .sum();
+
+        log.info("Master {}: Base Amount = {}, Tax Amount = {}, Total Amount = {}",
+                master.getMasterId(), totalBaseAmount, totalTaxAmount, totalBaseAmount + totalTaxAmount);
+
+        master.setAmount(totalBaseAmount); // Subtotal
+        master.setTaxAmount(totalTaxAmount); // All tax amounts
+        master.setTotalAmount(totalBaseAmount + totalTaxAmount); // Final total
         masterRepository.save(master);
     }
+
 
 
     // Optional: Validate if needed in UI

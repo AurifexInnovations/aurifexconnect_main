@@ -8,6 +8,8 @@ import org.springframework.data.annotation.CreatedDate;
 import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
 import java.time.LocalDate;
+import java.util.List;
+import java.util.Set;
 
 @Entity
 @Getter
@@ -25,6 +27,8 @@ public class LineItems {
 
     private double quantity;
 
+    private double baseAmount;
+
     private double totalPrice;
 
     @Enumerated(EnumType.STRING)
@@ -38,4 +42,8 @@ public class LineItems {
 
     @ManyToOne
     private Master master;
+
+    @OneToMany(mappedBy = "lineItems")
+    private List<LineItemTax> lineItemTaxes;
+
 }

@@ -13,6 +13,7 @@ import org.springframework.data.annotation.LastModifiedDate;
 
 import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
+import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.List;
 
@@ -32,6 +33,10 @@ public class Master {
     private VoucherType voucherType;
 
     private double amount;
+
+    private double taxAmount;
+
+    private double totalAmount;
 
     @Enumerated(EnumType.STRING)
     private ReferenceType referenceType;
@@ -64,7 +69,7 @@ public class Master {
     @ManyToOne
     private Voucher voucher;
 
-    @OneToMany(mappedBy = "master")
+    @OneToMany(mappedBy = "master", fetch = FetchType.LAZY)
     private List<LineItems> lineItems;
 
     @OneToMany(mappedBy = "master")

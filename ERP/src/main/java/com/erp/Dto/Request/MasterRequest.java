@@ -1,8 +1,13 @@
 package com.erp.Dto.Request;
 
+import com.erp.Enum.TaxName;
+import com.erp.Enum.TaxType;
 import com.erp.Enum.VoucherType;
+import com.erp.Model.Tax;
 import lombok.Getter;
 import lombok.Setter;
+
+import java.util.List;
 
 
 @Getter
@@ -18,6 +23,7 @@ public class MasterRequest {
     private String description;
 
     private String voucherIndex;
+
 
     //optional filed
     private long bankAccountId;
