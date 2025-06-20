@@ -77,4 +77,7 @@ public class Master {
 
     @OneToOne(mappedBy = "master")
     private  InvoiceGenerator invoiceGenerator;
+
+    @ManyToOne
+    private Master referenceMaster;
 }
