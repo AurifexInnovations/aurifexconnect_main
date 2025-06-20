@@ -1,7 +1,6 @@
 package com.erp.Service.Tax;
 
 import com.erp.Dto.Request.CommanParam;
-import com.erp.Dto.Request.TaxAnalyticsRequest;
 import com.erp.Dto.Request.TaxRequest;
 import com.erp.Dto.Response.TaxResponse;
 import com.erp.Exception.Tax.TaxNotFoundException;
@@ -12,6 +11,7 @@ import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Service;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.*;
 
 @Service
@@ -32,7 +32,6 @@ public class TaxServiceImpl implements TaxService {
     public TaxResponse updateTax(TaxRequest taxRequest) {
         Tax existingTax = taxRepository.findById(taxRequest.getId())
                 .orElseThrow(() -> new TaxNotFoundException("Tax not found with Id: " + taxRequest.getId()));
-
         taxMapper.mapToTaxEntity(taxRequest, existingTax);
         taxRepository.save(existingTax);
         return taxMapper.mapToTaxResponse(existingTax);
@@ -47,8 +46,7 @@ public class TaxServiceImpl implements TaxService {
 
     @Override
     public List<TaxResponse> getAllTaxes() {
-        List<Tax> taxes = taxRepository.findAll();
-        return taxMapper.mapToTaxResponse(taxes);
+        return taxMapper.mapToTaxResponse(taxRepository.findAll());
     }
 
     @Override
@@ -59,67 +57,48 @@ public class TaxServiceImpl implements TaxService {
         return taxMapper.mapToTaxResponse(tax);
     }
 
-
     @Override
-    public List<Map<String, Object>> getTotalTaxAnalytics(TaxAnalyticsRequest request) {
-        List<Map<String, Object>> result = new ArrayList<>();
+    public List<Map<String, Object>> getTotalTaxAnalytics(LocalDate startDate, LocalDate endDate) {
+        LocalDateTime start = startDate.atStartOfDay();
+        LocalDateTime end = endDate.plusDays(1).atStartOfDay(); // include full end day
 
-        if (request.getStartDate() == null || request.getEndDate() == null) {
-            return result;
+        List<Tax> taxes = taxRepository.findByCreatedAtBetween(start, end);
+
+        Map<LocalDate, Double> taxByDate = new TreeMap<>();
+        for (Tax tax : taxes) {
+            if (tax.getCreatedAt() != null && tax.getTaxRate() != null) {
+                LocalDate date = tax.getCreatedAt().toLocalDate();
+                taxByDate.merge(date, tax.getTaxRate().doubleValue(), Double::sum);
+            }
         }
 
-        LocalDateTime startDateTime = request.getStartDate().atStartOfDay();
-        LocalDateTime endDateTime = request.getEndDate().atTime(23, 59, 59);
-
-        List<Tax> taxes = taxRepository.findByCreatedAtBetween(startDateTime, endDateTime);
-
-        for (Tax tax : taxes) {
-            LocalDate date = tax.getCreatedAt().toLocalDate();
-            double amount = tax.getTaxRate().doubleValue(); // using taxRate as the amount
-
-            boolean found = false;
-
-            for (Map<String, Object> entry : result) {
-                if (entry.get("date").equals(date)) {
-                    double currentTotal = (double) entry.get("totalTax");
-                    entry.put("totalTax", currentTotal + amount);
-                    found = true;
-                    break;
-                }
-            }
-
-            if (!found) {
-                Map<String, Object> newEntry = new HashMap<>();
-                newEntry.put("date", date);
-                newEntry.put("totalTax", amount);
-                result.add(newEntry);
-            }
+        List<Map<String, Object>> result = new ArrayList<>();
+        for (Map.Entry<LocalDate, Double> entry : taxByDate.entrySet()) {
+            Map<String, Object> map = new HashMap<>();
+            map.put("date", entry.getKey());
+            map.put("totalTax", entry.getValue());
+            result.add(map);
         }
 
         return result;
     }
 
-
     @Override
-    public Map<String, Double> getTaxBreakupAnalytics(TaxAnalyticsRequest request) {
+    public Map<String, Double> getTaxBreakupAnalytics(LocalDate startDate, LocalDate endDate) {
+        LocalDateTime start = startDate.atStartOfDay();
+        LocalDateTime end = endDate.plusDays(1).atStartOfDay(); // include full end day
+
+        List<Tax> taxes = taxRepository.findByCreatedAtBetween(start, end);
+
         Map<String, Double> result = new HashMap<>();
-
-        if (request.getStartDate() == null || request.getEndDate() == null) {
-            return result;
-        }
-
-        LocalDateTime startDateTime = request.getStartDate().atStartOfDay();
-        LocalDateTime endDateTime = request.getEndDate().atTime(23, 59, 59);
-
-        List<Tax> taxes = taxRepository.findByCreatedAtBetween(startDateTime, endDateTime);
-
         for (Tax tax : taxes) {
-            String type = tax.getTaxType().name();
-            double amount = tax.getTaxRate().doubleValue(); // using taxRate as the amount
-
-            result.put(type, result.getOrDefault(type, 0.0) + amount);
+            if (tax.getTaxName() != null && tax.getTaxRate() != null) {
+                String name = tax.getTaxName().name();
+                result.put(name, result.getOrDefault(name, 0.0) + tax.getTaxRate().doubleValue());
+            }
         }
 
         return result;
     }
 }
+

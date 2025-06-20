@@ -56,5 +56,4 @@ public class BankAccountController {
         BankBalanceResponse response = bankAccountService.getCurrentBankBalance();
         return ResponseBuilder.success(HttpStatus.OK, "Bank balance fetched successfully", response);
     }
-
 }

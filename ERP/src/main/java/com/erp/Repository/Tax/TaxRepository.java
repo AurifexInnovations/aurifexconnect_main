@@ -13,5 +13,4 @@ public interface TaxRepository extends JpaRepository<Tax, Long> {
 
     Optional<Tax> findByTaxName(TaxName taxName);
     List<Tax> findByCreatedAtBetween(LocalDateTime start, LocalDateTime end);
-
 }

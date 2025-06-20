@@ -13,5 +13,6 @@ public interface LeaveRepository extends JpaRepository<Leave, Long> {
     List<Leave> findByStatus(LeaveStatus status);
     List<Leave> findByStartDateBetween(LocalDate start, LocalDate end);
     List<Leave> findByUserIdAndStatusAndLeaveType(Long userId, LeaveStatus status, LeaveType leaveType);
+    List<Leave> findByUserIdAndStatus(Long userId, LeaveStatus status);
 
 }

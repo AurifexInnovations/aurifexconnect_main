@@ -26,7 +26,10 @@ import jakarta.transaction.Transactional;
 import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Service;
 
-import java.util.List;
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
+import java.util.*;
 
 @Service
 @AllArgsConstructor
@@ -175,7 +178,6 @@ public class MasterServiceImpl implements MasterService{
 
     }
 
-
     @Transactional
     private void handlePayment(Master master, MasterRequest masterRequest) {
         BankAccount bankAccount = bankAccountRepository.findById(masterRequest.getBankAccountId())
@@ -293,5 +295,59 @@ public class MasterServiceImpl implements MasterService{
 //        return masterMapper.mapToMasterResponse(master);
 //    }
 
+    @Override
+    public double getTotalPurchaseAmount(LocalDate startDate, LocalDate endDate) {
+        List<Master> purchases = masterRepository.findByVoucher_VoucherTypeAndCreatedDateBetween(
+                VoucherType.PURCHASE,
+                startDate.atStartOfDay(),
+                endDate.plusDays(1).atStartOfDay()
+        );
+        return purchases.stream().mapToDouble(Master::getAmount).sum();
+    }
+
+    @Override
+    public List<Map<String, Object>> getSalesVsPurchaseComparison(String type) {
+        List<Master> masters = masterRepository.findByVoucherTypeInAndCreatedDateIsNotNull(
+                List.of(VoucherType.SALES, VoucherType.PURCHASE)
+        );
+
+        DateTimeFormatter formatter;
+        switch (type.toLowerCase()) {
+            case "day" -> formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd");
+            case "week" -> formatter = DateTimeFormatter.ofPattern("YYYY-ww");
+            case "month" -> formatter = DateTimeFormatter.ofPattern("yyyy-MM");
+            case "year" -> formatter = DateTimeFormatter.ofPattern("yyyy");
+            default -> throw new IllegalArgumentException("Invalid type: " + type + " (Use day/week/month/year)");
+        }
+
+        Map<String, Double> salesMap = new HashMap<>();
+        Map<String, Double> purchaseMap = new HashMap<>();
+
+        for (Master master : masters) {
+            String period = master.getCreatedDate().format(formatter);
+            double amount = master.getAmount();
+
+            if (master.getVoucherType() == VoucherType.SALES) {
+                salesMap.merge(period, amount, Double::sum);
+            } else if (master.getVoucherType() == VoucherType.PURCHASE) {
+                purchaseMap.merge(period, amount, Double::sum);
+            }
+        }
+
+        Set<String> allPeriods = new TreeSet<>();
+        allPeriods.addAll(salesMap.keySet());
+        allPeriods.addAll(purchaseMap.keySet());
+
+        List<Map<String, Object>> result = new ArrayList<>();
+        for (String period : allPeriods) {
+            Map<String, Object> entry = new HashMap<>();
+            entry.put("period", period);
+            entry.put("salesAmount", salesMap.getOrDefault(period, 0.0));
+            entry.put("purchaseAmount", purchaseMap.getOrDefault(period, 0.0));
+            result.add(entry);
+        }
+
+        return result;
+    }
 
 }

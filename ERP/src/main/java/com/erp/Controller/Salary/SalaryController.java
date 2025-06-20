@@ -19,6 +19,7 @@ import org.springframework.web.bind.annotation.*;
 
 import java.time.YearMonth;
 import java.util.List;
+import java.util.Map;
 
 @RestController
 @AllArgsConstructor
@@ -127,20 +128,14 @@ public class SalaryController {
         return ResponseBuilder.success(HttpStatus.OK, "Salary record deleted successfully!", response);
     }
 
-    @GetMapping("/total")
-    public ResponseEntity<ResponseStructure<SalarySummaryResponse>> getTotalSalaryPaid(
+    @GetMapping("/overview")
+    public ResponseEntity<ResponseStructure<Map<String, Object>>> getSalaryOverview(
+            @RequestParam("year") int year,
             @RequestParam("startDate") @DateTimeFormat(pattern = "yyyy-MM") YearMonth startDate,
             @RequestParam("endDate") @DateTimeFormat(pattern = "yyyy-MM") YearMonth endDate) {
 
-        SalarySummaryResponse response = salaryService.getTotalSalaryPaid(startDate, endDate);
-        return ResponseBuilder.success(HttpStatus.OK, "Total salary paid fetched successfully", response);
+        Map<String, Object> overview = salaryService.getSalaryOverview(year, startDate, endDate);
+        return ResponseBuilder.success(HttpStatus.OK, "Salary overview fetched successfully", overview);
     }
 
-    @GetMapping("/monthly")
-    public ResponseEntity<ListResponseStructure<MonthlySalaryResponse>> getMonthlySalaryOverview(
-            @RequestParam("year") int year) {
-
-        List<MonthlySalaryResponse> response = salaryService.getMonthlySalaryOverview(year);
-        return ResponseBuilder.success(HttpStatus.OK, "Monthly salary overview fetched successfully", response);
-    }
 }

@@ -253,25 +253,36 @@ public class AttendanceServiceImpl implements AttendanceService {
 
     @Override
     public List<AttendanceChartResponse> getMonthlyAttendanceAnalytics(AttendanceRequest request) {
-        final Long userId = request.getUserId();
-        final LocalDate fromDate = request.getFromDate();
-        final LocalDate toDate = request.getToDate();
-
+        Long userId = request.getUserId();
+        LocalDate fromDate = request.getFromDate();
+        LocalDate toDate = request.getToDate();
         List<Attendance> attendanceList = attendanceRepository.findByUserIdAndDateBetween(userId, fromDate, toDate);
-
         List<AttendanceChartResponse> responseList = new ArrayList<>();
-        LocalDate currentDate = fromDate;
 
+        LocalDate currentDate = fromDate;
         while (!currentDate.isAfter(toDate)) {
-            final LocalDate dateToCheck = currentDate;
-            boolean isPresent = attendanceList.stream().anyMatch(a -> a.getDate().isEqual(dateToCheck));
             AttendanceChartResponse response = new AttendanceChartResponse();
             response.setDate(currentDate);
-            response.setStatus(isPresent ? AttendanceStatus.PRESENT.name() : AttendanceStatus.LEAVE.name());
+            Attendance matchingAttendance = null;
+            for (Attendance attendance : attendanceList) {
+                if (attendance.getDate().equals(currentDate)) {
+                    matchingAttendance = attendance;
+                    break;
+                }
+            }
+
+            if (matchingAttendance != null) {
+                if (matchingAttendance.getStatus() != null) {
+                    response.setStatus(matchingAttendance.getStatus().name());
+                } else {
+                    response.setStatus(AttendanceStatus.PRESENT.name()); // fallback
+                }
+            } else {
+                response.setStatus(AttendanceStatus.ABSENT.name());
+            }
             responseList.add(response);
             currentDate = currentDate.plusDays(1);
         }
-
         return responseList;
     }
 

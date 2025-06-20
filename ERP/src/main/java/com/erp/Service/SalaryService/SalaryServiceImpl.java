@@ -3,6 +3,7 @@ package com.erp.Service.SalaryService;
 import com.erp.Dto.Request.Param;
 import com.erp.Dto.Request.SalaryRequest;
 import com.erp.Dto.Response.MonthlySalaryResponse;
+import com.erp.Dto.Response.SalaryAnalyticsResponse;
 import com.erp.Dto.Response.SalaryResponse;
 import com.erp.Dto.Response.SalarySummaryResponse;
 import com.erp.Enum.AmountStatus;
@@ -16,11 +17,14 @@ import com.erp.Repository.Salary.SalaryRepository;
 import com.erp.Repository.User.UserRepository;
 import com.erp.Service.Attendance.AttendanceService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
+
+import java.time.LocalDate;
 import java.time.YearMonth;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Optional;
+import java.util.*;
 
 @Service
 @RequiredArgsConstructor
@@ -39,27 +43,36 @@ public class SalaryServiceImpl implements SalaryService {
 
         YearMonth month = request.getMonth();
         int workingDays = Optional.ofNullable(request.getWorkingDays()).orElse(month.lengthOfMonth());
+        if (workingDays == 0) throw new IllegalArgumentException("Working days cannot be zero.");
+
         int paidDays = Optional.ofNullable(request.getPaidDays())
                 .orElse(attendanceService.countPresentDaysByUserIdAndMonth(request.getUserId(), month));
-        long baseSalary = request.getBaseSalary();
-        long bonus = request.getBonus();
-        long deductions = request.getDeductions();
+
+        long baseSalary = Optional.ofNullable(request.getBaseSalary()).orElse(0L);
+        long bonus = Optional.ofNullable(request.getBonus()).orElse(0L);
+        long deductions = Optional.ofNullable(request.getDeductions()).orElse(0L);
+
         if (deductions == 0) {
             deductions = (baseSalary / workingDays) * (workingDays - paidDays);
         }
 
-        long netSalary = Math.max(0L, (baseSalary * paidDays / workingDays) - deductions + bonus);
-        Salary salary = salaryRepository.findByUserIdAndMonth(request.getUserId(), month)
-                .orElse(new Salary());
-        if (salary.getAmountStatus() == AmountStatus.PAID) {
+        long netSalary = calculateNetSalary(baseSalary, paidDays, workingDays, bonus, deductions);
+
+        Salary salary = salaryRepository.findByUserIdAndMonth(request.getUserId(), month).orElse(null);
+
+        if (salary != null && AmountStatus.PAID.equals(salary.getAmountStatus())) {
             return salaryMapper.mapToResponse(salary);
         }
+
+        if (salary == null) {
+            salary = new Salary();
+        }
+
         salary = salaryMapper.mapToSalary(request, salary);
         salary.setUser(user);
         salary.setNetSalary(netSalary);
-        if (salary.getAmountStatus() == null) {
-            salary.setAmountStatus(AmountStatus.PENDING);
-        }
+        salary.setAmountStatus(Optional.ofNullable(salary.getAmountStatus()).orElse(AmountStatus.PENDING));
+
         salaryRepository.save(salary);
         return salaryMapper.mapToResponse(salary);
     }
@@ -86,7 +99,8 @@ public class SalaryServiceImpl implements SalaryService {
 
     @Override
     public List<SalaryResponse> getAllSalaries(int page, int size) {
-        List<Salary> salaries = salaryRepository.findAll();
+        Pageable pageable = PageRequest.of(page, size, Sort.by("month").descending());
+        List<Salary> salaries = salaryRepository.findAll(pageable).getContent();
         if (salaries.isEmpty()) throw new SalaryNotFoundException("No salary records found.");
         return salaryMapper.mapToResponseList(salaries);
     }
@@ -94,14 +108,18 @@ public class SalaryServiceImpl implements SalaryService {
     @Override
     public SalaryResponse updateSalary(SalaryRequest request) {
         Salary salary = findByUserIdAndMonth(request.getUserId(), request.getMonth());
+
         int paidDays = Optional.ofNullable(request.getPaidDays()).orElse(salary.getPaidDays());
-        long baseSalary = request.getBaseSalary();
-        long bonus = request.getBonus();
-        long deductions = request.getDeductions();
-        long netSalary = Math.max(0L, (baseSalary * paidDays / salary.getWorkingDays()) - deductions + bonus);
+        long baseSalary = Optional.ofNullable(request.getBaseSalary()).orElse(salary.getBaseSalary());
+        long bonus = Optional.ofNullable(request.getBonus()).orElse(salary.getBonus());
+        long deductions = Optional.ofNullable(request.getDeductions()).orElse(salary.getDeductions());
+
+        long netSalary = calculateNetSalary(baseSalary, paidDays, salary.getWorkingDays(), bonus, deductions);
+
         salary = salaryMapper.mapToSalary(request, salary);
         salary.setPaidDays(paidDays);
         salary.setNetSalary(netSalary);
+
         salaryRepository.save(salary);
         return salaryMapper.mapToResponse(salary);
     }
@@ -117,49 +135,52 @@ public class SalaryServiceImpl implements SalaryService {
     public SalaryResponse markSalaryAsPaid(SalaryRequest request) {
         Salary salary = findByUserIdAndMonth(request.getUserId(), request.getMonth());
         salary.setAmountStatus(AmountStatus.PAID);
-        salary.setPaymentDate(YearMonth.now());
+        salary.setPaymentDate(YearMonth.from(LocalDate.now()));
         salaryRepository.save(salary);
         return salaryMapper.mapToResponse(salary);
     }
 
+
+    // Helper methods
     private Salary findByUserIdAndMonth(Long userId, YearMonth month) {
         return salaryRepository.findByUserIdAndMonth(userId, month)
-                .orElseThrow(() -> new SalaryNotFoundException(
-                        "Salary not found for User ID: " + userId + ", Month: " + month));
+                .orElseThrow(() -> new SalaryNotFoundException("Salary not found for User ID: " + userId + ", Month: " + month));
+    }
+
+    private long calculateNetSalary(long base, int paid, int working, long bonus, long deductions) {
+        long gross = (base * paid / working) + bonus;
+        return Math.max(0L, gross - deductions);
     }
 
 
     @Override
-    public SalarySummaryResponse getTotalSalaryPaid(YearMonth startMonth, YearMonth endMonth) {
-        List<Salary> salaries = salaryRepository.findByPaymentDateBetweenAndAmountStatus(
-                startMonth, endMonth, AmountStatus.PAID);
-
-        double totalAmount = salaries.stream()
-                .mapToDouble(Salary::getNetSalary)
-                .sum();
-
-        SalarySummaryResponse response = new SalarySummaryResponse();
-        response.setLabel("Total");
-        response.setAmount(totalAmount);
-        return response;
-    }
-
-    @Override
-    public List<MonthlySalaryResponse> getMonthlySalaryOverview(int year) {
+    public Map<String, Object> getSalaryOverview(int year, YearMonth startMonth, YearMonth endMonth) {
+        // Monthly Overview
         List<MonthlySalaryResponse> monthlyList = new ArrayList<>();
-
         for (int month = 1; month <= 12; month++) {
             YearMonth ym = YearMonth.of(year, month);
-
             List<Salary> salaries = salaryRepository.findByPaymentDateAndAmountStatus(ym, AmountStatus.PAID);
-
-            double total = salaries.stream()
-                    .mapToDouble(Salary::getNetSalary)
-                    .sum();
-
+            double total = salaries.stream().mapToDouble(Salary::getNetSalary).sum();
             monthlyList.add(new MonthlySalaryResponse(ym.getMonth().name(), total));
         }
 
-        return monthlyList;
+        // Total Summary
+        List<Salary> salariesInRange = salaryRepository.findByPaymentDateBetweenAndAmountStatus(
+                startMonth, endMonth, AmountStatus.PAID
+        );
+        double totalAmount = salariesInRange.stream().mapToDouble(Salary::getNetSalary).sum();
+        List<SalarySummaryResponse> summaryList = new ArrayList<>();
+        SalarySummaryResponse summary = new SalarySummaryResponse();
+        summary.setLabel("Total");
+        summary.setAmount(totalAmount);
+        summaryList.add(summary);
+
+        // Response map
+        Map<String, Object> result = new HashMap<>();
+        result.put("monthlyOverview", monthlyList);
+        result.put("totalSalaryPaid", summaryList);
+
+        return result;
     }
+
 }

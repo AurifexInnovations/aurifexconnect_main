@@ -6,7 +6,6 @@ import java.time.YearMonth;
 @Getter
 @Setter
 public class SalaryRequest {
-    private long id;
     private long userId;
     private YearMonth month;
     private long baseSalary;

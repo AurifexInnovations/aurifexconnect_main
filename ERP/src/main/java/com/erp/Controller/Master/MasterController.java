@@ -3,12 +3,15 @@ package com.erp.Controller.Master;
 import com.erp.Dto.Request.MasterRequest;
 import com.erp.Dto.Response.MasterResponse;
 import com.erp.Service.Master.MasterService;
+import com.erp.Utility.ListResponseStructure;
 import com.erp.Utility.ResponseBuilder;
 import com.erp.Utility.ResponseStructure;
 import lombok.AllArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import java.util.List;
+import java.util.Map;
 
 @RestController
 @AllArgsConstructor
@@ -40,4 +43,12 @@ public class MasterController {
 //        MasterResponse masterResponse = masterService.deleteMaster(masterId);
 //        return ResponseBuilder.success(HttpStatus.OK,"Master Deleted Successfully",masterResponse);
 //    }
+
+    @PostMapping("/master/sales-vs-purchase-comparison-summary")
+    public ResponseEntity<ListResponseStructure<Map<String, Object>>> getSalesVsPurchaseComparison(@RequestBody Map<String, String> request) {
+        String type = request.get("type");
+        List<Map<String, Object>> result = masterService.getSalesVsPurchaseComparison(type);
+        return ResponseBuilder.success(HttpStatus.OK, "Sales vs Purchase comparison fetched", result);
+    }
+
 }

@@ -13,7 +13,6 @@ import com.erp.Repository.BankAccount.BankAccountRepository;
 import com.erp.Repository.Ledger.LedgerRepository;
 import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Service;
-
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -70,8 +69,6 @@ public class BankAccountServiceImpl implements BankAccountService{
                 .map(bankAccountMapper::mapToBankAccountResponse)
                 .collect(Collectors.toList());
     }
-
-
 
     @Override
     public BankBalanceResponse getCurrentBankBalance() {
