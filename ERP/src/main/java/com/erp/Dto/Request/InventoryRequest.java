@@ -23,7 +23,8 @@ public class InventoryRequest {
     private String itemDescription;
     private double itemCost;
     private String categories;
-    private long branchAndInventoryId;
+    private long branchId;
+    private long inventoryId;
     private List<TaxName> applicableTaxNames;
 
 }

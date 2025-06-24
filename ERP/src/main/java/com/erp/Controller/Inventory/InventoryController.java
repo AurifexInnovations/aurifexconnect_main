@@ -29,7 +29,7 @@ public class InventoryController {
 
     private final InventoryService inventoryService;
 
-    @PostMapping("inventory")
+    @PostMapping("add-inventory")
     @Operation(description = """
             The API Endpoints to Add Inventory Items
             """,

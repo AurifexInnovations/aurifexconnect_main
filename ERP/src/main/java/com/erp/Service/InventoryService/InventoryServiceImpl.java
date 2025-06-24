@@ -29,7 +29,7 @@ public class InventoryServiceImpl implements InventoryService {
 
     @Override
     public InventoryResponse addItem(InventoryRequest inventoryRequest) {
-        Branch branch = branchRepository.findById(inventoryRequest.getBranchAndInventoryId())
+        Branch branch = branchRepository.findById(inventoryRequest.getBranchId())
                 .orElseThrow(() -> new BranchNotFoundException("Branch Not Found, Invalid Id"));
 
         Inventory inventory = inventoryMapper.mapToInventory(inventoryRequest);
@@ -46,7 +46,7 @@ public class InventoryServiceImpl implements InventoryService {
 
     @Override
     public InventoryResponse updateItem(InventoryRequest inventoryRequest) {
-        Inventory inventory = inventoryRepository.findById(inventoryRequest.getBranchAndInventoryId())
+        Inventory inventory = inventoryRepository.findById(inventoryRequest.getInventoryId())
                 .orElseThrow(() -> new InventoryNotFoundException("Inventory not found , invalid id "));
 
         inventoryMapper.mapToInventoryEntity(inventoryRequest, inventory);
@@ -67,7 +67,7 @@ public class InventoryServiceImpl implements InventoryService {
 
     @Override
     public InventoryResponse deleteByItemId(InventoryRequest inventoryRequest) {
-        Inventory inventory = inventoryRepository.findById(inventoryRequest.getBranchAndInventoryId())
+        Inventory inventory = inventoryRepository.findById(inventoryRequest.getInventoryId())
                 .orElseThrow(() -> new InventoryNotFoundException("Inventory not found , invalid id "));
 
         inventoryRepository.deleteById(inventory.getItemId());
