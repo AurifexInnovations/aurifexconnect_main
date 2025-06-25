@@ -7,6 +7,7 @@ import com.erp.Dto.Response.UserResponse;
 import com.erp.Enum.AmountStatus;
 import com.erp.Service.SalaryService.SalaryService;
 import com.erp.Service.SalarySlip.SalarySlipGenerator;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -20,9 +21,7 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Import;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
-
 import java.time.YearMonth;
-
 import static org.mockito.ArgumentMatchers.any;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
@@ -46,6 +45,9 @@ class SalarySlipAPITest {
     @Autowired
     private SalarySlipGenerator salarySlipGenerator;
 
+    @Autowired
+    private ObjectMapper objectMapper; // For automatic JSON conversion
+
     @TestConfiguration
     static class MockedBeans {
         @Bean
@@ -57,29 +59,17 @@ class SalarySlipAPITest {
         public SalarySlipGenerator salarySlipGenerator() {
             return Mockito.mock(SalarySlipGenerator.class);
         }
-    }
 
-    private String toJson(SalaryRequest request) {
-        return String.format("""
-            {
-                "id": %d,
-                "userId": %d,
-                "month": "%s",
-                "baseSalary": %d,
-                "bonus": %d,
-                "deductions": %d,
-                "workingDays": %d,
-                "paidDays": %d,
-                "remarks": "%s"
-            }
-        """, request.getId(), request.getUserId(), request.getMonth(), request.getBaseSalary(),
-                request.getBonus(), request.getDeductions(), request.getWorkingDays(), request.getPaidDays(), request.getRemarks());
+        @Bean
+        public ObjectMapper objectMapper() {
+            return new ObjectMapper();
+        }
     }
 
     @Test
     void testGenerateSalaryView() throws Exception {
+        // Arrange
         SalaryRequest request = new SalaryRequest();
-        request.setId(1L);
         request.setUserId(1L);
         request.setMonth(YearMonth.of(2024, 5));
         request.setBaseSalary(50000L);
@@ -102,23 +92,25 @@ class SalarySlipAPITest {
         response.setDeductions(request.getDeductions());
         response.setWorkingDays(request.getWorkingDays());
         response.setPaidDays(request.getPaidDays());
-        response.setNetSalary(48000L);
+        response.setNetSalary(53000L); // Corrected calculation: 50000 + 5000 - 2000 = 53000
         response.setRemarks("May Salary");
         response.setAmountStatus(AmountStatus.PENDING);
 
         Mockito.when(salaryService.generateSalaryForMonth(any(SalaryRequest.class))).thenReturn(response);
 
-        mockMvc.perform(post("/salary/generate")
+        // Act & Assert
+        mockMvc.perform(post("/salary/generate") // ensure this endpoint exists in your SalarySlipController
                         .contentType(MediaType.APPLICATION_JSON)
-                        .content(toJson(request)))
+                        .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isOk())
-                .andExpect(view().name("salary-slip"))
+                .andExpect(view().name("salary-slip")) // Make sure your controller returns "salary-slip" view
                 .andExpect(model().attributeExists("salary"))
                 .andDo(print());
     }
 
     @Test
     void testGenerateSalarySlipPdf() throws Exception {
+        // Arrange
         SalaryRequest request = new SalaryRequest();
         request.setUserId(1L);
         request.setMonth(YearMonth.of(2024, 5));
@@ -126,9 +118,10 @@ class SalarySlipAPITest {
         byte[] dummyPdf = "PDF-DATA".getBytes();
         Mockito.when(salarySlipGenerator.generateSlipPdf(any(SalaryRequest.class))).thenReturn(dummyPdf);
 
-        mockMvc.perform(post("/salary/slip")
+        // Act & Assert
+        mockMvc.perform(post("/salary/slip") // ensure this endpoint exists in your SalarySlipController
                         .contentType(MediaType.APPLICATION_JSON)
-                        .content(toJson(request)))
+                        .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isOk())
                 .andExpect(header().string("Content-Disposition", "attachment; filename=SalarySlip-1.pdf"))
                 .andExpect(content().contentType(MediaType.APPLICATION_PDF))

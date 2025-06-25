@@ -9,7 +9,6 @@ import lombok.Getter;
 import lombok.Setter;
 import java.time.LocalDateTime;
 import java.util.List;
-import java.util.List;
 import java.util.Map;
 
 @Getter
@@ -48,10 +47,5 @@ public class MasterResponse {
     private double taxTotal;
 
     private double totalAmount;
-
-
-
-
-
 
 }

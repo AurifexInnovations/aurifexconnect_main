@@ -3,7 +3,6 @@ package com.erp.Service.SalaryService;
 import com.erp.Dto.Request.Param;
 import com.erp.Dto.Request.SalaryRequest;
 import com.erp.Dto.Response.MonthlySalaryResponse;
-import com.erp.Dto.Response.SalaryAnalyticsResponse;
 import com.erp.Dto.Response.SalaryResponse;
 import com.erp.Dto.Response.SalarySummaryResponse;
 import com.erp.Enum.AmountStatus;
@@ -140,7 +139,6 @@ public class SalaryServiceImpl implements SalaryService {
         return salaryMapper.mapToResponse(salary);
     }
 
-
     // Helper methods
     private Salary findByUserIdAndMonth(Long userId, YearMonth month) {
         return salaryRepository.findByUserIdAndMonth(userId, month)
@@ -151,7 +149,6 @@ public class SalaryServiceImpl implements SalaryService {
         long gross = (base * paid / working) + bonus;
         return Math.max(0L, gross - deductions);
     }
-
 
     @Override
     public Map<String, Object> getSalaryOverview(int year, YearMonth startMonth, YearMonth endMonth) {

@@ -50,4 +50,4 @@ logging:
         date-format: dd-MM-yyyy hh:mm:ss a
         time-zone: Asia/Kolkata
         serialization:
-            write-dates-as-timestamps: false
+    write-dates-as-timestamps: false

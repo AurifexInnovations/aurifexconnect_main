@@ -63,11 +63,13 @@ public class AttendanceAPITest {
         Param param = new Param();
         param.setUserId(userId);
 
-        // Simulate check-in before check-out
+        // First Check-in
         mockMvc.perform(post("/api/attendance/check-in")
-                .contentType(MediaType.APPLICATION_JSON)
-                .content(objectMapper.writeValueAsString(param)));
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(param)))
+                .andExpect(status().isOk());
 
+        // Then Check-out
         mockMvc.perform(post("/api/attendance/check-out")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(param)))
@@ -95,10 +97,11 @@ public class AttendanceAPITest {
         Param param = new Param();
         param.setUserId(userId);
 
-        // Ensure record exists
+        // Ensure attendance exists
         mockMvc.perform(post("/api/attendance/check-in")
-                .contentType(MediaType.APPLICATION_JSON)
-                .content(objectMapper.writeValueAsString(param)));
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(param)))
+                .andExpect(status().isOk());
 
         mockMvc.perform(post("/api/attendance/user/record")
                         .contentType(MediaType.APPLICATION_JSON)
@@ -142,12 +145,13 @@ public class AttendanceAPITest {
 
     @Test
     void testDeleteAttendanceByUserIDandDate() throws Exception {
-        // Create record first
+        // First check-in to create record
         Param param = new Param();
         param.setUserId(userId);
         mockMvc.perform(post("/api/attendance/check-in")
-                .contentType(MediaType.APPLICATION_JSON)
-                .content(objectMapper.writeValueAsString(param)));
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(param)))
+                .andExpect(status().isOk());
 
         AttendanceRequest request = new AttendanceRequest();
         request.setUserId(userId);

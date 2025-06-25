@@ -12,7 +12,7 @@ public interface MasterService {
     MasterResponse createMaster(MasterRequest masterRequest);
 
     MasterResponse findById(MasterRequest masterRequest);
-    double getTotalPurchaseAmount(LocalDate startDate, LocalDate endDate);
+
     List<Map<String, Object>> getSalesVsPurchaseComparison(String type);
 
 //    MasterResponse updateMaster(Long masterId, MasterRequest masterRequest);
