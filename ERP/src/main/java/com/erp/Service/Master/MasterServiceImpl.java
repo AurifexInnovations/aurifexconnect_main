@@ -78,7 +78,7 @@ public class MasterServiceImpl implements MasterService {
 
         return masterMapper.mapToMasterResponse(master);
     }
-
+    
     private void handleInvoice(Master invoice, MasterRequest masterRequest) {
         invoice.setReferenceType(ReferenceType.NEWREF);
         invoice.setTransactionStatus(TransactionStatus.UNPAID);
