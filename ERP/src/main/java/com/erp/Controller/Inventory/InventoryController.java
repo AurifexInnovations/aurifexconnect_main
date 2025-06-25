@@ -30,7 +30,7 @@ public class InventoryController {
 
     private final InventoryService inventoryService;
 
-    @PostMapping("inventory")
+    @PostMapping("add-inventory")
     @Operation(description = """
             The API Endpoints to Add Inventory Items
             """,
@@ -42,7 +42,7 @@ public class InventoryController {
         return ResponseBuilder.success(HttpStatus.CREATED,"Inventory Created",inventoryResponse);
     }
 
-    @PutMapping("inventory")
+    @PutMapping("inventory-update")
     @Operation(description = """
             The API Endpoints to Update Inventory Items
             """,
