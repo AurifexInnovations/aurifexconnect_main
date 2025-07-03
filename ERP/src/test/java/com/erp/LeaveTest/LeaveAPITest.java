@@ -6,14 +6,15 @@ import com.erp.Enum.LeaveStatus;
 import com.erp.Model.User;
 import com.erp.Repository.User.UserRepository;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import lombok.AllArgsConstructor;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.http.MediaType;
+import org.springframework.test.annotation.Rollback;
 import org.springframework.test.web.servlet.MockMvc;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDate;
 
@@ -22,13 +23,17 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 @SpringBootTest
 @AutoConfigureMockMvc
-@AllArgsConstructor
+@Transactional
+@Rollback
 public class LeaveAPITest {
 
+    @Autowired
     private MockMvc mockMvc;
 
+    @Autowired
     private ObjectMapper objectMapper;
 
+    @Autowired
     private UserRepository userRepository;
 
     private long userId;
@@ -50,9 +55,9 @@ public class LeaveAPITest {
         request.setFirstName("Test");
         request.setLastName("User");
         request.setStartDate(LocalDate.now());
-        request.setEndDate(LocalDate.now().plusDays(3));
+        request.setEndDate(LocalDate.now().plusDays(2));
         request.setLeaveType("PAID");
-        request.setReason("Medical leave");
+        request.setReason("Medical Leave");
 
         String response = mockMvc.perform(post("/leave/apply")
                         .contentType(MediaType.APPLICATION_JSON)
@@ -62,7 +67,6 @@ public class LeaveAPITest {
                 .getResponse()
                 .getContentAsString();
 
-        // Extract leaveId from response JSON
         leaveId = objectMapper.readTree(response).path("data").path("id").asLong();
     }
 
@@ -75,7 +79,7 @@ public class LeaveAPITest {
         request.setStartDate(LocalDate.now().plusDays(5));
         request.setEndDate(LocalDate.now().plusDays(7));
         request.setLeaveType("CASUAL");
-        request.setReason("Family event");
+        request.setReason("Family Function");
 
         mockMvc.perform(post("/leave/apply")
                         .contentType(MediaType.APPLICATION_JSON)
@@ -93,46 +97,18 @@ public class LeaveAPITest {
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(param)))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.message").value("Leave request by user"));
-    }
-
-    @Test
-    void testApproveLeave() throws Exception {
-        LeaveRequest request = new LeaveRequest();
-        request.setUserId(userId);
-        request.setId(leaveId);
-        request.setStatus(LeaveStatus.APPROVED);
-
-        mockMvc.perform(put("/leave/approve")
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsString(request)))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$.message").value("Leave approved"));
-    }
-
-    @Test
-    void testRejectLeave() throws Exception {
-        LeaveRequest request = new LeaveRequest();
-        request.setUserId(userId);
-        request.setId(leaveId);
-        request.setStatus(LeaveStatus.REJECTED);
-
-        mockMvc.perform(put("/leave/reject")
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsString(request)))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$.message").value("Leave rejected"));
+                .andExpect(jsonPath("$.message").value("Leave requests by user"));
     }
 
     @Test
     void testUpdateLeave() throws Exception {
         LeaveRequest request = new LeaveRequest();
-        request.setUserId(userId);
         request.setId(leaveId);
-        request.setStartDate(LocalDate.now().plusDays(1));
+        request.setUserId(userId);
+        request.setStartDate(LocalDate.now().plusDays(2));
         request.setEndDate(LocalDate.now().plusDays(4));
         request.setLeaveType("EMERGENCY");
-        request.setReason("Updated reason");
+        request.setReason("Updated Reason");
 
         mockMvc.perform(put("/leave/update")
                         .contentType(MediaType.APPLICATION_JSON)
@@ -142,8 +118,37 @@ public class LeaveAPITest {
     }
 
     @Test
+    void testApproveLeave() throws Exception {
+        LeaveRequest request = new LeaveRequest();
+        request.setId(leaveId);
+        request.setUserId(userId);
+        request.setStatus(LeaveStatus.APPROVED);
+
+        mockMvc.perform(put("/leave/status")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(request)))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.message").value("Leave status updated"));
+    }
+
+    @Test
+    void testRejectLeave() throws Exception {
+        LeaveRequest request = new LeaveRequest();
+        request.setId(leaveId);
+        request.setUserId(userId);
+        request.setStatus(LeaveStatus.REJECTED);
+
+        mockMvc.perform(put("/leave/status")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(request)))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.message").value("Leave status updated"));
+    }
+
+    @Test
     void testGetAllLeaveRequests() throws Exception {
-        mockMvc.perform(get("/leave/all"))
+        mockMvc.perform(post("/leave/all")
+                        .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.message").value("All leave requests retrieved"));
     }

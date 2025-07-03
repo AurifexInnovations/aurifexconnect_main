@@ -28,7 +28,6 @@ public class TokenGenerationService {
 
         org.springframework.http.HttpHeaders headers = new org.springframework.http.HttpHeaders();
         headers.add(org.springframework.http.HttpHeaders.SET_COOKIE, newAccessToken);
-
         return headers;
     }
 
@@ -44,7 +43,6 @@ public class TokenGenerationService {
         headers.add(HttpHeaders.SET_COOKIE, accessCookie);
         headers.add(HttpHeaders.SET_COOKIE, refreshCookie);
         return headers;
-
     }
 
     public Map<String, Object> setClaim(AuthRecord authRecord){
