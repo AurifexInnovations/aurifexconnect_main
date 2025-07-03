@@ -102,6 +102,7 @@ public class InventoryServiceImpl implements InventoryService {
         List<Inventory> inventories = inventoryRepository.findAll(); // Or fetchAllInventoryForStockValue()
 
         if (inventories.isEmpty()) {
+
             throw new InventoryNotFoundException("No inventories found for stock value calculation");
         }
 

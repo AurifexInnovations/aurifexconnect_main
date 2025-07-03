@@ -36,7 +36,6 @@ public class InventoryMovementController {
     public ResponseEntity<ListResponseStructure<InventoryMovementSummaryResponse>> getSummary(
             @RequestBody InventoryMovementSummaryRequest summaryRequest)
     {
-
         List<InventoryMovementSummaryResponse> summary = movementService.getInventoryMovementSummary(summaryRequest);
         return ResponseBuilder.success(HttpStatus.OK, "Inventory Movement Summary fetched successfully", summary);
     }

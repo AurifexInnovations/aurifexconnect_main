@@ -88,7 +88,8 @@ public class MasterServiceImpl implements MasterService {
     public List<PurchaseSalesResponse> getPurchaseSalesSummary(PurchaseSalesRequest request) {
         String format;
 
-        switch (request.getType().toLowerCase()) {
+        switch (request.getType().toLowerCase())
+        {
             case "week" -> format = "%Y-%W";
             case "month" -> format = "%Y-%m";
             case "day" -> format = "%Y-%m-%d";
@@ -99,7 +100,8 @@ public class MasterServiceImpl implements MasterService {
         List<Object[]> result = masterRepository.getPurchaseSalesSummary(format, request.getVoucherType().name());
         List<PurchaseSalesResponse> responseList = new ArrayList<>();
 
-        for (Object[] row : result) {
+        for (Object[] row : result)
+        {
             String period = (String) row[0];
             double totalAmount = row[1] != null ? ((Number) row[1]).doubleValue() : 0.0;
             responseList.add(new PurchaseSalesResponse(period, totalAmount));
