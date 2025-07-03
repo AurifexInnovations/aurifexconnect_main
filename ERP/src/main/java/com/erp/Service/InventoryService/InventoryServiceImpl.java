@@ -100,7 +100,7 @@ public class InventoryServiceImpl implements InventoryService {
     @Override
     public List<StockValueResponse> getStockValueList() {
         List<Inventory> inventories = inventoryRepository.findAll(); // Or fetchAllInventoryForStockValue()
-
+//new
         if (inventories.isEmpty()) {
 
             throw new InventoryNotFoundException("No inventories found for stock value calculation");

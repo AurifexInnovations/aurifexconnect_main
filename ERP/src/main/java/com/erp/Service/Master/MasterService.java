@@ -18,6 +18,6 @@ public interface MasterService {
 //    MasterResponse deleteMaster(Long masterId);
 
 
-    //Chart Base
+    //new
     List<PurchaseSalesResponse> getPurchaseSalesSummary(PurchaseSalesRequest request);
 }

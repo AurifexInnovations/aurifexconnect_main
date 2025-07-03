@@ -7,6 +7,7 @@ import lombok.Setter;
 @Setter
 public class StockValueResponse {
 
+    //new
     private String itemName;
     private Double stockValue;
 }

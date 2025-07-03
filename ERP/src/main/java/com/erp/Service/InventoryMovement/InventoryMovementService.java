@@ -12,5 +12,6 @@ public interface InventoryMovementService {
 
     InventoryMovementResponse processInventoryMovement(InventoryMovementRequest inventoryMovementRequest);
 
+    //new
     List<InventoryMovementSummaryResponse> getInventoryMovementSummary(InventoryMovementSummaryRequest request);
 }

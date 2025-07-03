@@ -87,7 +87,7 @@ public class MasterServiceImpl implements MasterService {
     @Override
     public List<PurchaseSalesResponse> getPurchaseSalesSummary(PurchaseSalesRequest request) {
         String format;
-
+//new
         switch (request.getType().toLowerCase())
         {
             case "week" -> format = "%Y-%W";

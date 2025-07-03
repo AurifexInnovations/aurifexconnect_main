@@ -8,6 +8,7 @@ import lombok.Setter;
 @Setter
 @AllArgsConstructor
 public class PurchaseSalesResponse {
+    //new
     private String period;
     private double totalAmount;
 

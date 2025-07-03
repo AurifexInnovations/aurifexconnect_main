@@ -67,7 +67,7 @@ public class InventoryMovementServiceImpl implements InventoryMovementService {
     @Override
     public List<InventoryMovementSummaryResponse> getInventoryMovementSummary(InventoryMovementSummaryRequest request) {
         String format = "%Y-%m-%d"; // default daily
-
+        //new
         if (request.getType() != null) {
             switch (request.getType().toLowerCase()) {
                 case "week" -> format = "%Y-%W";

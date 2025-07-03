@@ -96,5 +96,6 @@ public interface InventoryService {
      *
      * @return List of StockValueResponse containing item name and its stock value.
      */
+    //new
     List<StockValueResponse> getStockValueList();
 }
