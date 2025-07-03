@@ -15,11 +15,14 @@ import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.AllArgsConstructor;
+import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.time.LocalDate;
 import java.util.List;
+import java.util.Map;
 
 @RestController
 @AllArgsConstructor
@@ -71,6 +74,7 @@ public class TaxController {
                     @ApiResponse(responseCode = "200", description = "Tax Found Successfully"),
                     @ApiResponse(responseCode = "404", description = "Tax Not Found", content = {
                             @Content(schema = @Schema(implementation = SimpleErrorResponse.class))
+
                     })
             })
     public ResponseEntity<ResponseStructure<TaxResponse>> getTaxById(@RequestBody CommanParam param) {
@@ -89,5 +93,23 @@ public class TaxController {
     public ResponseEntity<ListResponseStructure<TaxResponse>> getAllTaxes() {
         List<TaxResponse> response = taxService.getAllTaxes();
         return ResponseBuilder.success(HttpStatus.OK, "All Taxes Found Successfully!", response);
+    }
+
+    @GetMapping("/analytics/tax/total")
+    public ResponseEntity<ListResponseStructure<Map<String, Object>>> getTotalTaxAnalytics(
+            @RequestParam("startDate") @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate startDate,
+            @RequestParam("endDate") @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate endDate) {
+
+        List<Map<String, Object>> response = taxService.getTotalTaxAnalytics(startDate, endDate);
+        return ResponseBuilder.success(HttpStatus.OK, "Total tax chart data fetched", response);
+    }
+
+    @GetMapping("/analytics/tax/breakup")
+    public ResponseEntity<ResponseStructure<Map<String, Double>>> getTaxBreakupAnalytics(
+            @RequestParam("startDate") @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate startDate,
+            @RequestParam("endDate") @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate endDate) {
+
+        Map<String, Double> response = taxService.getTaxBreakupAnalytics(startDate, endDate);
+        return ResponseBuilder.success(HttpStatus.OK, "Tax breakup chart data fetched", response);
     }
 }
