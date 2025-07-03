@@ -26,5 +26,4 @@ public class LineItemTax {
     @ManyToOne
     private Tax tax;
 
-
 }

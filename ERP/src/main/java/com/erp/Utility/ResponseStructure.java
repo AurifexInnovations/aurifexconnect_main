@@ -10,4 +10,3 @@ public class ResponseStructure<T> {
     private String message;
     private T data;
 }
-

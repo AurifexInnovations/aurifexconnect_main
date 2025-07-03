@@ -24,12 +24,14 @@ public class LeaveServiceImpl implements LeaveService {
     private final LeaveRepository leaveRepository;
     private final LeaveMapper leaveMapper;
     private final UserRepository userRepository;
+    private final int ANNUAL_PAID_LEAVE_ALLOWANCE = 12;
 
     @Override
     public LeaveResponse createLeaveRequest(LeaveRequest request) {
         validateLeaveDates(request.getStartDate(), request.getEndDate());
         User user = userRepository.findById(request.getUserId())
                 .orElseThrow(() -> new UserNotFoundException("User not found with id: " + request.getUserId()));
+
         Leave leave = leaveMapper.mapToLeave(request);
         leave.setUser(user);
         leave.setStatus(LeaveStatus.PENDING);
@@ -43,8 +45,10 @@ public class LeaveServiceImpl implements LeaveService {
         validateLeaveDates(request.getStartDate(), request.getEndDate());
         Leave leave = leaveRepository.findById(request.getId())
                 .orElseThrow(() -> new LeaveNotFoundException("Leave not found with id: " + request.getId()));
+
         leaveMapper.updateLeave(request, leave);
         leave.setLeaveType(parseLeaveType(request.getLeaveType()));
+
         leaveRepository.save(leave);
         return leaveMapper.mapToLeaveResponse(leave);
     }
@@ -100,12 +104,31 @@ public class LeaveServiceImpl implements LeaveService {
         Leave leave = leaveRepository.findById(request.getId())
                 .orElseThrow(() -> new LeaveNotFoundException("Leave not found with id: " + request.getId()));
 
-        LeaveStatus status = request.getStatus();
-        if (status == null || !isValidStatus(status)) {
-            throw new IllegalArgumentException("Invalid leave status: " + status);
+        LeaveStatus oldStatus = leave.getStatus();
+        LeaveStatus newStatus = request.getStatus();
+
+        if (newStatus == null || !isValidStatus(newStatus)) {
+            throw new IllegalArgumentException("Invalid leave status: " + newStatus);
         }
 
-        leave.setStatus(status);
+        User user = leave.getUser();
+
+        // If changing status to APPROVED for a PAID leave, check balance
+        if (leave.getLeaveType() == LeaveType.PAID
+                && oldStatus != LeaveStatus.APPROVED
+                && newStatus == LeaveStatus.APPROVED) {
+
+            long leaveDays = java.time.temporal.ChronoUnit.DAYS.between(leave.getStartDate(), leave.getEndDate()) + 1;
+            int leaveBalance = calculateLeaveBalance(user.getId());
+            if (leaveBalance < leaveDays) {
+                throw new IllegalArgumentException("Insufficient leave balance to approve paid leave.");
+            }
+            // Optionally update leaveBalance on the leave entity
+            leave.setLeaveBalance(leaveBalance - (int) leaveDays);
+        }
+
+        // For any other status changes, including REJECTED, no balance check required
+        leave.setStatus(newStatus);
         leaveRepository.save(leave);
         return leaveMapper.mapToLeaveResponse(leave);
     }
@@ -114,8 +137,34 @@ public class LeaveServiceImpl implements LeaveService {
     public LeaveResponse deleteLeaveRequest(Param param) {
         Leave leave = leaveRepository.findById(param.getId())
                 .orElseThrow(() -> new LeaveNotFoundException("Leave not found with id: " + param.getId()));
+
+        // No need to update leave balance because it’s dynamic and calculated
         leaveRepository.delete(leave);
         return leaveMapper.mapToLeaveResponse(leave);
+    }
+
+    private int calculateLeaveBalance(Long userId) {
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new UserNotFoundException("User not found with id: " + userId));
+
+        LocalDate joiningDate = user.getCreatedAt();
+        LocalDate today = LocalDate.now();
+
+        // Calculate how many months completed between joining date and today
+        int monthsWorked = joiningDate.until(today).getYears() * 12 + joiningDate.until(today).getMonths();
+
+        // Limit prorated leave allowance to the yearly max (e.g. 12)
+        int proratedLeaveAllowance = Math.min(monthsWorked, ANNUAL_PAID_LEAVE_ALLOWANCE);
+
+        List<Leave> approvedPaidLeaves = leaveRepository.findByUserIdAndStatusAndLeaveType(
+                userId, LeaveStatus.APPROVED, LeaveType.PAID);
+
+        int usedDays = 0;
+        for (Leave leave : approvedPaidLeaves) {
+            long days = java.time.temporal.ChronoUnit.DAYS.between(leave.getStartDate(), leave.getEndDate()) + 1;
+            usedDays += days;
+        }
+        return proratedLeaveAllowance - usedDays;
     }
 
     private void validateLeaveDates(LocalDate start, LocalDate end) {

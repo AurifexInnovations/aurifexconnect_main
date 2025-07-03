@@ -24,5 +24,4 @@ public interface UserMapper {
 
     void mapTOUserEntity(UserUpdateRequest userUpdateRequest, @MappingTarget User use);
 
-
 }
