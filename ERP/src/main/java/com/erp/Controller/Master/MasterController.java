@@ -31,6 +31,20 @@ public class MasterController {
         return ResponseBuilder.success(HttpStatus.OK, "Master Found Successfully", masterResponse);
     }
 
+//    @DeleteMapping("master-delete/{masterId}")
+//    public ResponseEntity<ResponseStructure<MasterResponse>> deleteMaster(@PathVariable Long masterId) {
+//        MasterResponse masterResponse = masterService.deleteMaster(masterId);
+//        return ResponseBuilder.success(HttpStatus.OK,"Master Deleted Successfully",masterResponse);
+//    }
+
+    @PostMapping("/summary")
+    public ResponseEntity<ListResponseStructure<PurchaseSalesResponse>> getPurchaseSalesSummary(
+            @RequestBody PurchaseSalesRequest request)
+    {
+
+        List<PurchaseSalesResponse> summary = masterService.getPurchaseSalesSummary(request);
+        return ResponseBuilder.success(HttpStatus.OK, "Summary fetched successfully", summary);
+
     @PostMapping("/master/sales-vs-purchase-comparison-summary")
     public ResponseEntity<ResponseStructure<List<Map<String, Object>>>> getSalesVsPurchaseComparisonSummary(
             @RequestBody Map<String, String> request) {

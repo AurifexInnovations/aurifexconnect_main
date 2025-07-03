@@ -108,4 +108,12 @@ public class InventoryController {
         List<String> categories = inventoryService.fetchAllCategories();
         return ResponseBuilder.success(HttpStatus.OK,"Categories Fetched Successfully",categories);
     }
+
+    @GetMapping("/inventory/stockvalue")
+    public ResponseEntity<ListResponseStructure<StockValueResponse>> getStockValues() {
+
+        List<StockValueResponse> stockValueResponses = inventoryService.getStockValueList();
+        return ResponseBuilder.success(HttpStatus.OK, "Stock values fetched successfully", stockValueResponses);
+    }
+
 }
