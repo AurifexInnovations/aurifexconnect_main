@@ -33,7 +33,7 @@ public class LeaveServiceImpl implements LeaveService {
         Leave leave = leaveMapper.mapToLeave(request);
         leave.setUser(user);
         leave.setStatus(LeaveStatus.PENDING);
-        leave.setLeaveType(parseLeaveType(request.getLeaveType()));
+        leave.setLeaveType(request.getLeaveType());
         leaveRepository.save(leave);
         return leaveMapper.mapToLeaveResponse(leave);
     }
@@ -44,7 +44,7 @@ public class LeaveServiceImpl implements LeaveService {
         Leave leave = leaveRepository.findById(request.getId())
                 .orElseThrow(() -> new LeaveNotFoundException("Leave not found with id: " + request.getId()));
         leaveMapper.updateLeave(request, leave);
-        leave.setLeaveType(parseLeaveType(request.getLeaveType()));
+        leave.setLeaveType(request.getLeaveType());
         leaveRepository.save(leave);
         return leaveMapper.mapToLeaveResponse(leave);
     }

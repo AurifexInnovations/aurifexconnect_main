@@ -1,6 +1,7 @@
 package com.erp.Dto.Response;
 
 
+import com.erp.Enum.LeaveType;
 import lombok.*;
 import java.time.LocalDate;
 
@@ -11,7 +12,7 @@ public class LeaveResponse {
     private UserResponse user;
     private LocalDate startDate;
     private LocalDate endDate;
-    private String leaveType;
+    private LeaveType leaveType;
     private String reason;
     private String status;
 }

@@ -1,6 +1,7 @@
 package com.erp.Dto.Request;
 
 import com.erp.Enum.LeaveStatus;
+import com.erp.Enum.LeaveType;
 import lombok.Getter;
 import lombok.Setter;
 import java.time.LocalDate;
@@ -14,7 +15,7 @@ public class LeaveRequest {
     private String lastName;
     private LocalDate startDate;
     private LocalDate endDate;
-    private String leaveType;
+    private LeaveType leaveType;
     private String reason;
     private LeaveStatus status;
 

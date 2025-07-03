@@ -71,21 +71,6 @@ public class AttendanceController {
         return ResponseBuilder.success(HttpStatus.OK, "Attendance updated successfully", response);
     }
 
-    @PostMapping("/getAttendance")
-    @Operation(
-            summary = "Get Attendance By User ID",
-            description = "Fetch attendance record by User ID"
-    )
-    @ApiResponses(value = {
-            @ApiResponse(responseCode = "200", description = "Attendance record found"),
-            @ApiResponse(responseCode = "404", description = "Attendance record not found")
-    })
-    public ResponseEntity<ResponseStructure<AttendanceResponse>> getAttendanceById(
-            @Valid @RequestBody Param param) {
-        AttendanceResponse response = attendanceService.getAttendanceById(param);
-        return ResponseBuilder.success(HttpStatus.OK, "Attendance record found", response);
-    }
-
     @PostMapping("/user/records")
     @Operation(
             summary = "Get Attendance Records for User",

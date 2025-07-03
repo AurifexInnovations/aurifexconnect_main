@@ -38,5 +38,4 @@ public class SalarySlipController {
                 .contentType(MediaType.APPLICATION_PDF)
                 .body(pdf);
     }
-
 }
