@@ -3,6 +3,7 @@ package com.erp.Controller.Inventory;
 import com.erp.Dto.Request.CommanParam;
 import com.erp.Dto.Request.InventoryRequest;
 import com.erp.Dto.Response.InventoryResponse;
+import com.erp.Dto.Response.StockValueResponse;
 import com.erp.Service.InventoryService.InventoryService;
 import com.erp.Utility.ListResponseStructure;
 import com.erp.Utility.ResponseBuilder;
