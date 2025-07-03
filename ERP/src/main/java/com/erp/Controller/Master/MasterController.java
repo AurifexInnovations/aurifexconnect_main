@@ -50,6 +50,7 @@ public class MasterController {
     public ResponseEntity<ListResponseStructure<PurchaseSalesResponse>> getPurchaseSalesSummary(
             @RequestBody PurchaseSalesRequest request)
     {
+
         List<PurchaseSalesResponse> summary = masterService.getPurchaseSalesSummary(request);
         return ResponseBuilder.success(HttpStatus.OK, "Summary fetched successfully", summary);
     }

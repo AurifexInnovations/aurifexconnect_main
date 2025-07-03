@@ -112,6 +112,7 @@ public class InventoryController {
 
     @GetMapping("/inventory/stockvalue")
     public ResponseEntity<ListResponseStructure<StockValueResponse>> getStockValues() {
+
         List<StockValueResponse> stockValueResponses = inventoryService.getStockValueList();
         return ResponseBuilder.success(HttpStatus.OK, "Stock values fetched successfully", stockValueResponses);
     }
