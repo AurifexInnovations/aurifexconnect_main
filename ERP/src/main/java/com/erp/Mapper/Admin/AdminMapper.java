@@ -5,7 +5,6 @@ import com.erp.Dto.Response.AdminResponse;
 import com.erp.Model.Admin;
 import org.mapstruct.Mapper;
 import org.mapstruct.MappingTarget;
-
 import java.util.List;
 
 @Mapper(componentModel = "spring")

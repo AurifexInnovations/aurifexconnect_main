@@ -179,5 +179,4 @@ public class SalaryServiceImpl implements SalaryService {
 
         return result;
     }
-
 }

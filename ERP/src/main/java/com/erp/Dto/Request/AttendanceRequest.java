@@ -10,9 +10,11 @@ import java.time.LocalDateTime;
 public class AttendanceRequest {
     private long id;
     private long userId;
+    private String month;
     private LocalDate date;
     private LocalDateTime checkInTime;
     private LocalDateTime checkOutTime;
     private LocalDate fromDate;
     private LocalDate toDate;
+    private String status;
 }

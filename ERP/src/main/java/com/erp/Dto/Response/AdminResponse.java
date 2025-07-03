@@ -16,7 +16,7 @@ public class AdminResponse {
 
     private long contactNo;
 
-    private boolean isActive;
+    private boolean is_Active;
 
     private LocalDateTime createdAt;
 

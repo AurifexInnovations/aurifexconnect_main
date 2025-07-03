@@ -84,30 +84,65 @@ public class AttendanceServiceImpl implements AttendanceService {
 
         return response;
     }
-
     @Override
+    @Transactional
     public AttendanceResponse updateAttendance(AttendanceRequest request) {
-        Attendance attendance = attendanceRepository.findByUser_IdAndDate(request.getUserId(), request.getDate())
-                .orElseThrow(() -> new AttendanceNotFoundException("Attendance not found for user and date."));
+        if (request == null || request.getUserId() <= 0 || request.getDate() == null) {
+            throw new IllegalArgumentException("User ID and date must be provided.");
+        }
+        User user = userRepository.findById(request.getUserId())
+                .orElseThrow(() -> new UserNotFoundException("User not found."));
 
-        if (request.getCheckInTime() != null) {
-            attendance.setCheckIn(request.getCheckInTime());
+        Attendance attendance;
+        if (request.getId() > 0) {
+            attendance = attendanceRepository.findById(request.getId())
+                    .orElseThrow(() -> new AttendanceNotFoundException("Attendance not found for id: " + request.getId()));
+            if (attendance.getUser().getId() != request.getUserId() || !attendance.getDate().equals(request.getDate())) {
+                throw new AttendanceInvalidException("User ID or date does not match attendance record.");
+            }
+        } else {
+            attendance = attendanceRepository.findByUser_IdAndDate(request.getUserId(), request.getDate())
+                    .orElseGet(() -> {
+                        Attendance newAttendance = new Attendance();
+                        newAttendance.setUser(user);
+                        newAttendance.setDate(request.getDate());
+                        newAttendance.setStatus(AttendanceStatus.PRESENT);
+                        return newAttendance;
+                    });
         }
 
+        if (request.getCheckInTime() != null) {
+            if (!request.getCheckInTime().toLocalDate().equals(request.getDate())) {
+                throw new AttendanceInvalidException("Check-in time must match the specified date.");
+            }
+            attendance.setCheckIn(request.getCheckInTime());
+        }
         if (request.getCheckOutTime() != null) {
-            if (attendance.getCheckIn() != null && request.getCheckOutTime().isBefore(attendance.getCheckIn())) {
-                throw new AttendanceInvalidException("Check-out cannot be before check-in.");
+            if (attendance.getCheckIn() == null) {
+                throw new AttendanceInvalidException("Check-in time must be set before check-out.");
+            }
+            if (!request.getCheckOutTime().toLocalDate().equals(request.getDate())) {
+                throw new AttendanceInvalidException("Check-out time must match the specified date.");
+            }
+            if (request.getCheckOutTime().isBefore(attendance.getCheckIn())) {
+                throw new AttendanceInvalidException("Check-out time cannot be before check-in.");
             }
             attendance.setCheckOut(request.getCheckOutTime());
         }
 
+        if (request.getStatus() != null) {
+            try {
+                attendance.setStatus(AttendanceStatus.valueOf(request.getStatus()));
+            } catch (IllegalArgumentException e) {
+                throw new AttendanceInvalidException("Invalid attendance status: " + request.getStatus());
+            }
+        }
+
         calculateWorkingDetails(attendance);
-        attendanceRepository.save(attendance);
-
-        AttendanceResponse response = attendanceMapper.mapToResponse(attendance);
-        response.setWorkingHours(formatHours(String.valueOf(attendance.getWorkingHours())));
-        response.setWorkingDays(formatDays(String.valueOf(attendance.getWorkingDays())));
-
+        Attendance savedAttendance = attendanceRepository.save(attendance);
+        AttendanceResponse response = attendanceMapper.mapToResponse(savedAttendance);
+        response.setWorkingHours(formatHours(String.valueOf(savedAttendance.getWorkingHours())));
+        response.setWorkingDays(formatDays(String.valueOf(savedAttendance.getWorkingDays())));
         return response;
     }
 
@@ -147,22 +182,15 @@ public class AttendanceServiceImpl implements AttendanceService {
 
     @Override
     public List<AttendanceResponse> getMonthlyReport(AttendanceRequest request) {
-        if (request.getDate() == null) {
-            throw new IllegalArgumentException("Date must be provided for monthly report.");
-        }
+        if (request.getUserId() <= 0 || request.getMonth() == null)
+            throw new IllegalArgumentException("User ID and month are required.");
 
-        YearMonth month = YearMonth.from(request.getDate());
-        LocalDate start = month.atDay(1);
-        LocalDate end = month.atEndOfMonth();
+        YearMonth month = YearMonth.parse(request.getMonth());
+        LocalDate start = month.atDay(1), end = month.atEndOfMonth();
 
-        List<Attendance> attendances = attendanceRepository.findByUser_IdAndDateBetween(request.getUserId(), start, end);
-
-        if (attendances.isEmpty()) {
-            throw new AttendanceNotFoundException("No attendance records found for the given month.");
-        }
-
-        attendances.sort(Comparator.comparing(a -> a.getCheckIn() != null ? a.getCheckIn() : LocalDateTime.MIN));
-        return attendanceMapper.mapToAttendanceResponse(attendances);
+        List<Attendance> records = attendanceRepository.findByUser_IdAndDateBetween(request.getUserId(), start, end);
+        if (records.isEmpty()) throw new AttendanceNotFoundException("No records found for " + month);
+        return attendanceMapper.mapToAttendanceResponse(records);
     }
 
     @Override

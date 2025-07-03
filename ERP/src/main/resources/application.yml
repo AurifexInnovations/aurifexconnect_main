@@ -4,7 +4,7 @@ spring:
 
     datasource:
         driver-class-name: org.sqlite.JDBC
-        url: ${SQLITE_URL}
+        url: jdbc:sqlite:/D:/aurifex_innovation/project/auri_connect/ERP_DB.db
 
     jpa:
         database-platform: org.hibernate.community.dialect.SQLiteDialect
