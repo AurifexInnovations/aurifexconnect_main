@@ -94,4 +94,30 @@ public class InventoryServiceImpl implements InventoryService {
                 .distinct()
                 .toList();
     }
+
+    @Override
+    public List<StockValueResponse> getStockValueList() {
+        List<Inventory> inventories = inventoryRepository.findAll(); // Or fetchAllInventoryForStockValue()
+
+        if (inventories.isEmpty()) {
+
+            throw new InventoryNotFoundException("No inventories found for stock value calculation");
+        }
+
+        List<StockValueResponse> stockValueResponses = new ArrayList<>();
+
+        for (Inventory inventory : inventories) {
+            StockValueResponse response = new StockValueResponse();
+            response.setItemName(inventory.getItemName());
+
+            double price = inventory.getItemCost();
+            double quantity = inventory.getItemQuantity();
+
+            response.setStockValue(quantity * price);
+            stockValueResponses.add(response);
+        }
+
+        return stockValueResponses;
+    }
+
 }

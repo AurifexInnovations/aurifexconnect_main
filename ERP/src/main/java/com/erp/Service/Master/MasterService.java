@@ -18,4 +18,11 @@ public interface MasterService {
 //    MasterResponse updateMaster(Long masterId, MasterRequest masterRequest);
 //
 //    MasterResponse deleteMaster(Long masterId);
+
+
+    //Chart Base
+    List<PurchaseSalesResponse> getPurchaseSalesSummary(PurchaseSalesRequest request);
 }
+
+}
+
