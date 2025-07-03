@@ -7,6 +7,7 @@ import lombok.Setter;
 @Getter
 @Setter
 public class PurchaseSalesRequest {
+    //new
     private String type; // day, week, month
     private VoucherType voucherType; // PURCHASE or SALES
 }
