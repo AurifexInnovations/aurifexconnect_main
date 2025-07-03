@@ -1,8 +1,11 @@
 package com.erp.Controller.Master;
 
 import com.erp.Dto.Request.MasterRequest;
+import com.erp.Dto.Request.PurchaseSalesRequest;
 import com.erp.Dto.Response.MasterResponse;
+import com.erp.Dto.Response.PurchaseSalesResponse;
 import com.erp.Service.Master.MasterService;
+import com.erp.Utility.ListResponseStructure;
 import com.erp.Utility.ResponseBuilder;
 import com.erp.Utility.ResponseStructure;
 import lombok.AllArgsConstructor;
@@ -39,11 +42,11 @@ public class MasterController {
 
     @PostMapping("/summary")
     public ResponseEntity<ListResponseStructure<PurchaseSalesResponse>> getPurchaseSalesSummary(
-            @RequestBody PurchaseSalesRequest request)
-    {
+            @RequestBody PurchaseSalesRequest request) {
 
         List<PurchaseSalesResponse> summary = masterService.getPurchaseSalesSummary(request);
         return ResponseBuilder.success(HttpStatus.OK, "Summary fetched successfully", summary);
+    }
 
     @PostMapping("/master/sales-vs-purchase-comparison-summary")
     public ResponseEntity<ResponseStructure<List<Map<String, Object>>>> getSalesVsPurchaseComparisonSummary(

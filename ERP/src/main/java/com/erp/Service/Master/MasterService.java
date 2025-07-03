@@ -1,7 +1,9 @@
 package com.erp.Service.Master;
 
 import com.erp.Dto.Request.MasterRequest;
+import com.erp.Dto.Request.PurchaseSalesRequest;
 import com.erp.Dto.Response.MasterResponse;
+import com.erp.Dto.Response.PurchaseSalesResponse;
 
 import java.time.LocalDate;
 import java.util.List;
@@ -24,5 +26,4 @@ public interface MasterService {
     List<PurchaseSalesResponse> getPurchaseSalesSummary(PurchaseSalesRequest request);
 }
 
-}
 
