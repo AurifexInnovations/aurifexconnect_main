@@ -4,6 +4,7 @@ import com.erp.Enum.AttendanceStatus;
 import jakarta.persistence.*;
 import lombok.*;
 import org.springframework.data.annotation.CreatedDate;
+import org.springframework.data.annotation.LastModifiedDate;
 import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -23,9 +24,16 @@ public class Attendance {
     @JoinColumn(name = "userid")
     private User user;
 
-    @CreatedDate
-    @Column(name = "date")
+    @Column(nullable = false)
     private LocalDate date;
+
+    @CreatedDate
+    @Column(name = "created_date")
+    private LocalDateTime createdDate;
+
+    @LastModifiedDate
+    @Column(name = "updated_date")
+    private LocalDateTime updatedDate;
 
     @Column(name = "working_hours")
     private Double workingHours;

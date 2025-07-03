@@ -48,7 +48,6 @@ public class AdminController {
     @PreAuthorize("hasAuthority('ROLE_ROOT')")
     @PutMapping("/admins/update")
     public ResponseEntity<ResponseStructure<AdminResponse>> updateAdminById(@RequestBody AdminRequest adminRequest) {
-
         AdminResponse adminResponse = adminService.updateAdminById(adminRequest);
         return ResponseBuilder.success(HttpStatus.OK,"Admin details updated successfully !!",adminResponse);
 

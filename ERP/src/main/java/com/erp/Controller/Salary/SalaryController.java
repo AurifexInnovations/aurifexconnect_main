@@ -2,7 +2,9 @@ package com.erp.Controller.Salary;
 
 import com.erp.Dto.Request.Param;
 import com.erp.Dto.Request.SalaryRequest;
+import com.erp.Dto.Response.MonthlySalaryResponse;
 import com.erp.Dto.Response.SalaryResponse;
+import com.erp.Dto.Response.SalarySummaryResponse;
 import com.erp.Service.SalaryService.SalaryService;
 import com.erp.Utility.ListResponseStructure;
 import com.erp.Utility.ResponseBuilder;
@@ -11,9 +13,13 @@ import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import jakarta.validation.Valid;
 import lombok.AllArgsConstructor;
+import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.*;
 import org.springframework.web.bind.annotation.*;
+
+import java.time.YearMonth;
 import java.util.List;
+import java.util.Map;
 
 @RestController
 @AllArgsConstructor
@@ -121,4 +127,15 @@ public class SalaryController {
         SalaryResponse response = salaryService.deleteSalaryByUserAndMonth(request);
         return ResponseBuilder.success(HttpStatus.OK, "Salary record deleted successfully!", response);
     }
+
+    @GetMapping("/overview")
+    public ResponseEntity<ResponseStructure<Map<String, Object>>> getSalaryOverview(
+            @RequestParam("year") int year,
+            @RequestParam("startDate") @DateTimeFormat(pattern = "yyyy-MM") YearMonth startDate,
+            @RequestParam("endDate") @DateTimeFormat(pattern = "yyyy-MM") YearMonth endDate) {
+
+        Map<String, Object> overview = salaryService.getSalaryOverview(year, startDate, endDate);
+        return ResponseBuilder.success(HttpStatus.OK, "Salary overview fetched successfully", overview);
+    }
+
 }

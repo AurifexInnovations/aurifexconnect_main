@@ -2,9 +2,7 @@ package com.erp.Service.Master;
 
 import com.erp.Dto.Request.AdjustmentDTO;
 import com.erp.Dto.Request.MasterRequest;
-import com.erp.Dto.Request.PurchaseSalesRequest;
 import com.erp.Dto.Response.MasterResponse;
-import com.erp.Dto.Response.PurchaseSalesResponse;
 import com.erp.Enum.AccountStatus;
 import com.erp.Enum.ReferenceType;
 import com.erp.Enum.TransactionStatus;
@@ -29,8 +27,8 @@ import jakarta.transaction.Transactional;
 import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Service;
 
-import java.util.ArrayList;
-import java.util.List;
+import java.time.format.DateTimeFormatter;
+import java.util.*;
 
 @Service
 @AllArgsConstructor
@@ -71,7 +69,8 @@ public class MasterServiceImpl implements MasterService {
             case PURCHASE -> handleBill(master);
             case RECEIPTS -> handleReceipt(master, masterRequest);
             case PAYMENTS -> handlePayment(master, masterRequest);
-            default -> throw new VoucherNotFound("Voucher Not Found By This Voucher type : " + masterRequest.getVoucherType() + " ,Invalid Voucher Type");
+            default ->
+                    throw new VoucherNotFound("Voucher Not Found By This Voucher type : " + masterRequest.getVoucherType() + " ,Invalid Voucher Type");
         }
         return masterMapper.mapToMasterResponse(master);
     }
@@ -109,7 +108,6 @@ public class MasterServiceImpl implements MasterService {
 
         return responseList;
     }
-
 
     private void handleInvoice(Master invoice, MasterRequest masterRequest) {
         invoice.setReferenceType(ReferenceType.NEWREF);
@@ -258,7 +256,55 @@ public class MasterServiceImpl implements MasterService {
                 ? TransactionStatus.PAID
                 : TransactionStatus.PARTIALLY_PAID;
     }
+
+
+    @Override
+    public List<Map<String, Object>> getSalesVsPurchaseComparison(String type) {
+        List<Master> masters = masterRepository.findByVoucherTypeInAndCreatedDateIsNotNull(
+                List.of(VoucherType.SALES, VoucherType.PURCHASE));
+
+        DateTimeFormatter formatter;
+        switch (type.toLowerCase()) {
+            case "day" -> formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd");
+            case "week" -> formatter = DateTimeFormatter.ofPattern("YYYY-ww");
+            case "month" -> formatter = DateTimeFormatter.ofPattern("yyyy-MM");
+            case "year" -> formatter = DateTimeFormatter.ofPattern("yyyy");
+            default -> throw new IllegalArgumentException("Invalid type: " + type);
+        }
+
+        Map<String, Double> salesMap = new HashMap<>();
+        Map<String, Double> purchaseMap = new HashMap<>();
+
+        for (Master master : masters) {
+            String period = master.getCreatedDate().format(formatter);
+            double amount = master.getAmount();
+
+            if (master.getVoucherType() == VoucherType.SALES) {
+                salesMap.merge(period, amount, Double::sum);
+            } else if (master.getVoucherType() == VoucherType.PURCHASE) {
+                purchaseMap.merge(period, amount, Double::sum);
+            }
+        }
+
+        Set<String> allPeriods = new TreeSet<>();
+        allPeriods.addAll(salesMap.keySet());
+        allPeriods.addAll(purchaseMap.keySet());
+
+        List<Map<String, Object>> result = new ArrayList<>();
+        for (String period : allPeriods) {
+            Map<String, Object> entry = new HashMap<>();
+            entry.put("period", period);
+            entry.put("salesAmount", salesMap.getOrDefault(period, 0.0));
+            entry.put("purchaseAmount", purchaseMap.getOrDefault(period, 0.0));
+            result.add(entry);
+        }
+
+        return result;
+    }
 }
+
+
+
 
 //    @Override
 //    public MasterResponse deleteMaster(Long masterId) {
@@ -333,4 +379,9 @@ public class MasterServiceImpl implements MasterService {
 //
 //        masterRepository.deleteById(masterId);
 //        return masterMapper.mapToMasterResponse(master);
-//    }
+
+
+
+//
+//   }
+

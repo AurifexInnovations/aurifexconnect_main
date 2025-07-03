@@ -3,7 +3,6 @@ package com.erp.Controller.Inventory;
 import com.erp.Dto.Request.CommanParam;
 import com.erp.Dto.Request.InventoryRequest;
 import com.erp.Dto.Response.InventoryResponse;
-import com.erp.Dto.Response.StockValueResponse;
 import com.erp.Service.InventoryService.InventoryService;
 import com.erp.Utility.ListResponseStructure;
 import com.erp.Utility.ResponseBuilder;
@@ -30,7 +29,7 @@ public class InventoryController {
 
     private final InventoryService inventoryService;
 
-    @PostMapping("add-inventory")
+    @PostMapping("inventory")
     @Operation(description = """
             The API Endpoints to Add Inventory Items
             """,
@@ -42,7 +41,7 @@ public class InventoryController {
         return ResponseBuilder.success(HttpStatus.CREATED,"Inventory Created",inventoryResponse);
     }
 
-    @PutMapping("inventory-update")
+    @PutMapping("inventory")
     @Operation(description = """
             The API Endpoints to Update Inventory Items
             """,
@@ -116,4 +115,5 @@ public class InventoryController {
         List<StockValueResponse> stockValueResponses = inventoryService.getStockValueList();
         return ResponseBuilder.success(HttpStatus.OK, "Stock values fetched successfully", stockValueResponses);
     }
+
 }

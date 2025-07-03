@@ -6,8 +6,8 @@ import com.erp.Model.Salary;
 import com.erp.Model.User;
 import com.erp.Repository.Salary.SalaryRepository;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import lombok.AllArgsConstructor;
 import org.junit.jupiter.api.*;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.http.MediaType;
@@ -17,29 +17,31 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
 @TestMethodOrder(MethodOrderer.OrderAnnotation.class)
-@AutoConfigureMockMvc
 @SpringBootTest
-@AllArgsConstructor
+@AutoConfigureMockMvc
 public class SalaryAPITest {
 
+    @Autowired
     private MockMvc mockMvc;
 
+    @Autowired
     private ObjectMapper objectMapper;
 
+    @Autowired
     private SalaryRepository salaryRepository;
 
     private static SalaryRequest salaryRequest;
-    private static long userId = 1;
-    private static YearMonth salaryMonth = YearMonth.of(2024, 12);
+    private static final long userId = 1L;
+    private static final YearMonth salaryMonth = YearMonth.of(2024, 12);
 
     @BeforeAll
     static void initRequest() {
         salaryRequest = new SalaryRequest();
         salaryRequest.setUserId(userId);
         salaryRequest.setMonth(salaryMonth);
-        salaryRequest.setBaseSalary(50000.0);
-        salaryRequest.setBonus(5000.0);
-        salaryRequest.setDeductions(2000.0);
+        salaryRequest.setBaseSalary(50000L);
+        salaryRequest.setBonus(5000L);
+        salaryRequest.setDeductions(2000L);
         salaryRequest.setPaidDays(26);
         salaryRequest.setRemarks("Integration Test");
     }
@@ -52,9 +54,9 @@ public class SalaryAPITest {
         user.setId(userId);
         salary.setUser(user);
         salary.setMonth(salaryMonth);
-        salary.setBaseSalary(50000.0);
-        salary.setBonus(5000.0);
-        salary.setDeductions(2000.0);
+        salary.setBaseSalary(50000L);
+        salary.setBonus(5000L);
+        salary.setDeductions(2000L);
         salary.setPaidDays(26);
         salary.setAmountStatus(null);
         salary.setRemarks("Integration Test");
@@ -97,7 +99,7 @@ public class SalaryAPITest {
     @Test
     @Order(5)
     void testUpdateSalary() throws Exception {
-        salaryRequest.setBonus(8000.0); // simulate update
+        salaryRequest.setBonus(8000L); // update bonus
 
         mockMvc.perform(put("/salary/update")
                         .contentType(MediaType.APPLICATION_JSON)
