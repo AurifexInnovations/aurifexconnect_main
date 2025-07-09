@@ -178,7 +178,7 @@ public class MasterServiceImpl implements MasterService {
 
                 double alreadyAdjusted = masterRepository.findByReferenceMaster(bill)
                         .stream().mapToDouble(Master::getAmount).sum();
-
+ 
                 double newTotal = alreadyAdjusted + adjAmt;
                 bill.setTransactionStatus(getUpdatedStatus(bill.getAmount(), newTotal));
                 masterRepository.save(bill);
