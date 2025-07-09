@@ -3,6 +3,7 @@ package com.erp.Service.BankAccount;
 import com.erp.Dto.Request.BankAccountRequest;
 import com.erp.Dto.Request.CommanParam;
 import com.erp.Dto.Response.BankAccountResponse;
+import com.erp.Dto.Response.BankBalanceResponse;
 import com.erp.Exception.BankAccount.BankAccountNotFoundException;
 import com.erp.Exception.Ledger.LedgerNotFoundException;
 import com.erp.Mapper.BankAccount.BankAccountMapper;
@@ -12,7 +13,6 @@ import com.erp.Repository.BankAccount.BankAccountRepository;
 import com.erp.Repository.Ledger.LedgerRepository;
 import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Service;
-
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -68,6 +68,26 @@ public class BankAccountServiceImpl implements BankAccountService{
         return bankAccounts.stream()
                 .map(bankAccountMapper::mapToBankAccountResponse)
                 .collect(Collectors.toList());
+    }
+
+    @Override
+    public BankBalanceResponse getCurrentBankBalance() {
+        List<BankAccount> accounts = bankAccountRepository.findAll();
+        double total = 0.0;
+
+        if (accounts != null && !accounts.isEmpty()) {
+            for (BankAccount account : accounts) {
+                if (account != null && account.getCurrentBalance() != 0.0) {
+                    total += account.getCurrentBalance();
+                } else if (account != null) {
+                    total += 0.0; // Explicit, even though it's redundant
+                }
+            }
+        } else {
+            total = 0.0;
+        }
+
+        return new BankBalanceResponse("Total Bank Balance", total);
     }
 
 }

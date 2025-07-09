@@ -26,4 +26,13 @@ public class InventoryMovementController {
 
         return ResponseBuilder.success(HttpStatus.CREATED, "Inventory Movement processed successfully!", movementResponse);
     }
+
+    @PostMapping("/summary")
+    public ResponseEntity<ListResponseStructure<InventoryMovementSummaryResponse>> getSummary(
+            @RequestBody InventoryMovementSummaryRequest summaryRequest)
+    {
+        List<InventoryMovementSummaryResponse> summary = movementService.getInventoryMovementSummary(summaryRequest);
+        return ResponseBuilder.success(HttpStatus.OK, "Inventory Movement Summary fetched successfully", summary);
+    }
+
 }

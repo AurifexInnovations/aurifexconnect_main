@@ -87,7 +87,6 @@ public class AdminServiceImpl implements AdminService {
 
         admin.setActive(false);
         adminRepository.save(admin);
-
         return adminMapper.mapToAdminResponse(admin);
     }
 

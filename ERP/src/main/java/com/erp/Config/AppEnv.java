@@ -28,7 +28,6 @@ public class AppEnv {
         private String sameSite;
     }
 
-
     @Getter
     @Setter
     public static class Security{

@@ -1,6 +1,7 @@
 package com.erp.Dto.Response;
 
 
+import com.fasterxml.jackson.annotation.JsonFormat;
 import lombok.*;
 import java.time.LocalDate;
 
@@ -9,8 +10,13 @@ import java.time.LocalDate;
 public class LeaveResponse {
     private long id;
     private UserResponse user;
+
+    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "dd-MM-yyyy")
     private LocalDate startDate;
+
+    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "dd-MM-yyyy")
     private LocalDate endDate;
+
     private String leaveType;
     private String reason;
     private String status;

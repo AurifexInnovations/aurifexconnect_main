@@ -3,6 +3,7 @@ package com.erp.Controller.BankAccount;
 import com.erp.Dto.Request.BankAccountRequest;
 import com.erp.Dto.Request.CommanParam;
 import com.erp.Dto.Response.BankAccountResponse;
+import com.erp.Dto.Response.BankBalanceResponse;
 import com.erp.Service.BankAccount.BankAccountService;
 import com.erp.Utility.ListResponseStructure;
 import com.erp.Utility.ResponseBuilder;
@@ -11,7 +12,6 @@ import lombok.AllArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-
 import java.util.List;
 
 @RestController
@@ -49,5 +49,11 @@ public class BankAccountController {
     public ResponseEntity<ListResponseStructure<BankAccountResponse>> getAllBankAccounts(){
         List<BankAccountResponse> allBankAccounts = bankAccountService.getAllBankAccounts();
         return ResponseBuilder.success(HttpStatus.OK,"All Bank Accounts Fetched Successfully", allBankAccounts);
+    }
+
+    @GetMapping("/balance")
+    public ResponseEntity<ResponseStructure<BankBalanceResponse>> getCurrentBankBalance() {
+        BankBalanceResponse response = bankAccountService.getCurrentBankBalance();
+        return ResponseBuilder.success(HttpStatus.OK, "Bank balance fetched successfully", response);
     }
 }
