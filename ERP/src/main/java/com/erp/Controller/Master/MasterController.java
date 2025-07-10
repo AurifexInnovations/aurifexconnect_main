@@ -42,12 +42,11 @@ public class MasterController {
 
     @PostMapping("/summary")
     public ResponseEntity<ListResponseStructure<PurchaseSalesResponse>> getPurchaseSalesSummary(
-            @RequestBody PurchaseSalesRequest request)
-    {
+            @RequestBody PurchaseSalesRequest request) {
 
         List<PurchaseSalesResponse> summary = masterService.getPurchaseSalesSummary(request);
         return ResponseBuilder.success(HttpStatus.OK, "Summary fetched successfully", summary);
-
+    }
     @PostMapping("/master/sales-vs-purchase-comparison-summary")
     public ResponseEntity<ResponseStructure<List<Map<String, Object>>>> getSalesVsPurchaseComparisonSummary(
             @RequestBody Map<String, String> request) {
