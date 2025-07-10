@@ -19,18 +19,15 @@ public class InvoiceGenerator {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private long invoiceGeneratedId;
 
-    @Transient
-    private List<LineItems> items;
-
     private double totalAmount;
 
     @OneToOne
     private Master master;
 
-    @ManyToOne
-    private Ledger ledger;
-
     @CreatedDate
     private LocalDateTime generatedAt;
+
+    @ManyToOne
+    private Admin admin;
 
 }

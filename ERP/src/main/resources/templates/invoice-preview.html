@@ -110,10 +110,10 @@
     <tr>
       <td style="width: 50%;">
         <h5>Customer Info</h5>
-        <p><strong>Name:</strong> <span th:text="${invoice.ledger.name}"/></p>
-        <p><strong>Address:</strong> <span th:text="${invoice.ledger.address}"/></p>
-        <p><strong>Email:</strong> <span th:text="${invoice.ledger.email}"/></p>
-        <p><strong>Phone:</strong> <span th:text="${invoice.ledger.phone}"/></p>
+        <p><strong>Name:</strong> <span th:text="${invoice.master.ledger.name}"/></p>
+        <p><strong>Address:</strong> <span th:text="${invoice.master.ledger.address}"/></p>
+        <p><strong>Email:</strong> <span th:text="${invoice.master.ledger.email}"/></p>
+        <p><strong>Phone:</strong> <span th:text="${invoice.master.ledger.phone}"/></p>
       </td>
       <td style="width: 50%;">
         <h5>Invoice Info</h5>
@@ -137,7 +137,7 @@
     </tr>
     </thead>
     <tbody>
-    <tr th:each="item, stat : ${invoice.items}">
+    <tr th:each="item, stat : ${invoice.master.lineItems}">
       <td th:text="${stat.count}"></td>
       <td th:text="${item.itemName}"></td>
       <td th:text="${item.quantity}"></td>

@@ -62,7 +62,7 @@ public class InvoiceController {
 
         InvoiceGenerator invoiceGenerator = invoiceService.fetchInvoice(request);
 
-        String customerEmail = invoiceGenerator.getLedger().getEmail();
+        String customerEmail = invoiceGenerator.getMaster().getLedger().getEmail();
 
         byte[] pdf = pdfService.generateInvoicePdf(request);
 
