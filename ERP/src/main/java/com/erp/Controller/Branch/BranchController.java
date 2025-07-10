@@ -1,7 +1,8 @@
 package com.erp.Controller.Branch;
 
 import com.erp.Dto.Request.BranchRequest;
-import com.erp.Dto.Request.CommonParam;
+import com.erp.Dto.Request.CommanParam;
+import com.erp.Dto.Request.PaginationRequest;
 import com.erp.Dto.Response.BranchResponse;
 import com.erp.Service.BranchService.BranchService;
 import com.erp.Utility.ListResponseStructure;
@@ -18,7 +19,6 @@ import lombok.AllArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-
 import java.util.List;
 
 @RestController
@@ -60,7 +60,7 @@ public class BranchController {
                             @Content(schema = @Schema(implementation = SimpleErrorResponse.class))
                     })
             })
-    public ResponseEntity<ResponseStructure<BranchResponse>> deleteBranchById(@RequestBody CommonParam param){
+    public ResponseEntity<ResponseStructure<BranchResponse>> deleteBranchById(@RequestBody CommanParam param){
         BranchResponse branchResponse = branchService.deleteBranchById(param);
         return ResponseBuilder.success(HttpStatus.OK,"Branch Deleted Successfully!",branchResponse);
     }
@@ -73,22 +73,24 @@ public class BranchController {
                             @Content(schema = @Schema(implementation = SimpleErrorResponse.class))
                     })
             })
-    public ResponseEntity<ListResponseStructure<BranchResponse>> getByIdOrBranchName(@RequestBody CommonParam param){
-        List<BranchResponse> branchResponse = branchService.getByIdOrBranchName(param);
+    public ResponseEntity<ListResponseStructure<BranchResponse>> getByIdOrBranchNameOrBranchLocationOrBranchStatus(@RequestBody CommanParam param){
+        List<BranchResponse> branchResponse = branchService.getByIdOrBranchNameOrLocationOrBranchStatus(param);
         return ResponseBuilder.success(HttpStatus.OK,"Branch Found Successfully",branchResponse);
     }
 
-    @GetMapping("branch/all")
-    @Operation(description = "API Endpoint to Retrieve All Branches",
+    @PostMapping("branch/all")
+    @Operation(description = "API Endpoint to Retrieve All Branches with Pagination",
             responses = {
                     @ApiResponse(responseCode = "200", description = "All Branches Found Successfully"),
-                    @ApiResponse(responseCode = "404", description = "No Branches Available", content = {
+                    @ApiResponse(responseCode = "400", description = "Invalid Pagination Parameters", content = {
                             @Content(schema = @Schema(implementation = SimpleErrorResponse.class))
                     })
             })
-    public ResponseEntity<ListResponseStructure<BranchResponse>> getAllBranches(){
-        List<BranchResponse> branchResponse = branchService.getAllBranches();
-        return ResponseBuilder.success(HttpStatus.OK,"All Branches Found Successfully!",branchResponse);
+    public ResponseEntity<ListResponseStructure<BranchResponse>> getAllBranches(
+            @RequestBody PaginationRequest request) {
+
+        List<BranchResponse> branchResponse = branchService.getAllBranches(request);
+        return ResponseBuilder.success(HttpStatus.OK, "Branches fetched successfully!", branchResponse);
     }
 
     @PostMapping("/branch/by-item")
@@ -99,9 +101,8 @@ public class BranchController {
                             @Content(schema = @Schema(implementation = SimpleErrorResponse.class))
                     })
             })
-    public ResponseEntity<ListResponseStructure<BranchResponse>> getBranchesByItemName(@RequestBody CommonParam param){
+    public ResponseEntity<ListResponseStructure<BranchResponse>> getBranchesByItemName(@RequestBody CommanParam param){
         List<BranchResponse> branchResponse = branchService.getBranchesByItemName(param);
         return ResponseBuilder.success(HttpStatus.OK,"Branches retrieved successfully!",branchResponse);
     }
 }
-

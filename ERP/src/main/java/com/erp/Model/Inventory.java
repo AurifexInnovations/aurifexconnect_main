@@ -41,5 +41,6 @@ public class Inventory {
     @OneToMany
     private List<InventoryMovement> inventoryMovement;
 
-
+    @ManyToMany(fetch = FetchType.EAGER)
+    private List<Tax> taxes;
 }

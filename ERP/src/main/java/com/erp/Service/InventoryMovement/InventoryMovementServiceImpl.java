@@ -13,7 +13,8 @@ import com.erp.Repository.Voucher.VoucherRepository;
 import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Service;
 
-import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.List;
 
 @Service
 @AllArgsConstructor
@@ -59,6 +60,31 @@ public class InventoryMovementServiceImpl implements InventoryMovementService {
 
         movementRepository.save(inventoryMovement);
         return movementMapper.mapToInventoryMovementResponse(inventoryMovement);
+    }
+
+    @Override
+    public List<InventoryMovementSummaryResponse> getInventoryMovementSummary(InventoryMovementSummaryRequest request) {
+        String format = "%Y-%m-%d"; // default daily
+        //new
+        if (request.getType() != null) {
+            switch (request.getType().toLowerCase()) {
+                case "week" -> format = "%Y-%W";
+                case "month" -> format = "%Y-%m";
+                case "day" -> format = "%Y-%m-%d";
+                default -> throw new IllegalArgumentException("Invalid type. Use 'day', 'week', or 'month'");
+            }
+        }
+
+        List<Object[]> result = movementRepository.getStockMovementSummary(format);
+        List<InventoryMovementSummaryResponse> responseList = new ArrayList<>();
+
+        for (Object[] row : result) {
+            String period = (String) row[0];
+            double totalQuantity = ((Number) row[1]).doubleValue();
+            responseList.add(new InventoryMovementSummaryResponse(period, totalQuantity));
+        }
+
+        return responseList;
     }
 
 }

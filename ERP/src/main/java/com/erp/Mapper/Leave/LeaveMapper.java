@@ -8,6 +8,7 @@ import java.util.List;
 
 @Mapper(componentModel = "spring")
 public interface LeaveMapper {
+
     Leave mapToLeave(LeaveRequest request);
 
     void updateLeave(LeaveRequest request, @MappingTarget Leave leave);

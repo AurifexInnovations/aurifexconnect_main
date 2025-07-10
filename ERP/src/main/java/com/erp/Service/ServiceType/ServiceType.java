@@ -1,9 +1,8 @@
 package com.erp.Service.ServiceType;
 
-import com.erp.Dto.Request.CommonParam;
+import com.erp.Dto.Request.CommanParam;
 import com.erp.Dto.Request.ServiceRequest;
 import com.erp.Dto.Response.ServiceResponse;
-import com.erp.Enum.ServiceStatus;
 
 import java.util.List;
 
@@ -13,9 +12,9 @@ public interface ServiceType {
 
     ServiceResponse updateById(ServiceRequest serviceRequest);
 
-    List<ServiceResponse> findByIdOrServiceName(CommonParam param);
+    List<ServiceResponse> findByIdOrServiceName(CommanParam param);
 
-    ServiceResponse deleteByServiceId(CommonParam param);
+    ServiceResponse deleteByServiceId(CommanParam param);
 
     List<ServiceResponse> fetchAllServices();
 

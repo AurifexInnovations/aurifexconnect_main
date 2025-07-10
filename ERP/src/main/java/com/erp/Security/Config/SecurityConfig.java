@@ -1,7 +1,6 @@
 package com.erp.Security.Config;
 
 import com.erp.Config.AppEnv;
-import com.erp.Model.GenericUser;
 import com.erp.Security.Filter.AuthFilter;
 import com.erp.Security.Filter.RefreshAuthFilter;
 import com.erp.Security.Filter.TokenBlackListService;
@@ -30,6 +29,10 @@ import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
+import org.springframework.web.cors.CorsConfiguration;
+import org.springframework.web.cors.CorsConfigurationSource;
+import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
+import java.util.List;
 
 @Configuration
 @EnableWebSecurity
@@ -103,6 +106,7 @@ public class SecurityConfig {
         return http
                 .securityMatcher(baseUrl + "/auth/**", baseUrl + "/login")
                 .csrf(csrf -> csrf.disable())
+                .cors(cors -> cors.configurationSource(corsConfigurationSource()))
                 .authorizeHttpRequests(authorize -> authorize
                         .requestMatchers(baseUrl + "/auth/register/**", baseUrl + "/login").permitAll()
                         .anyRequest().authenticated())
@@ -119,6 +123,7 @@ public class SecurityConfig {
         return http
                 .securityMatcher(baseUrl + "/refresh-login/**")
                 .csrf(csrf -> csrf.disable())
+                .cors(cors -> cors.configurationSource(corsConfigurationSource()))
                 .authorizeHttpRequests(authorize -> authorize
                         .requestMatchers(baseUrl + "/refresh-login/**").permitAll()
                         .anyRequest().authenticated())
@@ -135,6 +140,7 @@ public class SecurityConfig {
         return http
                 .securityMatcher("/**")
                 .csrf(csrf -> csrf.disable())
+                .cors(cors -> cors.configurationSource(corsConfigurationSource()))
                 .authorizeHttpRequests(authorize -> authorize
                         .requestMatchers(baseUrl + "/admins/**").hasAnyAuthority("ROLE_ROOT")
                         .requestMatchers(baseUrl+"/roles/**").hasAnyAuthority("ROLE_ROOT","ROLE_ADMIN")
@@ -146,5 +152,18 @@ public class SecurityConfig {
                 .addFilterBefore(new AuthFilter(jwtService, tokenBlackListService,userRepositoryRegistry
                 ), UsernamePasswordAuthenticationFilter.class)
                 .build();
+    }
+
+    @Bean
+    public CorsConfigurationSource corsConfigurationSource() {
+        CorsConfiguration config = new CorsConfiguration();
+        config.setAllowCredentials(true); // allow cookies / JWT via headers
+        config.setAllowedOrigins(List.of("http://localhost:3000","http://localhost:5174"));
+        config.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS")); // typical REST methods
+        config.setAllowedHeaders(List.of("*")); // allow all headers
+        config.setExposedHeaders(List.of("Authorization")); // expose the Authorization header
+        UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
+        source.registerCorsConfiguration("/**", config);
+        return source;
     }
 }

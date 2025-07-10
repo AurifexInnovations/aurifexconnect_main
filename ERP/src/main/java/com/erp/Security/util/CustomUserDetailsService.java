@@ -1,4 +1,4 @@
-package com.erp.security.util;
+package com.erp.Security.util;
 
 import com.erp.Model.Admin;
 import com.erp.Model.GenericUser;

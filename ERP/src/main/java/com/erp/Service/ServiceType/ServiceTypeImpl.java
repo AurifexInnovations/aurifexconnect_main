@@ -1,9 +1,8 @@
 package com.erp.Service.ServiceType;
 
-import com.erp.Dto.Request.CommonParam;
+import com.erp.Dto.Request.CommanParam;
 import com.erp.Dto.Request.ServiceRequest;
 import com.erp.Dto.Response.ServiceResponse;
-import com.erp.Enum.ServiceStatus;
 import com.erp.Exception.Service_Exception.ServiceNotFoundByIdException;
 import com.erp.Mapper.Service.ServiceMapper;
 import com.erp.Model.Service;
@@ -38,7 +37,7 @@ public class ServiceTypeImpl implements ServiceType {
     }
 
     @Override
-    public List<ServiceResponse> findByIdOrServiceName(CommonParam param) {
+    public List<ServiceResponse> findByIdOrServiceName(CommanParam param) {
         List<Service> services = repository.findByServiceIdOrServiceName(param.getId(),param.getName());
         if (services.isEmpty()) {
             throw new ServiceNotFoundByIdException("No services found with the given Details!");
@@ -47,7 +46,7 @@ public class ServiceTypeImpl implements ServiceType {
     }
 
     @Override
-    public ServiceResponse deleteByServiceId(CommonParam param) {
+    public ServiceResponse deleteByServiceId(CommanParam param) {
         Service service = repository.findById(param.getId())
                 .orElseThrow(() -> new ServiceNotFoundByIdException("Service not found, invalid ID."));
         repository.deleteById(param.getId());

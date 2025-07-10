@@ -1,6 +1,6 @@
 package com.erp.Service.User;
 
-import com.erp.Dto.Request.CommonParam;
+import com.erp.Dto.Request.CommanParam;
 import com.erp.Dto.Request.UserRequest;
 import com.erp.Dto.Request.UserUpdateRequest;
 import com.erp.Dto.Response.UserResponse;
@@ -15,7 +15,7 @@ public interface UserServices {
 
     UserResponse updateUserById(UserUpdateRequest userUpdateRequest) throws Exception;
 
-    UserResponse deleteUserById(CommonParam commonParamId);
+    UserResponse deleteUserById(CommanParam commanParamId);
 
-    List<UserResponse> findByIdOrName(CommonParam commonParamIdOrName);
+    List<UserResponse> findByIdOrName(CommanParam commanParamIdOrName);
 }

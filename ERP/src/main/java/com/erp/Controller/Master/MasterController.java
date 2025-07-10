@@ -9,6 +9,8 @@ import lombok.AllArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import java.util.List;
+import java.util.Map;
 
 @RestController
 @AllArgsConstructor
@@ -20,19 +22,13 @@ public class MasterController {
     @PostMapping("master")
     public ResponseEntity<ResponseStructure<MasterResponse>> createMaster(@RequestBody MasterRequest masterRequest) {
         MasterResponse masterResponse = masterService.createMaster(masterRequest);
-        return ResponseBuilder.success(HttpStatus.CREATED,"Master Created Successfully",masterResponse);
+        return ResponseBuilder.success(HttpStatus.CREATED, "Master Created Successfully", masterResponse);
     }
-//
-//    @PutMapping("update-master/{masterId}")
-//    public ResponseEntity<ResponseStructure<MasterResponse>> updateMaster(@PathVariable Long masterId, @RequestBody MasterRequest request) {
-//        MasterResponse masterResponse = masterService.updateMaster(masterId,request);
-//        return ResponseBuilder.success(HttpStatus.OK,"Master Updated Successfully",masterResponse);
-//    }
 
     @GetMapping("master")
     public ResponseEntity<ResponseStructure<MasterResponse>> findByMasterId(@RequestBody MasterRequest masterRequest) {
         MasterResponse masterResponse = masterService.findById(masterRequest);
-        return ResponseBuilder.success(HttpStatus.OK,"Master Found Successfully",masterResponse);
+        return ResponseBuilder.success(HttpStatus.OK, "Master Found Successfully", masterResponse);
     }
 
 //    @DeleteMapping("master-delete/{masterId}")
@@ -40,4 +36,27 @@ public class MasterController {
 //        MasterResponse masterResponse = masterService.deleteMaster(masterId);
 //        return ResponseBuilder.success(HttpStatus.OK,"Master Deleted Successfully",masterResponse);
 //    }
+
+    @PostMapping("/summary")
+    public ResponseEntity<ListResponseStructure<PurchaseSalesResponse>> getPurchaseSalesSummary(
+            @RequestBody PurchaseSalesRequest request)
+    {
+
+        List<PurchaseSalesResponse> summary = masterService.getPurchaseSalesSummary(request);
+        return ResponseBuilder.success(HttpStatus.OK, "Summary fetched successfully", summary);
+
+    @PostMapping("/master/sales-vs-purchase-comparison-summary")
+    public ResponseEntity<ResponseStructure<List<Map<String, Object>>>> getSalesVsPurchaseComparisonSummary(
+            @RequestBody Map<String, String> request) {
+
+        String type = request.get("type");
+
+        List<Map<String, Object>> comparisonSummary = masterService.getSalesVsPurchaseComparison(type);
+
+        return ResponseBuilder.<List<Map<String, Object>>>success(
+                HttpStatus.OK,
+                "Sales vs Purchase comparison summary fetched successfully",
+                comparisonSummary
+        );
+    }
 }

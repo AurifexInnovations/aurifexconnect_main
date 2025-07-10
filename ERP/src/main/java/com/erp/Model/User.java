@@ -1,6 +1,5 @@
 package com.erp.Model;
 
-import com.fasterxml.jackson.annotation.JsonManagedReference;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
@@ -9,8 +8,6 @@ import org.springframework.data.annotation.LastModifiedDate;
 import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
-
-
 import java.time.LocalDate;
 import java.util.Collection;
 import java.util.HashSet;
@@ -57,7 +54,6 @@ public class User implements GenericUser {
 
     @ManyToMany(fetch = FetchType.EAGER)
     private Set<Role> roles = new HashSet<>();
-
 
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
@@ -108,5 +104,3 @@ public class User implements GenericUser {
     private List<Attendance> attendances;
 
 }
-
-
