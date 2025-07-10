@@ -1,8 +1,11 @@
 package com.erp.Controller.Master;
 
 import com.erp.Dto.Request.MasterRequest;
+import com.erp.Dto.Request.PurchaseSalesRequest;
 import com.erp.Dto.Response.MasterResponse;
+import com.erp.Dto.Response.PurchaseSalesResponse;
 import com.erp.Service.Master.MasterService;
+import com.erp.Utility.ListResponseStructure;
 import com.erp.Utility.ResponseBuilder;
 import com.erp.Utility.ResponseStructure;
 import lombok.AllArgsConstructor;
@@ -31,16 +34,17 @@ public class MasterController {
         return ResponseBuilder.success(HttpStatus.OK, "Master Found Successfully", masterResponse);
     }
 
-    @PostMapping("/master/sales-vs-purchase-comparison-summary")
-    public ResponseEntity<ResponseStructure<List<Map<String, Object>>>> getSalesVsPurchaseComparisonSummary(
-            @RequestBody Map<String, String> request) {
+//    @DeleteMapping("master-delete/{masterId}")
+//    public ResponseEntity<ResponseStructure<MasterResponse>> deleteMaster(@PathVariable Long masterId) {
+//        MasterResponse masterResponse = masterService.deleteMaster(masterId);
+//        return ResponseBuilder.success(HttpStatus.OK,"Master Deleted Successfully",masterResponse);
+//    }
 
-        String type = request.get("type");
-        List<Map<String, Object>> comparisonSummary = masterService.getSalesVsPurchaseComparison(type);
-        return ResponseBuilder.<List<Map<String, Object>>>success(
-                HttpStatus.OK,
-                "Sales vs Purchase comparison summary fetched successfully",
-                comparisonSummary
-        );
+    @PostMapping("/summary")
+    public ResponseEntity<ListResponseStructure<PurchaseSalesResponse>> getPurchaseSalesSummary(
+            @RequestBody PurchaseSalesRequest request) {
+
+        List<PurchaseSalesResponse> summary = masterService.getPurchaseSalesSummary(request);
+        return ResponseBuilder.success(HttpStatus.OK, "Summary fetched successfully", summary);
     }
 }
