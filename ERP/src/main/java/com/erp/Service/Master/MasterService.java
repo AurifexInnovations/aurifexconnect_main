@@ -15,16 +15,13 @@ public interface MasterService {
 
     MasterResponse findById(MasterRequest masterRequest);
 
-    List<Map<String, Object>> getSalesVsPurchaseComparison(String type);
-
 //    MasterResponse updateMaster(Long masterId, MasterRequest masterRequest);
 //
 //    MasterResponse deleteMaster(Long masterId);
 
 
-    //new
+    //NEW UPDATE
     List<PurchaseSalesResponse> getPurchaseSalesSummary(PurchaseSalesRequest request);
 }
 
-}
 

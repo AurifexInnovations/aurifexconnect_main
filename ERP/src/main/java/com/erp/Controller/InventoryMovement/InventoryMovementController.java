@@ -1,14 +1,19 @@
 package com.erp.Controller.InventoryMovement;
 
 import com.erp.Dto.Request.InventoryMovementRequest;
+import com.erp.Dto.Request.InventoryMovementSummaryRequest;
 import com.erp.Dto.Response.InventoryMovementResponse;
+import com.erp.Dto.Response.InventoryMovementSummaryResponse;
 import com.erp.Service.InventoryMovement.InventoryMovementService;
+import com.erp.Utility.ListResponseStructure;
 import com.erp.Utility.ResponseBuilder;
 import com.erp.Utility.ResponseStructure;
 import lombok.AllArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
 
 @RestController
 @AllArgsConstructor
