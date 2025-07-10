@@ -3,6 +3,7 @@ package com.erp.Service.InventoryService;
 import com.erp.Dto.Request.CommanParam;
 import com.erp.Dto.Request.InventoryRequest;
 import com.erp.Dto.Response.InventoryResponse;
+import com.erp.Dto.Response.StockValueResponse;
 import com.erp.Exception.Branch_Exception.BranchNotFoundException;
 import com.erp.Exception.Inventory_Exception.InventoryNotFoundException;
 import com.erp.Mapper.Inventory.InventoryMapper;
@@ -15,6 +16,7 @@ import com.erp.Repository.Tax.TaxRepository;
 import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Service;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -94,4 +96,30 @@ public class InventoryServiceImpl implements InventoryService {
                 .distinct()
                 .toList();
     }
+
+    @Override
+    public List<StockValueResponse> getStockValueList() {
+        List<Inventory> inventories = inventoryRepository.findAll(); // Or fetchAllInventoryForStockValue()
+//new
+        if (inventories.isEmpty()) {
+
+            throw new InventoryNotFoundException("No inventories found for stock value calculation");
+        }
+
+        List<StockValueResponse> stockValueResponses = new ArrayList<>();
+
+        for (Inventory inventory : inventories) {
+            StockValueResponse response = new StockValueResponse();
+            response.setItemName(inventory.getItemName());
+
+            double price = inventory.getItemCost();
+            double quantity = inventory.getItemQuantity();
+
+            response.setStockValue(quantity * price);
+            stockValueResponses.add(response);
+        }
+
+        return stockValueResponses;
+    }
+
 }

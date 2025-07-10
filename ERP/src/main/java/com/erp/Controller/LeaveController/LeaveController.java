@@ -83,7 +83,7 @@ public class LeaveController {
         return ResponseBuilder.success(HttpStatus.OK, "Leave requests by status", response);
     }
 
-    @PostMapping("/all")
+    @GetMapping("/all")
     @Operation(summary = "Get All Leave Requests",
             description = "API Endpoint to retrieve all leave requests",
             responses = {
