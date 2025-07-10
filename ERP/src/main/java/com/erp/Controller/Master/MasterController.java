@@ -36,9 +36,7 @@ public class MasterController {
             @RequestBody Map<String, String> request) {
 
         String type = request.get("type");
-
         List<Map<String, Object>> comparisonSummary = masterService.getSalesVsPurchaseComparison(type);
-
         return ResponseBuilder.<List<Map<String, Object>>>success(
                 HttpStatus.OK,
                 "Sales vs Purchase comparison summary fetched successfully",
