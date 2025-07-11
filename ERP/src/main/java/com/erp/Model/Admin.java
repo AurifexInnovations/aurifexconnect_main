@@ -56,6 +56,9 @@ public class Admin  implements GenericUser{
     @Column(name = "last_updated_by")
     private long lastUpdatedByRootUserId;
 
+    @OneToMany(mappedBy = "admin")
+    private List<InvoiceGenerator> invoiceGenerator;
+
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
         return List.of(new SimpleGrantedAuthority("ROLE_ADMIN"));

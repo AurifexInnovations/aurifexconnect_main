@@ -5,6 +5,7 @@ spring:
     datasource:
         driver-class-name: org.sqlite.JDBC
         url: ${SQLITE_URL}
+
     jpa:
         database-platform: org.hibernate.community.dialect.SQLiteDialect
         show-sql: true
