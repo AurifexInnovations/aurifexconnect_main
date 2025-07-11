@@ -1,173 +1,169 @@
 <!DOCTYPE html>
-<html xmlns:th="http://www.w3.org/1999/xhtml">
+<html xmlns:th="http://www.thymeleaf.org">
 <head>
-  <meta charset="UTF-8"/>
-  <title>Invoice Preview</title>
+  <meta charset="UTF-8" />
+  <title>Tax Invoice</title>
   <style>
     body {
       font-family: sans-serif;
       font-size: 12px;
       background-color: #f8f9fa;
-      padding: 40px;
+      padding: 20px;
     }
 
-    .invoice-box {
-      background: #ffffff;
-      border: 1px solid #dee2e6;
-      border-radius: 10px;
-      padding: 30px;
-    }
-
-    h2 {
-      margin-bottom: 0.25rem;
-    }
-
-    .text-center {
-      text-align: center;
-    }
-
-    .mb-0 {
-      margin-bottom: 0;
-    }
-
-    .mb-1 {
-      margin-bottom: 0.25rem;
-    }
-
-    .mb-3 {
-      margin-bottom: 1rem;
-    }
-
-    .mb-4 {
-      margin-bottom: 1.5rem;
-    }
-
-    .table {
+    table {
       width: 100%;
       border-collapse: collapse;
-      margin-bottom: 1rem;
+      margin-bottom: 10px;
     }
 
-    .table th, .table td {
-      border: 1px solid #dee2e6;
-      padding: 8px;
-      vertical-align: middle;
+    th, td {
+      padding: 6px;
+      border: 1px solid #ccc;
+      vertical-align: top;
     }
 
-    .table-light {
-      background-color: #f1f1f1;
+    .no-border td {
+      border: none;
+      padding: 2px 6px;
     }
 
-    .footer-note {
-      font-size: 0.9rem;
-      color: #666666;
+    .title {
+      font-weight: bold;
+      font-size: 16px;
     }
 
-    .text-lg {
-      font-size: 1.25rem;
-    }
-
-    .text-right {
+    .right {
       text-align: right;
     }
 
-    .row {
-      display: flex;
-      flex-wrap: wrap;
-      margin: 0 -15px;
+    .bg-light {
+      background-color: #f1f1f1;
     }
 
-    .col-md-4 {
-      flex: 0 0 33.3333%;
-      max-width: 33.3333%;
-      padding: 0 15px;
+    .footer {
+      margin-top: 20px;
+      font-size: 11px;
     }
 
-    .justify-content-end {
-      justify-content: flex-end;
-    }
-
-    hr {
-      border: none;
-      border-top: 1px solid #ccc;
-      margin: 20px 0;
+    .bold {
+      font-weight: bold;
     }
   </style>
 </head>
 <body>
 
-<div class="invoice-box">
-  <!-- Company Info -->
-  <div class="text-center mb-4">
-    <h2 class="mb-1">Your Company Pvt Ltd</h2>
-    <p class="mb-0">123 Office Street, Mumbai</p>
-    <p class="mb-0">Phone: 99999 99999</p>
-    <p class="mb-0">Email: info@yourcompany.com</p>
-  </div>
+<!-- Static Company & Dynamic Invoice Info -->
+<table class="no-border">
+  <tr>
+    <td class="title">Aurifex Innovation</td>
+    <td class="right"><strong>Invoice No:</strong> <span th:text="${invoice.invoiceGeneratedId}"/></td>
+  </tr>
+  <tr>
+    <td>16, 1st cross, 1st main, Guru Raghvendra Layout, 7th phase JP Nagar <br /> Bengaluru - 560078</td>
+    <td class="right"><strong>Date:</strong> <span th:text="${#dates.format(invoice.generatedAt, 'dd-MMM-yyyy')}"/></td>
+  </tr>
+  <tr>
+    <td>Phone: 9874563210</td>
+    <td class="right"><strong>Dispatch No:</strong> </td>
+  </tr>
+  <tr>
+    <td>Email: support@aurifex.com</td> <!-- You can change this if needed -->
+    <td class="right"><strong>Dispatched Through:</strong> </td>
+  </tr>
+  <tr>
+    <td>GSTIN: 29XXXXXXXXXX1ZP</td> <!-- Replace if GSTIN is available -->
+    <td class="right"><strong>Destination:</strong> </td>
+  </tr>
+  <tr>
+    <td></td>
+    <td class="right"><strong>Terms:</strong> </td>
+  </tr>
+</table>
 
-  <!-- Customer & Invoice Info -->
-  <table class="table mb-4">
-    <tr>
-      <td style="width: 50%;">
-        <h5>Customer Info</h5>
-        <p><strong>Name:</strong> <span th:text="${invoice.master.ledger.name}"/></p>
-        <p><strong>Address:</strong> <span th:text="${invoice.master.ledger.address}"/></p>
-        <p><strong>Email:</strong> <span th:text="${invoice.master.ledger.email}"/></p>
-        <p><strong>Phone:</strong> <span th:text="${invoice.master.ledger.phone}"/></p>
-      </td>
-      <td style="width: 50%;">
-        <h5>Invoice Info</h5>
-        <p><strong>Invoice ID:</strong> <span th:text="${invoice.invoiceGeneratedId}"/></p>
-        <p><strong>Date:</strong> <span th:text="${#dates.format(invoice.generatedAt, 'dd MM yyyy')}"/></p>
-        <p><strong>Payment Mode:</strong> Cash</p>
-      </td>
-    </tr>
-  </table>
+<!-- Rest of your template remains unchanged -->
+<!-- Seller & Buyer -->
+<table>
+  <tr>
+    <th colspan="2">Seller (Aurifex Innovation):</th>
+    <th colspan="2">Buyer (Bill To):</th>
+  </tr>
+  <tr>
+    <td><strong>Name:</strong></td>
+    <td>Aurifex Innovation</td>
+    <td><strong>Company:</strong></td>
+    <td th:text="${invoice.master.ledger.name}"/>
+  </tr>
+  <tr>
+    <td><strong>Address:</strong></td>
+    <td>16, 1st cross, 1st main, Guru Raghvendra Layout, 7th phase JP Nagar<br /> Bengaluru - 560078</td>
+    <td><strong>Address:</strong></td>
+    <td th:text="${invoice.master.ledger.address}"/>
+  </tr>
+  <tr>
+    <td><strong>Phone:</strong></td>
+    <td>9874563210</td>
+    <td><strong>Phone:</strong></td>
+    <td th:text="${invoice.master.ledger.phone}"/>
+  </tr>
+  <tr>
+    <td><strong>email :</strong></td>
+    <td>support@aurifex.com</td>
+    <td><strong>email :</strong></td>
+    <td th:text="${invoice.master.ledger.email}"/>
+  </tr>
+</table>
 
-  <!-- Item Table -->
-  <h5 class="mb-3">Item Details</h5>
-  <table class="table">
-    <thead class="table-light">
-    <tr>
-      <th>#</th>
-      <th>Item Name</th>
-      <th>Quantity</th>
-      <th>Unit Price</th>
-      <th>Total Price</th>
-    </tr>
-    </thead>
-    <tbody>
-    <tr th:each="item, stat : ${invoice.master.lineItems}">
-      <td th:text="${stat.count}"></td>
-      <td th:text="${item.itemName}"></td>
-      <td th:text="${item.quantity}"></td>
-      <td th:text="'₹' + ${item.unitPrice}"></td>
-      <td th:text="'₹' + ${item.totalPrice}"></td>
-    </tr>
-    </tbody>
-  </table>
+<!-- Items Table -->
+<table>
+  <thead>
+  <tr class="bg-light">
+    <th>#</th>
+    <th>Description</th>
+    <th>Quantity</th>
+    <th>Rate</th>
+    <th>Amount</th>
+  </tr>
+  </thead>
+  <tbody>
+  <tr th:each="item, iterStat : ${invoice.master.lineItems}">
+    <td th:text="${iterStat.index + 1}">1</td>
+    <td>
+      <span th:text="${item.itemName}"/> <br/>
+    </td>
+    <td th:text="${item.quantity}"/>
+    <td th:text="'₹' + ${item.unitPrice}"/>
+    <td th:text="'₹' + ${item.baseAmount}"/>
+  </tr>
+  </tbody>
+<!--    Totals-->
+  <tr class="no-border td"><td colspan="4" rowspan="1"></td></tr>
+  <tr class="no-border td"><td colspan="4" rowspan="1"></td></tr>
+  <tr class="no-border td" >
+    <td colspan="3"></td> <!-- Skip #: Description, Quantity -->
+    <td class="bold right" style="border: 1px solid #ccc;">Subtotal</td>
+    <td style="border: 1px solid #ccc;" th:text="'₹' + ${invoice.master.amount}"></td>
+  </tr>
+  <tr class="no-border td" >
+    <td colspan="3"></td>
+    <td class="bold right" style="border: 1px solid #ccc;">Total Tax</td>
+    <td style="border: 1px solid #ccc;" th:text="'₹' + ${invoice.master.taxAmount}"></td>
+  </tr>
+  <tr class="no-border td">
+    <td colspan="3" ></td>
+    <td class="bg-light bold right"  style="border: 1px solid #ccc;">Grand Total</td>
+    <td class="bg-light bold" style="border: 1px solid #ccc;" th:text="'₹' + ${invoice.master.totalAmount}"></td>
+  </tr>
+</table>
 
-  <!-- Totals Section -->
-  <div class="row justify-content-end">
-    <div class="col-md-4">
-      <table class="table">
-        <tr>
-          <th>Subtotal:</th>
-          <td th:text="'₹' + ${invoice.totalAmount}"></td>
-        </tr>
-        <tr class="table-light">
-          <th>Final Amount:</th>
-          <td><strong th:text="'₹' + ${invoice.totalAmount}"></strong></td>
-        </tr>
-      </table>
-    </div>
-  </div>
 
-  <hr />
-  <p class="footer-note">
-    <strong>Terms &amp; Conditions:</strong><br/>
-    Goods once sold will not be taken back. Please make the payment within 15 days.
-  </p>
+
+<!-- Footer -->
+<div class="footer">
+  <p><strong>Amount in Words:</strong></p>
+  <p>We declare that this invoice shows the actual price of the goods described and that all particulars are true and correct.</p>
+  <p><strong>For Aurifex Innovation</strong></p>
+  <p><em>Authorised Signatory</em></p>
 </div>
 
 </body>

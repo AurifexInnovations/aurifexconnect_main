@@ -19,8 +19,6 @@ public class InvoiceGenerator {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private long invoiceGeneratedId;
 
-    private double totalAmount;
-
     @OneToOne
     private Master master;
 

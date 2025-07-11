@@ -47,18 +47,4 @@ public class MasterController {
         List<PurchaseSalesResponse> summary = masterService.getPurchaseSalesSummary(request);
         return ResponseBuilder.success(HttpStatus.OK, "Summary fetched successfully", summary);
     }
-    @PostMapping("/master/sales-vs-purchase-comparison-summary")
-    public ResponseEntity<ResponseStructure<List<Map<String, Object>>>> getSalesVsPurchaseComparisonSummary(
-            @RequestBody Map<String, String> request) {
-
-        String type = request.get("type");
-
-        List<Map<String, Object>> comparisonSummary = masterService.getSalesVsPurchaseComparison(type);
-
-        return ResponseBuilder.<List<Map<String, Object>>>success(
-                HttpStatus.OK,
-                "Sales vs Purchase comparison summary fetched successfully",
-                comparisonSummary
-        );
-    }
 }
