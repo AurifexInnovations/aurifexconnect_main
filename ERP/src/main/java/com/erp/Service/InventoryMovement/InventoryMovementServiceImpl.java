@@ -1,7 +1,9 @@
 package com.erp.Service.InventoryMovement;
 
 import com.erp.Dto.Request.InventoryMovementRequest;
+import com.erp.Dto.Request.InventoryMovementSummaryRequest;
 import com.erp.Dto.Response.InventoryMovementResponse;
+import com.erp.Dto.Response.InventoryMovementSummaryResponse;
 import com.erp.Mapper.InventoryMovement.InventoryMovementMapper;
 import com.erp.Model.*;
 import com.erp.Repository.Branch.BranchRepository;

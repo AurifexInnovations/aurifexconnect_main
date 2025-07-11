@@ -1,5 +1,6 @@
 package com.erp.Service.Invoice;
 
+import com.erp.Dto.Request.InvoiceRequest;
 import com.erp.Model.InvoiceGenerator;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -17,21 +18,20 @@ public class PdfService {
     private final InvoiceService invoiceService;
 
 
-    public byte[] generateInvoicePdf(long masterId){
+    public byte[] generateInvoicePdf(InvoiceRequest request){
         try {
 
-            InvoiceGenerator invoice = invoiceService.fetchInvoice(masterId);
-            //prepare thymeleaf context
+            InvoiceGenerator invoice = invoiceService.fetchInvoice(request);
 
+            //prepare thymeleaf context
             Context context = new Context();
             context.setVariable("invoice", invoice);
-           // context.setVariable("pdf", true); // To hide buttons if needed
+
 
             //Render Thymeleaf Template
             String html = templateEngine.process("invoice-preview", context);
 
             //prepare ByteArrayOutputStream
-
             ByteArrayOutputStream baos = new ByteArrayOutputStream();
             ITextRenderer render = new ITextRenderer();
             render.setDocumentFromString(html);
