@@ -3,6 +3,7 @@ package com.erp.Service.Master;
 import com.erp.Dto.Request.AdjustmentDTO;
 import com.erp.Dto.Request.MasterRequest;
 import com.erp.Dto.Response.MasterResponse;
+import com.erp.Dto.Response.PurchaseSalesResponse;
 import com.erp.Enum.AccountStatus;
 import com.erp.Enum.ReferenceType;
 import com.erp.Enum.TransactionStatus;
