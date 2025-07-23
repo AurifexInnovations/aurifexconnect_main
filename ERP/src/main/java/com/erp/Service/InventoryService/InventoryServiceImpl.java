@@ -122,4 +122,29 @@ public class InventoryServiceImpl implements InventoryService {
         return stockValueResponses;
     }
 
+    @Override
+    public List<InventoryResponse> getInventoryByBranchId(CommanParam param){
+        List<Inventory> inventories = inventoryRepository.findByBranch_BranchId(param.getId());
+
+        if(inventories.isEmpty()){
+            throw new InventoryNotFoundException("No inventories found for branch id " + param.getId());
+        }
+        return inventoryMapper.mapToInventoryResponse(inventories);
+    }
+
+    @Override
+    public List<InventoryResponse> getLowStockItems() {
+        List<Inventory> inventories = inventoryRepository.findAll();
+        List<Inventory> lowStockItems = inventories.stream()
+                .filter(item -> item.getItemQuantity() < item.getLowStockThreshold())
+                .toList();
+
+        if (lowStockItems.isEmpty()) {
+            throw new InventoryNotFoundException("No Low Stock Items Found");
+        }
+
+        return inventoryMapper.mapToInventoryResponse(lowStockItems);
+    }
+
+
 }

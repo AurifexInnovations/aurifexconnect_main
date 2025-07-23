@@ -117,4 +117,16 @@ public class InventoryController {
         return ResponseBuilder.success(HttpStatus.OK, "Stock values fetched successfully", stockValueResponses);
     }
 
+    @PostMapping("/inventory/by-branch")
+    public ResponseEntity<ListResponseStructure<InventoryResponse>> getInventoryByBranchId(@RequestBody CommanParam param){
+        List<InventoryResponse> inventoryResponses = inventoryService.getInventoryByBranchId(param);
+        return ResponseBuilder.success(HttpStatus.OK,"Inventories retrieved successfully!",inventoryResponses);
+    }
+
+    @GetMapping("/inventory/low-stock")
+    public ResponseEntity<ListResponseStructure<InventoryResponse>> getLowStockItems() {
+        List<InventoryResponse> responses = inventoryService.getLowStockItems();
+        return ResponseBuilder.success(HttpStatus.OK, "Low Stock Items fetched successfully", responses);
+    }
+
 }

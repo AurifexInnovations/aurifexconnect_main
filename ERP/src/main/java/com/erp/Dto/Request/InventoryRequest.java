@@ -25,5 +25,6 @@ public class InventoryRequest {
     private String categories;
     private long branchAndInventoryId;
     private List<TaxName> applicableTaxNames;
+    private double lowStockThreshold;
 
 }

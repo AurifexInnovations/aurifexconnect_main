@@ -25,6 +25,7 @@ public class Inventory {
     private String itemDescription;
     private double itemCost;
     private String categories;
+    private double lowStockThreshold;
 
     @CreatedDate
     private LocalDateTime createdAt;
