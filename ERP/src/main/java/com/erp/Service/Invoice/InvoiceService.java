@@ -1,12 +1,13 @@
 package com.erp.Service.Invoice;
 
+import com.erp.Dto.Request.InvoiceRequest;
 import com.erp.Model.InvoiceGenerator;
 
 public interface InvoiceService {
 
-    InvoiceGenerator createInvoice(long masterId);
+    InvoiceGenerator createInvoice(InvoiceRequest request);
 
-    InvoiceGenerator fetchInvoice(long masterId);
+    InvoiceGenerator fetchInvoice(InvoiceRequest request);
 
 
 }

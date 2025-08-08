@@ -35,7 +35,4 @@ public class RoleController {
         List<RoleResponse> roleResponses = roleService.getAllRoles();
         return ResponseBuilder.success(HttpStatus.CREATED, "Roles created or retrieved successfully", roleResponses);
     }
-
-
-
 }

@@ -1,7 +1,7 @@
 package com.erp.Service.Admin;
 
 import com.erp.Dto.Request.AdminRequest;
-import com.erp.Dto.Request.CommonParam;
+import com.erp.Dto.Request.CommanParam;
 import com.erp.Dto.Response.AdminResponse;
 import com.erp.Exception.Admin.AdminAlreadyExistsException;
 import com.erp.Exception.Admin.AdminNotFoundException;
@@ -87,20 +87,20 @@ public class AdminServiceImpl implements AdminService {
     }
 
     @Override
-    public AdminResponse deleteAdminById(CommonParam commonParam) {
+    public AdminResponse deleteAdminById(CommanParam commanParam) {
         RootUser currentUser = (RootUser) userIdentity.getCurrentUser();
         if (currentUser == null) {
             throw new SecurityException("No authenticated user found");
         }
-        Admin admin = adminRepository.findById(commonParam.getId())
-                .orElseThrow(() -> new AdminNotFoundException("Admin not found with this id: " + commonParam.getId()));
+        Admin admin = adminRepository.findById(commanParam.getId())
+                .orElseThrow(() -> new AdminNotFoundException("Admin not found with this id: " + commanParam.getId()));
         admin.setActive(false);
         adminRepository.save(admin);
         return adminMapper.mapToAdminResponse(admin);
     }
 
     @Override
-    public List<AdminResponse> findAdminByIdOrName(CommonParam commonParam) {
+    public List<AdminResponse> findAdminByIdOrName(CommanParam commonParam) {
         List<Admin> admins = Collections.singletonList(adminRepository.findByIdOrNameAndIsActiveTrue(commonParam.getId(), commonParam.getName())
                 .orElseThrow(() -> new AdminNotFoundException("Admin not found !!")));
         return adminMapper.mapToListOfAdminResponse(admins);

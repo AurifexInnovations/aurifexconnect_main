@@ -16,6 +16,7 @@ public class InventoryResponse {
     private String itemDescription;
     private double itemCost;
     private String categories;
+    private double lowStockThreshold;
 
     private LocalDateTime createdAt;
 

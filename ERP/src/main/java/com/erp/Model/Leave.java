@@ -38,4 +38,7 @@ public class Leave {
     @Enumerated(EnumType.STRING)
     @Column(name = "status")
     private LeaveStatus status = LeaveStatus.PENDING;
+
+    @Column(name = "leave_balance")
+    private Integer leaveBalance;
 }

@@ -1,8 +1,11 @@
 package com.erp.Service.Invoice;
 
+import com.erp.Dto.Request.InvoiceRequest;
 import com.erp.Exception.Master.MasterNotFoundException;
+import com.erp.Model.Admin;
 import com.erp.Model.InvoiceGenerator;
 import com.erp.Model.Master;
+import com.erp.Repository.Admin.AdminUserRepository;
 import com.erp.Repository.Invoice.InvoiceRepository;
 import com.erp.Repository.Master.MasterRepository;
 import lombok.AllArgsConstructor;
@@ -16,30 +19,26 @@ public class InvoiceServiceImpl implements InvoiceService{
     private final InvoiceRepository invoiceRepository;
 
     @Override
-    public InvoiceGenerator createInvoice(long masterId) {
+    public InvoiceGenerator createInvoice(InvoiceRequest request) {
 
-        Master master = masterRepository.findById(masterId)
-                .orElseThrow(()-> new MasterNotFoundException("Master with" + masterId + " that id Not Found"));
+
+        Master master = masterRepository.findById(request.getMasterId())
+                .orElseThrow(()-> new MasterNotFoundException("Master with" + request.getMasterId() + " that id Not Found"));
 
         InvoiceGenerator invoice = new InvoiceGenerator();
-        invoice.setItems(master.getLineItems());
-        invoice.setLedger(master.getLedger());
         invoice.setMaster(master);
-        invoice.setTotalAmount(master.getAmount());
 
         return invoiceRepository.save(invoice);
     }
 
 
     @Override
-    public InvoiceGenerator fetchInvoice(long masterId){
+    public InvoiceGenerator fetchInvoice(InvoiceRequest request){
 
-        InvoiceGenerator invoice = invoiceRepository.findById(masterId)
+        return invoiceRepository.findById(request.getMasterId())
                 .orElseThrow(()-> new MasterNotFoundException("Master Not Found"));
 
-        invoice.setItems(invoice.getMaster().getLineItems());
-
-        return invoice;
+        //invoice.setMaster(invoice.getMaster());
     }
 
 

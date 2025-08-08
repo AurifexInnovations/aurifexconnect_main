@@ -3,6 +3,7 @@ package com.erp.Controller.Inventory;
 import com.erp.Dto.Request.CommanParam;
 import com.erp.Dto.Request.InventoryRequest;
 import com.erp.Dto.Response.InventoryResponse;
+import com.erp.Dto.Response.StockValueResponse;
 import com.erp.Service.InventoryService.InventoryService;
 import com.erp.Utility.ListResponseStructure;
 import com.erp.Utility.ResponseBuilder;
@@ -108,4 +109,24 @@ public class InventoryController {
         List<String> categories = inventoryService.fetchAllCategories();
         return ResponseBuilder.success(HttpStatus.OK,"Categories Fetched Successfully",categories);
     }
+
+    @GetMapping("/inventory/stockvalue")
+    public ResponseEntity<ListResponseStructure<StockValueResponse>> getStockValues() {
+
+        List<StockValueResponse> stockValueResponses = inventoryService.getStockValueList();
+        return ResponseBuilder.success(HttpStatus.OK, "Stock values fetched successfully", stockValueResponses);
+    }
+
+    @PostMapping("/inventory/by-branch")
+    public ResponseEntity<ListResponseStructure<InventoryResponse>> getInventoryByBranchId(@RequestBody CommanParam param){
+        List<InventoryResponse> inventoryResponses = inventoryService.getInventoryByBranchId(param);
+        return ResponseBuilder.success(HttpStatus.OK,"Inventories retrieved successfully!",inventoryResponses);
+    }
+
+    @GetMapping("/inventory/low-stock")
+    public ResponseEntity<ListResponseStructure<InventoryResponse>> getLowStockItems() {
+        List<InventoryResponse> responses = inventoryService.getLowStockItems();
+        return ResponseBuilder.success(HttpStatus.OK, "Low Stock Items fetched successfully", responses);
+    }
+
 }

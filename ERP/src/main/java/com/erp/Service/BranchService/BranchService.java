@@ -1,7 +1,8 @@
 package com.erp.Service.BranchService;
 
 import com.erp.Dto.Request.BranchRequest;
-import com.erp.Dto.Request.CommonParam;
+import com.erp.Dto.Request.CommanParam;
+import com.erp.Dto.Request.PaginationRequest;
 import com.erp.Dto.Response.BranchResponse;
 
 import java.util.List;
@@ -12,12 +13,12 @@ public interface BranchService {
 
     BranchResponse updateBranch(BranchRequest branchRequest);
 
-    List<BranchResponse> getAllBranches();
+    List<BranchResponse> getAllBranches(PaginationRequest request);
 
-    BranchResponse deleteBranchById(CommonParam param);
+    BranchResponse deleteBranchById(CommanParam param);
 
-    List<BranchResponse> getByIdOrBranchName(CommonParam param);
+    List<BranchResponse> getByIdOrBranchNameOrLocationOrBranchStatus(CommanParam param);
 
-    List<BranchResponse> getBranchesByItemName(CommonParam param);
+    List<BranchResponse> getBranchesByItemName(CommanParam param);
 
 }

@@ -35,6 +35,7 @@ public class Inventory {
 
     @Column(name = "categories")
     private String categories;
+    private double lowStockThreshold;
 
     @CreatedDate
     @Column(name = "created_at", updatable = false)
@@ -53,4 +54,7 @@ public class Inventory {
 
     @OneToMany(mappedBy = "inventory")
     private List<InventoryMovement> inventoryMovement;
+
+    @ManyToMany(fetch = FetchType.EAGER)
+    private List<Tax> taxes;
 }

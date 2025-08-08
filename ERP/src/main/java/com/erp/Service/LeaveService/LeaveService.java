@@ -8,6 +8,7 @@ import java.util.List;
 
 public interface LeaveService {
 
+
     LeaveResponse createLeaveRequest(LeaveRequest request);
     LeaveResponse updateLeaveRequestByLeaveId(LeaveRequest request);
     List<LeaveResponse> getLeaveRequestsByUserId(Param param);

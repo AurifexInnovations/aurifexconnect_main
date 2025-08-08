@@ -1,10 +1,14 @@
 package com.erp.Repository.Inventory;
 
+import com.erp.Model.Branch;
 import com.erp.Model.Inventory;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.stereotype.Repository;
 
 import java.util.List;
+import java.util.Optional;
 
+@Repository
 public interface InventoryRepository extends JpaRepository<Inventory,Long> {
 
     /**
@@ -14,6 +18,11 @@ public interface InventoryRepository extends JpaRepository<Inventory,Long> {
      * @return A list of matching {@link Inventory} entities, or an empty list if none found.
      */
     List<Inventory> findByItemIdOrItemName(long id, String name);
+
+    List<Inventory> findByBranch_BranchId(long branchId);
+
+    // New method for stock transfer approval
+    Optional<Inventory> findByBranchAndItemName(Branch branch, String itemName);
 }
 
 //@Query("SELECT i FROM Inventory i " +

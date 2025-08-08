@@ -27,7 +27,7 @@ public class SalarySlipController {
     public String generateSalary(@RequestBody @Valid SalaryRequest request, Model model) {
         SalaryResponse salary = salaryService.generateSalaryForMonth(request);
         model.addAttribute("salary", salary);
-        return "salary-slip"; // This will use salary-slip.html
+        return "salary-slip";
     }
 
     @PostMapping("/slip")
@@ -38,5 +38,4 @@ public class SalarySlipController {
                 .contentType(MediaType.APPLICATION_PDF)
                 .body(pdf);
     }
-
 }
