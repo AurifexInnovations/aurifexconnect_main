@@ -13,6 +13,7 @@ import com.erp.Model.Attendance;
 import com.erp.Model.User;
 import com.erp.Repository.Attendance.AttendanceRepository;
 import com.erp.Repository.User.UserRepository;
+import com.erp.Service.Attendance.AttendanceNotification.AttendanceNotificationService;
 import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -30,6 +31,7 @@ public class AttendanceServiceImpl implements AttendanceService {
     private final AttendanceMapper attendanceMapper;
     private final UserRepository userRepository;
     private final Clock clock;
+    private final AttendanceNotificationService attendanceNotificationService;
 
     @Override
     public AttendanceResponse checkIn(Param param) {
@@ -53,11 +55,10 @@ public class AttendanceServiceImpl implements AttendanceService {
 
         calculateWorkingDetails(attendance);
         attendanceRepository.save(attendance);
-
+        attendanceNotificationService.sendCheckInNotification(user, now);
         AttendanceResponse response = attendanceMapper.mapToResponse(attendance);
         response.setWorkingHours(formatHours(String.valueOf(attendance.getWorkingHours())));
         response.setWorkingDays(formatDays(String.valueOf(attendance.getWorkingDays())));
-
         return response;
     }
 
@@ -73,10 +74,11 @@ public class AttendanceServiceImpl implements AttendanceService {
         if (now.isBefore(attendance.getCheckIn())) {
             throw new AttendanceInvalidException("Check-out cannot be before check-in.");
         }
-
         attendance.setCheckOut(now);
         calculateWorkingDetails(attendance);
         attendanceRepository.save(attendance);
+
+        attendanceNotificationService.sendCheckOutNotification(attendance.getUser(), now);
 
         AttendanceResponse response = attendanceMapper.mapToResponse(attendance);
         response.setWorkingHours(formatHours(String.valueOf(attendance.getWorkingHours())));
@@ -84,12 +86,14 @@ public class AttendanceServiceImpl implements AttendanceService {
 
         return response;
     }
+
     @Override
     @Transactional
     public AttendanceResponse updateAttendance(AttendanceRequest request) {
         if (request == null || request.getUserId() <= 0 || request.getDate() == null) {
             throw new IllegalArgumentException("User ID and date must be provided.");
         }
+
         User user = userRepository.findById(request.getUserId())
                 .orElseThrow(() -> new UserNotFoundException("User not found."));
 
@@ -140,10 +144,107 @@ public class AttendanceServiceImpl implements AttendanceService {
 
         calculateWorkingDetails(attendance);
         Attendance savedAttendance = attendanceRepository.save(attendance);
+
+        // Notification
+        attendanceNotificationService.sendUpdateNotification(user, request.getDate());
+
         AttendanceResponse response = attendanceMapper.mapToResponse(savedAttendance);
         response.setWorkingHours(formatHours(String.valueOf(savedAttendance.getWorkingHours())));
         response.setWorkingDays(formatDays(String.valueOf(savedAttendance.getWorkingDays())));
         return response;
+    }
+
+    @Override
+    public AttendanceResponse deleteAttendanceByUserIDandDate(AttendanceRequest request) {
+        Attendance attendance = attendanceRepository.findByUser_IdAndDate(request.getUserId(), request.getDate())
+                .orElseThrow(() -> new AttendanceNotFoundException("No attendance found for user and date."));
+        attendanceRepository.delete(attendance);
+
+        // Notification
+        attendanceNotificationService.sendDeleteNotification(attendance.getUser(), attendance.getDate());
+
+        return attendanceMapper.mapToResponse(attendance);
+    }
+
+    @Override
+    public AttendanceResponse deleteAllAttendances(AttendanceRequest request) {
+        List<Attendance> attendances = attendanceRepository.findByUser_Id(request.getUserId());
+        if (attendances.isEmpty()) {
+            throw new AttendanceNotFoundException("No attendance records for user.");
+        }
+        attendanceRepository.deleteAll(attendances);
+        return attendanceMapper.mapToResponse(attendances.get(attendances.size() - 1));
+    }
+
+    @Override
+    public int countPresentDaysByUserIdAndMonth(Long userId, YearMonth month) {
+        LocalDate startDate = month.atDay(1);
+        LocalDate endDate = month.atEndOfMonth();
+
+        List<Attendance> attendanceList = attendanceRepository.findByUser_IdAndDateBetween(userId, startDate, endDate);
+        List<AttendanceResponse> responseList = attendanceMapper.mapToAttendanceResponse(attendanceList);
+
+        Set<LocalDate> uniquePresentDays = new HashSet<>();
+        for (AttendanceResponse response : responseList) {
+            if (response.getCheckOut() != null) {
+                uniquePresentDays.add(response.getDate());
+            }
+        }
+        return uniquePresentDays.size();
+    }
+
+    @Override
+    public void autoCheckout() {
+        LocalDate today = LocalDate.now(clock);
+        List<Attendance> pendingCheckouts = attendanceRepository.findByDateAndCheckOutIsNull(today);
+
+        for (Attendance attendance : pendingCheckouts) {
+            if (attendance.getCheckIn() != null) {
+                LocalDateTime autoCheckOut = attendance.getCheckIn().plusHours((long) FIXED_WORKING_HOURS);
+                attendance.setCheckOut(autoCheckOut);
+                attendance.setWorkingHours(FIXED_WORKING_HOURS);
+                attendance.setWorkingDays(1.0);
+                attendanceRepository.save(attendance);
+
+                // Notification
+                attendanceNotificationService.sendAutoCheckoutNotification(attendance.getUser(), autoCheckOut);
+            }
+        }
+    }
+
+    private void calculateWorkingDetails(Attendance attendance) {
+        double hours = 0.0;
+        if (attendance.getCheckIn() != null && attendance.getCheckOut() != null) {
+            hours = Duration.between(attendance.getCheckIn(), attendance.getCheckOut()).toMinutes() / 60.0;
+        }
+
+        attendance.setWorkingHours(hours);
+
+        if (hours == 0.0) {
+            attendance.setWorkingDays(0.0);
+        } else if (hours >= FIXED_WORKING_HOURS) {
+            attendance.setWorkingDays(1.0);
+        } else {
+            attendance.setWorkingDays(0.5);
+        }
+    }
+
+    private String formatHours(String value) {
+        double hours = Double.parseDouble(value);
+        int h = (int) hours;
+        int m = (int) Math.round((hours - h) * 60);
+
+        if (h == 0 && m == 0) return "0 minutes";
+        if (h == 0) return m + " minutes";
+        if (m == 0) return h + " hours";
+        return h + " hours " + m + " minutes";
+    }
+
+    private String formatDays(String value) {
+        double days = Double.parseDouble(value);
+        if (days == 1.0) return "1 day";
+        if (days == 0.5) return "Half day";
+        return days + " days";
     }
 
     @Override
@@ -194,92 +295,6 @@ public class AttendanceServiceImpl implements AttendanceService {
     }
 
     @Override
-    public AttendanceResponse deleteAttendanceByUserIDandDate(AttendanceRequest request) {
-        Attendance attendance = attendanceRepository.findByUser_IdAndDate(request.getUserId(), request.getDate())
-                .orElseThrow(() -> new AttendanceNotFoundException("No attendance found for user and date."));
-        attendanceRepository.delete(attendance);
-        return attendanceMapper.mapToResponse(attendance);
-    }
-
-    @Override
-    public AttendanceResponse deleteAllAttendances(AttendanceRequest request) {
-        List<Attendance> attendances = attendanceRepository.findByUser_Id(request.getUserId());
-        if (attendances.isEmpty()) {
-            throw new AttendanceNotFoundException("No attendance records for user.");
-        }
-        attendanceRepository.deleteAll(attendances);
-        return attendanceMapper.mapToResponse(attendances.get(attendances.size() - 1));
-    }
-
-    @Override
-    public int countPresentDaysByUserIdAndMonth(Long userId, YearMonth month) {
-        LocalDate startDate = month.atDay(1);
-        LocalDate endDate = month.atEndOfMonth();
-
-        List<Attendance> attendanceList = attendanceRepository.findByUser_IdAndDateBetween(userId, startDate, endDate);
-        List<AttendanceResponse> responseList = attendanceMapper.mapToAttendanceResponse(attendanceList);
-
-        Set<LocalDate> uniquePresentDays = new HashSet<>();
-        for (AttendanceResponse response : responseList) {
-            if (response.getCheckOut() != null) {
-                uniquePresentDays.add(response.getDate());
-            }
-        }
-        return uniquePresentDays.size();
-    }
-
-    @Override
-    public void autoCheckout() {
-        LocalDate today = LocalDate.now(clock);
-        List<Attendance> pendingCheckouts = attendanceRepository.findByDateAndCheckOutIsNull(today);
-
-        for (Attendance attendance : pendingCheckouts) {
-            if (attendance.getCheckIn() != null) {
-                LocalDateTime autoCheckOut = attendance.getCheckIn().plusHours((long) FIXED_WORKING_HOURS);
-                attendance.setCheckOut(autoCheckOut);
-                attendance.setWorkingHours(FIXED_WORKING_HOURS);
-                attendance.setWorkingDays(1.0);
-                attendanceRepository.save(attendance);
-            }
-        }
-    }
-
-    private void calculateWorkingDetails(Attendance attendance) {
-        double hours = 0.0;
-        if (attendance.getCheckIn() != null && attendance.getCheckOut() != null) {
-            hours = Duration.between(attendance.getCheckIn(), attendance.getCheckOut()).toMinutes() / 60.0;
-        }
-
-        attendance.setWorkingHours(hours);
-
-        if (hours == 0.0) {
-            attendance.setWorkingDays(0.0);
-        } else if (hours >= FIXED_WORKING_HOURS) {
-            attendance.setWorkingDays(1.0);
-        } else {
-            attendance.setWorkingDays(0.5);
-        }
-    }
-
-    private String formatHours(String value) {
-        double hours = Double.parseDouble(value);
-        int h = (int) hours;
-        int m = (int) Math.round((hours - h) * 60);
-
-        if (h == 0 && m == 0) return "0 minutes";
-        if (h == 0) return m + " minutes";
-        if (m == 0) return h + " hours";
-        return h + " hours " + m + " minutes";
-    }
-
-    private String formatDays(String value) {
-        double days = Double.parseDouble(value);
-        if (days == 1.0) return "1 day";
-        if (days == 0.5) return "Half day";
-        return days + " days";
-    }
-
-    @Override
     public List<AttendanceChartResponse> getMonthlyAttendanceAnalytics(AttendanceRequest request) {
         Long userId = request.getUserId();
         LocalDate fromDate = request.getFromDate();
@@ -303,7 +318,7 @@ public class AttendanceServiceImpl implements AttendanceService {
                 if (matchingAttendance.getStatus() != null) {
                     response.setStatus(matchingAttendance.getStatus().name());
                 } else {
-                    response.setStatus(AttendanceStatus.PRESENT.name()); // fallback
+                    response.setStatus(AttendanceStatus.PRESENT.name());
                 }
             } else {
                 response.setStatus(AttendanceStatus.ABSENT.name());

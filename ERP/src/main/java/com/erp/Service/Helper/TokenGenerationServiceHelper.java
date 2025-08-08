@@ -5,6 +5,7 @@ import com.erp.Security.JWT.JWTService;
 import com.erp.Security.JWT.TokenPayload;
 import com.erp.Security.JWT.TokenType;
 import com.erp.Security.util.CookieManager;
+import com.erp.Service.Helper.HelperNotification.TokenGenerationServiceHelperNotification;
 import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Component;
 
@@ -19,7 +20,7 @@ public class TokenGenerationServiceHelper {
     private final AppEnv env;
     private final JWTService jwtService;
     private final CookieManager cookieManager;
-
+    private final TokenGenerationServiceHelperNotification tokenNotification;
 
     public String generateToken(TokenType tokenType, Map<String, Object> claim, Instant shouldExpireAt){
         TokenPayload tokenPayload = generateTokenPayload(tokenType,claim,shouldExpireAt);

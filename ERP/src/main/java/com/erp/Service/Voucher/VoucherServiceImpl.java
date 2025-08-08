@@ -6,6 +6,7 @@ import com.erp.Exception.Voucher.VoucherNotFound;
 import com.erp.Mapper.Voucher.VoucherMapper;
 import com.erp.Model.Voucher;
 import com.erp.Repository.Voucher.VoucherRepository;
+import com.erp.Service.Voucher.VoucherNotification.VoucherNotification;
 import jakarta.transaction.Transactional;
 import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -17,7 +18,7 @@ public class VoucherServiceImpl implements VoucherService{
 
     private final VoucherRepository voucherRepository;
     private final VoucherMapper voucherMapper;
-
+    private final VoucherNotification voucherNotification;
     @Override
     @Transactional
     public Voucher generateFormattedVoucherId(VoucherType type) {
@@ -43,7 +44,7 @@ public class VoucherServiceImpl implements VoucherService{
 
         voucher.setVoucherIndex(nextIndex);
         voucherRepository.save(voucher);
-
+        voucherNotification.notifyVoucherGenerated(voucher);
         return voucher;
     }
 
@@ -60,7 +61,7 @@ public class VoucherServiceImpl implements VoucherService{
     public VoucherResponse findById(long id) {
         Voucher voucher = voucherRepository.findById(id)
                 .orElseThrow(()-> new VoucherNotFound("Voucher Not Found By This Id : "+id));
-
+        voucherNotification.notifyVoucherFetched(voucher);
         return voucherMapper.mapToVoucherResponse(voucher);
     }
 

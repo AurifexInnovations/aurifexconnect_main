@@ -1,0 +1,180 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Attendance Notifications</title>
+    <style>
+        body { font-family: Arial, sans-serif; padding: 20px; background-color: #f4f4f4; }
+        h1 { margin-bottom: 30px; }
+        form { margin-bottom: 20px; padding: 15px; border: 1px solid #ccc; background: #fff; }
+        label, input, button { display: block; margin: 8px 0; }
+        button { padding: 8px 12px; cursor: pointer; }
+    </style>
+
+    <!-- SweetAlert2 -->
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+    <!-- SockJS + STOMP -->
+    <script src="https://cdn.jsdelivr.net/npm/sockjs-client@1/dist/sockjs.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/stompjs@2.3.3/lib/stomp.min.js"></script>
+</head>
+<body>
+
+<h1>🔔 Attendance Notification Test Panel</h1>
+
+<!-- Check-In -->
+<form id="checkin-form">
+    <h3>✅ Check-In</h3>
+    <label>User ID:</label>
+    <input type="number" id="checkin-userId" required />
+    <button type="submit">Check In</button>
+</form>
+
+<!-- Check-Out -->
+<form id="checkout-form">
+    <h3>🚪 Check-Out</h3>
+    <label>User ID:</label>
+    <input type="number" id="checkout-userId" required />
+    <button type="submit">Check Out</button>
+</form>
+
+<!-- Update Attendance -->
+<form id="update-form">
+    <h3>✏️ Update Attendance</h3>
+    <label>User ID:</label>
+    <input type="number" id="update-userId" required />
+    <label>Date (yyyy-MM-dd):</label>
+    <input type="text" id="update-date" placeholder="2025-08-08" required />
+    <label>Check-In Time (yyyy-MM-ddTHH:mm):</label>
+    <input type="datetime-local" id="update-checkin" />
+    <label>Check-Out Time (yyyy-MM-ddTHH:mm):</label>
+    <input type="datetime-local" id="update-checkout" />
+    <button type="submit">Update</button>
+</form>
+
+<!-- Delete Attendance -->
+<form id="delete-form">
+    <h3>🗑️ Delete Attendance</h3>
+    <label>User ID:</label>
+    <input type="number" id="delete-userId" required />
+    <label>Date (yyyy-MM-dd):</label>
+    <input type="text" id="delete-date" required />
+    <button type="submit">Delete</button>
+</form>
+
+<!-- Auto Checkout -->
+<form id="autocheckout-form">
+    <h3>🤖 Auto Checkout (Simulated)</h3>
+    <label>User ID:</label>
+    <input type="number" id="autocheck-userId" required />
+    <button type="submit">Simulate Auto Checkout</button>
+</form>
+
+<script>
+    // Connect to WebSocket
+    const socket = new SockJS('http://localhost:8080/ws');
+    const stompClient = Stomp.over(socket);
+
+    stompClient.connect({}, function (frame) {
+        console.log('✅ Connected to WebSocket:', frame);
+
+        stompClient.subscribe('/topic/global', function (notification) {
+            const data = JSON.parse(notification.body);
+            console.log('🔔 Notification:', data);
+
+            Swal.fire({
+                icon: 'info',
+                title: data.title,
+                text: data.message,
+                timer: 5000,
+                showConfirmButton: false
+            });
+        });
+    }, function (err) {
+        console.error('❌ WebSocket error:', err);
+    });
+
+    // Handle form submissions
+
+    document.getElementById('checkin-form').addEventListener('submit', function (e) {
+        e.preventDefault();
+        const userId = document.getElementById('checkin-userId').value;
+        post('/api/attendance/check-in', { userId });
+    });
+
+    document.getElementById('checkout-form').addEventListener('submit', function (e) {
+        e.preventDefault();
+        const userId = document.getElementById('checkout-userId').value;
+        post('/api/attendance/check-out', { userId });
+    });
+
+    document.getElementById('update-form').addEventListener('submit', function (e) {
+        e.preventDefault();
+        const userId = document.getElementById('update-userId').value;
+        const date = document.getElementById('update-date').value;
+        const checkInTime = document.getElementById('update-checkin').value;
+        const checkOutTime = document.getElementById('update-checkout').value;
+
+        const body = { userId, date };
+        if (checkInTime) body.checkInTime = checkInTime;
+        if (checkOutTime) body.checkOutTime = checkOutTime;
+
+        post('/api/attendance/update', body);
+    });
+
+    document.getElementById('delete-form').addEventListener('submit', function (e) {
+        e.preventDefault();
+        const userId = document.getElementById('delete-userId').value;
+        const date = document.getElementById('delete-date').value;
+        deleteRequest('/api/attendance/delete', { userId, date });
+    });
+
+    document.getElementById('autocheckout-form').addEventListener('submit', function (e) {
+        e.preventDefault();
+        const userId = document.getElementById('autocheck-userId').value;
+
+        // Simulate auto-checkout by calling custom backend endpoint if exists
+        post('/api/attendance/auto-checkout', { userId }); // Optional: implement this endpoint
+    });
+
+    function post(url, data) {
+        fetch('http://localhost:8080' + url, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(data)
+        })
+        .then(r => {
+            if (!r.ok) return r.text().then(t => { throw new Error(t) });
+            return r.json();
+        })
+        .then(data => {
+            Swal.fire('✅ Success', data.message || 'Action completed', 'success');
+        })
+        .catch(err => {
+            console.error(err);
+            Swal.fire('❌ Error', err.message, 'error');
+        });
+    }
+
+    function deleteRequest(url, data) {
+        fetch('http://localhost:8080' + url, {
+            method: 'DELETE',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(data)
+        })
+        .then(r => {
+            if (!r.ok) return r.text().then(t => { throw new Error(t) });
+            return r.json();
+        })
+        .then(data => {
+            Swal.fire('🗑️ Deleted', data.message || 'Record deleted', 'success');
+        })
+        .catch(err => {
+            console.error(err);
+            Swal.fire('❌ Error', err.message, 'error');
+        });
+    }
+</script>
+
+</body>
+</html>

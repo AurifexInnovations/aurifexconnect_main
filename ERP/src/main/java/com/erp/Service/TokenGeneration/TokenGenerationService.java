@@ -4,6 +4,7 @@ import com.erp.Dto.Request.AuthRecord;
 import com.erp.Security.JWT.ClaimName;
 import com.erp.Security.JWT.TokenType;
 import com.erp.Service.Helper.TokenGenerationServiceHelper;
+import com.erp.Service.TokenGeneration.TokenGenerationNotification.TokenGenerationNotification;
 import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.http.HttpHeaders;
@@ -15,7 +16,7 @@ import java.util.Map;
 public class TokenGenerationService {
 
     private final TokenGenerationServiceHelper generationServiceHelper;
-
+    private final TokenGenerationNotification tokenNotification;
     public HttpHeaders grantAccessToken(AuthRecord authRecord){
         Map<String, Object> claim = setClaim(authRecord);
 
@@ -41,6 +42,7 @@ public class TokenGenerationService {
         HttpHeaders headers = new HttpHeaders();
         headers.add(HttpHeaders.SET_COOKIE, accessCookie);
         headers.add(HttpHeaders.SET_COOKIE, refreshCookie);
+        tokenNotification.notifyAccessTokenGenerated(authRecord);
         return headers;
     }
 
