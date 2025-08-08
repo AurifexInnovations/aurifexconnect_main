@@ -2,6 +2,7 @@ package com.erp.Dto.Request;
 
 import com.erp.Enum.TaxName;
 import com.erp.Enum.TaxType;
+import com.fasterxml.jackson.annotation.JsonFormat;
 import jakarta.validation.constraints.DecimalMin;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
@@ -9,6 +10,7 @@ import jakarta.validation.constraints.Pattern;
 import lombok.Getter;
 import lombok.Setter;
 
+import java.time.LocalDate;
 import java.util.List;
 
 @Getter
@@ -26,5 +28,8 @@ public class InventoryRequest {
     private long branchAndInventoryId;
     private List<TaxName> applicableTaxNames;
     private double lowStockThreshold;
+
+    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd")
+    private LocalDate expiryDate;
 
 }

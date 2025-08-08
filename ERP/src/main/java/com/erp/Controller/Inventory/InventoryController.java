@@ -52,7 +52,7 @@ public class InventoryController {
                             @Content(schema = @Schema(implementation = SimpleErrorResponse.class))
                     })
             })
-    public ResponseEntity<ResponseStructure<InventoryResponse>> updateItem(@RequestBody InventoryRequest inventoryRequest){
+    public ResponseEntity<ResponseStructure<InventoryResponse>> updateItem(@Valid @RequestBody InventoryRequest inventoryRequest){
         InventoryResponse inventoryResponse = inventoryService.updateItem(inventoryRequest);
         return ResponseBuilder.success(HttpStatus.OK,"Inventory updated successfully!!",inventoryResponse);
     }

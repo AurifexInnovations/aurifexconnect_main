@@ -7,6 +7,7 @@ import org.springframework.data.annotation.CreatedDate;
 import org.springframework.data.annotation.LastModifiedDate;
 import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
 
@@ -26,6 +27,9 @@ public class Inventory {
     private double itemCost;
     private String categories;
     private double lowStockThreshold;
+
+    @Column(name = "expiry_date")
+    private LocalDate expiryDate;
 
     @CreatedDate
     private LocalDateTime createdAt;

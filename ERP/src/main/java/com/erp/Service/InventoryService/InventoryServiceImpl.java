@@ -16,6 +16,7 @@ import com.erp.Repository.Tax.TaxRepository;
 import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -33,6 +34,10 @@ public class InventoryServiceImpl implements InventoryService {
     public InventoryResponse addItem(InventoryRequest inventoryRequest) {
         Branch branch = branchRepository.findById(inventoryRequest.getBranchAndInventoryId())
                 .orElseThrow(() -> new BranchNotFoundException("Branch Not Found, Invalid Id"));
+
+        if(inventoryRequest.getExpiryDate() != null && inventoryRequest.getExpiryDate().isBefore(LocalDate.now())){
+            throw new IllegalArgumentException("Expiry date cannot be in the past");
+        }
 
         Inventory inventory = inventoryMapper.mapToInventory(inventoryRequest);
         List<Tax> taxes = inventoryRequest.getApplicableTaxNames().stream()
