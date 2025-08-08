@@ -98,4 +98,9 @@ public interface InventoryService {
      */
     //new
     List<StockValueResponse> getStockValueList();
+
+    List<InventoryResponse> getInventoryByBranchId(CommanParam param);
+
+    List<InventoryResponse> getLowStockItems();
+
 }
