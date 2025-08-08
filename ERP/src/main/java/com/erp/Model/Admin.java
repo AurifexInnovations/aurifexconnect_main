@@ -50,11 +50,17 @@ public class Admin  implements GenericUser{
     @Column(name = "updated_at")
     private LocalDateTime updatedAt;
 
+    @Column(name = "schema_name")
+    private String schemaName;
+
     @Column(name = "created_by")
     private long createdByRootUserId;
 
     @Column(name = "last_updated_by")
     private long lastUpdatedByRootUserId;
+
+    @OneToMany(mappedBy = "admin")
+    private List<InvoiceGenerator> invoiceGenerator;
 
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
@@ -94,5 +100,10 @@ public class Admin  implements GenericUser{
     @Override
     public boolean isActive() {
         return isActive;
+    }
+
+    @Override
+    public String getSchemaName() {
+       return schemaName;
     }
 }

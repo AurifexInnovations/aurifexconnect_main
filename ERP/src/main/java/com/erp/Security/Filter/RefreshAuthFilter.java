@@ -1,5 +1,6 @@
 package com.erp.Security.Filter;
 
+import com.erp.Multitenancy.TenantContext;
 import com.erp.Security.JWT.ClaimName;
 import com.erp.Security.JWT.JWTService;
 import com.erp.Security.JWT.TokenType;
@@ -27,12 +28,16 @@ public class RefreshAuthFilter extends OncePerRequestFilter {
     private final TokenBlackListService tokenBlackListService;
 
     @Override
-    protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain) throws ServletException, IOException {
-        log.info("Validating request, finding token: {}", TokenType.REFRESH.type());
-        log.info("RefreshAuthFilter handling request. Path: {}", request.getRequestURI());
+    protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain)
+            throws ServletException, IOException {
+
         String path = request.getRequestURI();
-        log.debug("Processing request in RefreshAuthFilter: {}", path);
-        if (path.startsWith("/api/v1/login") || path.startsWith("/api/v1/auth/") || path.equals("/error") || path.equals("/api/v1/logout")) {
+        log.debug("RefreshAuthFilter processing request: {}", path);
+        log.debug("Looking for token type: {}", TokenType.REFRESH.type());
+
+        // Skip filter for public/auth/logout paths
+        if (path.startsWith("/api/v1/login") || path.startsWith("/api/v1/auth/")
+                || path.equals("/error") || path.equals("/api/v1/logout")) {
             log.debug("Skipping RefreshAuthFilter for path: {}", path);
             filterChain.doFilter(request, response);
             return;
@@ -42,35 +47,50 @@ public class RefreshAuthFilter extends OncePerRequestFilter {
         String token = cookies != null ? FilterHelper.extractTokenFromCookie(cookies, TokenType.REFRESH) : null;
 
         if (token != null && !tokenBlackListService.isBlackListed(token)) {
-            log.info("Token found with name: {}", TokenType.REFRESH.type());
-            Claims claims = jwtService.parseToken(token);
+            log.info("Refresh token found and is not blacklisted");
 
-            String email = claims.get(ClaimName.USER_EMAIL, String.class);
+            try {
+                Claims claims = jwtService.parseToken(token);
+                String email = claims.get(ClaimName.USER_EMAIL, String.class);
+                String schemaName = claims.get(ClaimName.SCHEMA_NAME, String.class);
+                log.debug("Token claims extracted: email = {}, schema = {}", email, schemaName);
 
-            if (email != null && !email.isEmpty()) {
-                log.info("Claims: {} extracted successfully", ClaimName.USER_EMAIL);
+                TenantContext.setCurrentTenant(schemaName != null ? schemaName : "public");
 
-                if (SecurityContextHolder.getContext().getAuthentication() == null) {
-                    List<SimpleGrantedAuthority> authorities = List.of(new SimpleGrantedAuthority("ROLE_ROOT"));
+                if (email != null && !email.isEmpty()) {
+                    if (SecurityContextHolder.getContext().getAuthentication() == null) {
+                        List<SimpleGrantedAuthority> authorities = List.of(
+                                new SimpleGrantedAuthority("ROLE_REFRESH")
+                        );
 
-                    UsernamePasswordAuthenticationToken authToken = new UsernamePasswordAuthenticationToken(
-                            email,
-                            null,
-                            authorities
-                    );
+                        UsernamePasswordAuthenticationToken authToken = new UsernamePasswordAuthenticationToken(
+                                email,
+                                null,
+                                authorities
+                        );
 
-                    authToken.setDetails(request);
-                    SecurityContextHolder.getContext().setAuthentication(authToken);
+                        authToken.setDetails(request);
+                        SecurityContextHolder.getContext().setAuthentication(authToken);
 
-                    log.info("Request Authentication Successfully!!");
+                        log.info("Refresh authentication set for user: {}", email);
+                    }
+                } else {
+                    log.error("Invalid email in token claims");
                 }
-            } else {
-                log.error("Invalid claims: {}", ClaimName.USER_EMAIL);
+
+            } catch (Exception e) {
+                log.error("Failed to validate refresh token: {}", e.getMessage());
+                TenantContext.clear(); // ensure thread cleanup
             }
+
         } else {
-            log.warn("Token not found or blacklisted with name: {}", TokenType.REFRESH.type());
+            log.warn("Refresh token not found or is blacklisted");
         }
 
-        filterChain.doFilter(request, response);
+        try {
+            filterChain.doFilter(request, response);
+        } finally {
+            TenantContext.clear(); // Always clean up thread-local
+        }
     }
 }

@@ -20,26 +20,35 @@ import org.springframework.web.bind.annotation.RequestMapping;
 
 @Controller
 @RequiredArgsConstructor
-@RequestMapping("/")
+@RequestMapping("/invoice")
 public class InvoiceController {
 
     private final InvoiceService invoiceService;
     private final PdfService pdfService;
     private final EmailService emailService;
 
-    @PostMapping("invoice")
+    @PostMapping("/create")
     public String invoicePreview(@RequestBody InvoiceRequest request,
                                  Model model){
-        InvoiceGenerator invoiceGenerator = invoiceService.createInvoice(request.getMasterId());
+        InvoiceGenerator invoiceGenerator = invoiceService.createInvoice(request);
 
         model.addAttribute("invoice",invoiceGenerator);
+        return "invoice-preview";
+    }
+
+    @PostMapping("/find")
+    public String findInvoice(@RequestBody InvoiceRequest request,
+                              Model model)
+    {
+        InvoiceGenerator invoice = invoiceService.fetchInvoice(request);
+        model.addAttribute("invoice",invoice);
         return "invoice-preview";
     }
 
     @PostMapping("/pdf")
     public ResponseEntity<byte[]> downloadPdf(@RequestBody InvoiceRequest request){
 
-        byte[] pdf = pdfService.generateInvoicePdf(request.getMasterId());
+        byte[] pdf = pdfService.generateInvoicePdf(request);
 
         return ResponseEntity.ok()
                 .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=invoice-" + request.getMasterId() + ".pdf")
@@ -48,14 +57,14 @@ public class InvoiceController {
     }
 
 
-    @PostMapping("invoice/sendMail")
+    @PostMapping("/sendMail")
     public ResponseEntity<String> sendInvoiceEmail(@RequestBody InvoiceRequest request) throws MessagingException {
 
-        InvoiceGenerator invoiceGenerator = invoiceService.fetchInvoice(request.getMasterId());
+        InvoiceGenerator invoiceGenerator = invoiceService.fetchInvoice(request);
 
-        String customerEmail = invoiceGenerator.getLedger().getEmail();
+        String customerEmail = invoiceGenerator.getMaster().getLedger().getEmail();
 
-        byte[] pdf = pdfService.generateInvoicePdf(request.getMasterId());
+        byte[] pdf = pdfService.generateInvoicePdf(request);
 
         emailService.sendEmail(customerEmail,pdf);
 

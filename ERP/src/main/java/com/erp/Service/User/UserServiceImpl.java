@@ -11,10 +11,10 @@ import com.erp.Mapper.User.UserMapper;
 import com.erp.Model.Admin;
 import com.erp.Model.Role;
 import com.erp.Model.User;
+import com.erp.Multitenancy.TenantContext;
 import com.erp.Repository.Role.RoleRepository;
 import com.erp.Repository.User.UserRepository;
 import com.erp.Security.util.UserIdentity;
-import com.erp.Service.User.UserNotification.UserNotification;
 import jakarta.transaction.Transactional;
 import lombok.AllArgsConstructor;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -39,10 +39,13 @@ public class UserServiceImpl implements UserServices {
     @Override
     @Transactional
     public UserResponse createUser(UserRequest userRequest) {
-        // Check for duplicate email
-        if (userRepository.findByEmail(userRequest.getEmail()).isPresent()) {
-            throw new SameEmailFoundException("Employee already exists with this email");
-        }
+        Admin currentAdmin = (Admin) userIdentity.getCurrentUser();
+        String schemaName = currentAdmin.getSchemaName();
+        TenantContext.setCurrentTenant(schemaName);
+        try {
+            if (userRepository.findByEmail(userRequest.getEmail()).isPresent()) {
+                throw new SameEmailFoundException("Employee already exists with this email");
+            }
 
         User user = userMapper.mapToUser(userRequest);
         user.setPassword(passwordEncoder.encode(userRequest.getPassword()));
@@ -51,34 +54,32 @@ public class UserServiceImpl implements UserServices {
         // Save user first to generate ID
         user = userRepository.save(user);
 
-        // Process roles
-        Set<Role> attachedRoles = new HashSet<>();
-        for (RoleRequest roleRequest : userRequest.getRoles()) {
-            String roleNameUpper = roleRequest.getRoleName().toUpperCase(); // Convert to uppercase
+            Set<Role> attachedRoles = new HashSet<>();
+            for (RoleRequest roleRequest : userRequest.getRoles()) {
+                String roleNameUpper = roleRequest.getRoleName().toUpperCase();
+                Role existingRole = roleRepository.findByRoleName(roleNameUpper)
+                        .orElseGet(() -> {
+                            Role newRole = new Role();
+                            newRole.setRoleName(roleNameUpper);
+                            return roleRepository.save(newRole);
+                        });
+                attachedRoles.add(existingRole);
+            }
 
-            Role existingRole = roleRepository.findByRoleName(roleNameUpper)
+            Role defaultRole = roleRepository.findByRoleName(DEFAULT_ROLE)
                     .orElseGet(() -> {
                         Role newRole = new Role();
-                        newRole.setRoleName(roleNameUpper); // Save role in uppercase
+                        newRole.setRoleName(DEFAULT_ROLE);
                         return roleRepository.save(newRole);
                     });
+            attachedRoles.add(defaultRole);
 
-            attachedRoles.add(existingRole);
+            user.setRoles(attachedRoles);
+            user = userRepository.save(user);
+            return userMapper.mapToUserResponse(user);
+        } finally {
+            TenantContext.clear();
         }
-
-        // Add default role (e.g., "USER")
-        Role defaultRole = roleRepository.findByRoleName(DEFAULT_ROLE)
-                .orElseGet(() -> {
-                    Role newRole = new Role();
-                    newRole.setRoleName(DEFAULT_ROLE);
-                    return roleRepository.save(newRole);
-                });
-        attachedRoles.add(defaultRole);
-
-        user.setRoles(attachedRoles);
-        user = userRepository.save(user); // Save again to update roles
-
-        return userMapper.mapToUserResponse(user); // Use MapStruct for mapping
     }
 
     @Override

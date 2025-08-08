@@ -1,18 +1,25 @@
 package com.erp.Security.Config;
 
 import com.erp.Config.AppEnv;
+import com.erp.Meta.MetaAdminRepository;
+import com.erp.Multitenancy.TenantContext;
+import com.erp.Multitenancy.TenantContextHolder;
+import com.erp.Repository.Rootuser.RootUserRepository;
 import com.erp.Security.Filter.AuthFilter;
 import com.erp.Security.Filter.RefreshAuthFilter;
 import com.erp.Security.Filter.TokenBlackListService;
 import com.erp.Security.JWT.JWTService;
 import com.erp.Security.util.CookieManager;
 import com.erp.Security.util.UserRepositoryRegistry;
-import com.erp.Service.Auth.AuthService;
 import com.erp.Service.Auth.GenericAuthServiceImpl;
+import com.erp.Tenant.Filter.TenantCleanupFilter;
+import com.erp.Tenant.Filter.TenantFilter;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.boot.web.servlet.FilterRegistrationBean;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.core.Ordered;
 import org.springframework.core.annotation.Order;
 import org.springframework.security.access.hierarchicalroles.RoleHierarchy;
 import org.springframework.security.access.hierarchicalroles.RoleHierarchyImpl;
@@ -46,49 +53,40 @@ public class SecurityConfig {
     private final TokenBlackListService tokenBlackListService;
     private final UserRepositoryRegistry userRepositoryRegistry;
     private final CookieManager cookieManager;
+    private final MetaAdminRepository metaAdminRepository;
+    private final RootUserRepository rootUserRepository;
 
     @Bean
-    PasswordEncoder passwordEncoder() {
+    public PasswordEncoder passwordEncoder() {
         return new BCryptPasswordEncoder();
     }
 
     @Bean
-    UserDetailsService userDetailsService() {
-        return username -> {
-            log.debug("Loading user by email: {}", username);
-            return userRepositoryRegistry.findUserByEmail(username)
-                    .orElseThrow(() -> {
-                        log.error("User not found: {}", username);
-                        return new UsernameNotFoundException("User not found: " + username);
-                    });
-        };
-    }
-
-    @Bean
-    DaoAuthenticationProvider daoAuthenticationProvider(UserDetailsService userDetailsService, PasswordEncoder passwordEncoder) {
+    public DaoAuthenticationProvider daoAuthenticationProvider(UserDetailsService userDetailsService) {
         DaoAuthenticationProvider provider = new DaoAuthenticationProvider();
         provider.setUserDetailsService(userDetailsService);
-        provider.setPasswordEncoder(passwordEncoder);
+        provider.setPasswordEncoder(passwordEncoder());
         return provider;
     }
 
     @Bean
-    AuthenticationManager authenticationManager(DaoAuthenticationProvider daoAuthenticationProvider) {
+    public AuthenticationManager authenticationManager(DaoAuthenticationProvider daoAuthenticationProvider) {
         return new ProviderManager(daoAuthenticationProvider);
     }
 
     @Bean
-    AuthService authService(
-            AuthenticationManager authenticationManager,
-            UserRepositoryRegistry userRepositoryRegistry,
-            TokenBlackListService tokenBlackListService,
-            JWTService jwtService) {
-        return new GenericAuthServiceImpl(
-                authenticationManager,
-                userRepositoryRegistry,
-                tokenBlackListService,
-                jwtService,
-                cookieManager);
+    public UserDetailsService userDetailsService() {
+        return username -> {
+            log.debug("Resolving tenant schema from MetaAdmin for user: {}", username);
+            try (var context = new TenantContextHolder("public")) {
+                String schemaName = metaAdminRepository.findSchemaNameByAdminEmail(username)
+                        .orElseThrow(() -> new UsernameNotFoundException("No schema mapped for user: " + username));
+                log.debug("Resolved schema '{}' for user '{}'", schemaName, username);
+                TenantContext.setCurrentTenant(schemaName);
+            }
+            return userRepositoryRegistry.findUserByEmail(username)
+                    .orElseThrow(() -> new UsernameNotFoundException("User not found: " + username));
+        };
     }
 
     @Bean
@@ -99,8 +97,24 @@ public class SecurityConfig {
     }
 
     @Bean
+    public FilterRegistrationBean<TenantFilter> tenantFilterRegistration(TenantFilter tenantFilter) {
+        FilterRegistrationBean<TenantFilter> registrationBean = new FilterRegistrationBean<>();
+        registrationBean.setFilter(tenantFilter);
+        registrationBean.setOrder(Ordered.HIGHEST_PRECEDENCE);
+        return registrationBean;
+    }
+
+    @Bean
+    public FilterRegistrationBean<TenantCleanupFilter> tenantCleanupFilterRegistration(TenantCleanupFilter tenantCleanupFilter) {
+        FilterRegistrationBean<TenantCleanupFilter> registrationBean = new FilterRegistrationBean<>();
+        registrationBean.setFilter(tenantCleanupFilter);
+        registrationBean.setOrder(Ordered.LOWEST_PRECEDENCE);
+        return registrationBean;
+    }
+
+    @Bean
     @Order(1)
-    SecurityFilterChain publicSecurityFilterChain(HttpSecurity http) throws Exception {
+    public SecurityFilterChain publicSecurityFilterChain(HttpSecurity http, AuthenticationManager authManager) throws Exception {
         String baseUrl = env.getBaseUrl();
         log.info("Configuring public filter chain for {}", baseUrl + "/auth/**");
         return http
@@ -110,6 +124,7 @@ public class SecurityConfig {
                 .authorizeHttpRequests(authorize -> authorize
                         .requestMatchers(baseUrl + "/auth/register/**", baseUrl + "/login").permitAll()
                         .anyRequest().authenticated())
+                .authenticationManager(authManager) // ✅ THIS LINE IS CRITICAL
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .anonymous(anonymous -> anonymous.principal("anonymousUser").authorities("ROLE_ANONYMOUS"))
                 .build();
@@ -117,7 +132,7 @@ public class SecurityConfig {
 
     @Bean
     @Order(2)
-    SecurityFilterChain refreshSecurityFilterChain(HttpSecurity http) throws Exception {
+    public SecurityFilterChain refreshSecurityFilterChain(HttpSecurity http) throws Exception {
         String baseUrl = env.getBaseUrl();
         log.info("Configuring refresh filter chain for {}", baseUrl + "/refresh-login/**");
         return http
@@ -134,7 +149,7 @@ public class SecurityConfig {
 
     @Bean
     @Order(3)
-    SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
+    public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         String baseUrl = env.getBaseUrl();
         log.info("Configuring default filter chain for {}", baseUrl + "/**");
         return http
@@ -143,14 +158,13 @@ public class SecurityConfig {
                 .cors(cors -> cors.configurationSource(corsConfigurationSource()))
                 .authorizeHttpRequests(authorize -> authorize
                         .requestMatchers(baseUrl + "/admins/**").hasAnyAuthority("ROLE_ROOT")
-                        .requestMatchers(baseUrl+"/roles/**").hasAnyAuthority("ROLE_ROOT","ROLE_ADMIN")
-                        .requestMatchers(baseUrl+"/user",baseUrl+"/user/delete/**").hasAnyAuthority("ROLE_ADMIN")
-                        .requestMatchers(baseUrl+"/user/update/**").hasRole("EMPLOYEE")
+                        .requestMatchers(baseUrl + "/roles/**").hasAnyAuthority("ROLE_ROOT", "ROLE_ADMIN")
+                        .requestMatchers(baseUrl + "/user", baseUrl + "/user/delete/**").hasAnyAuthority("ROLE_ADMIN")
+                        .requestMatchers(baseUrl + "/user/update/**").hasRole("EMPLOYEE")
                         .requestMatchers(baseUrl + "/logout").authenticated()
                         .anyRequest().authenticated())
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
-                .addFilterBefore(new AuthFilter(jwtService, tokenBlackListService,userRepositoryRegistry
-                ), UsernamePasswordAuthenticationFilter.class)
+                .addFilterBefore(new AuthFilter(jwtService, tokenBlackListService, userRepositoryRegistry), UsernamePasswordAuthenticationFilter.class)
                 .build();
     }
 
