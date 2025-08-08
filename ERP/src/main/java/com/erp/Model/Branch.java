@@ -19,21 +19,28 @@ public class Branch {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Column(name = "branch_id")
     private long branchId;
 
+    @Column(name = "branch_name")
     private String branchName;
 
+    @Column(name = "location")
     private String location;
 
+    @Column(name = "contact_info")
     private String contactInfo;
 
     @CreatedDate
+    @Column(name = "created_at", updatable = false)
     private LocalDateTime createdAt;
 
     @Enumerated(EnumType.STRING)
+    @Column(name = "branch_status")
     private BranchStatus branchStatus;
 
     @OneToMany(mappedBy = "branch")
+    @JsonIgnore
     private List<Inventory> inventories;
 
     @OneToMany(mappedBy = "branch")
