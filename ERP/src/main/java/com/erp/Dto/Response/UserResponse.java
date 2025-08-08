@@ -21,6 +21,8 @@ public class UserResponse {
 
     private boolean isActive;
 
+    private String schemaName;
+
     private LocalDate createdAt;
 
     private LocalDate lastModifiedAt;

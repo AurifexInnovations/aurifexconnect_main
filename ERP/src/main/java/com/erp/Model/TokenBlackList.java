@@ -7,11 +7,12 @@ import lombok.Setter;
 @Getter
 @Setter
 @Entity
+@Table(name = "token_black_list", schema = "public")
 public class TokenBlackList {
 
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
-    private String blackListId;
+    private String id;
 
     private String token;
 

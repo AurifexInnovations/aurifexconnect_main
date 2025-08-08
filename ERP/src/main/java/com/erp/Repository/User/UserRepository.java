@@ -10,11 +10,10 @@ import java.util.List;
 import java.util.Optional;
 
 @Repository("userRepository")
-public interface UserRepository extends JpaRepository<User, Long>, GenericUserRepository<User> {
+public interface UserRepository extends JpaRepository<User, Long>, GenericUserRepository<User> ,UserRepositoryCustom{
     Optional<User> findByEmail(String email);
 
     List<User> findByIsActiveTrue();
 
     Optional<User> findByIdOrFirstNameAndIsActiveTrue(Long id, String name);
-
 }

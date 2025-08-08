@@ -13,22 +13,33 @@ import java.util.List;
 @Getter
 @Setter
 @Entity
-@Table(name = "Ledger")
+@Table(name = "ledger") // use lowercase to match PostgreSQL behavior
 @EntityListeners(AuditingEntityListener.class)
 public class Ledger {
+
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Column(name = "ledger_id") // match DB column name exactly
     private long ledgerId;
 
+    @Column(name = "name")
     private String name;
+
+    @Column(name = "email")
     private String email;
+
+    @Column(name = "phone")
     private String phone;
+
+    @Column(name = "address")
     private String address;
 
     @CreatedDate
-    private LocalDateTime created_at;
+    @Column(name = "created_at", nullable = false, updatable = false)
+    private LocalDateTime createdAt;
 
     @LastModifiedDate
+    @Column(name = "updated_at")
     private LocalDateTime updatedAt;
 
     @OneToMany(mappedBy = "ledger")
@@ -38,5 +49,5 @@ public class Ledger {
     private List<AgainstRefMap> againstRefMaps;
 
     @OneToOne(mappedBy = "ledger")
-    private  InvoiceGenerator invoiceGenerator;
+    private InvoiceGenerator invoiceGenerator;
 }

@@ -11,7 +11,7 @@ import java.util.Collection;
 import java.util.List;
 
 @Entity
-@Table(name = "root_user")
+@Table(name = "root_user", schema = "public")
 @Getter
 @Setter
 public class RootUser implements GenericUser {
@@ -21,7 +21,6 @@ public class RootUser implements GenericUser {
     private long id;
 
     private String name;
-
 
     private String email;
 
@@ -66,4 +65,8 @@ public class RootUser implements GenericUser {
         return isActive;
     }
 
+    @Override
+    public String getSchemaName() {
+        return "public";
+    }
 }

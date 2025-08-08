@@ -1,9 +1,16 @@
 package com.erp.Model;
 
+import com.erp.Exception.Admin.AdminNotFoundException;
+import com.erp.Exception.Schema.SchemaNotFound;
+import com.erp.Meta.MetaAdmin;
+import com.erp.Meta.MetaAdminRepository;
+import com.erp.Multitenancy.TenantContext;
+import com.erp.Repository.Admin.AdminUserRepository;
 import com.fasterxml.jackson.annotation.JsonManagedReference;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.annotation.CreatedDate;
 import org.springframework.data.annotation.LastModifiedDate;
 import org.springframework.data.jpa.domain.support.AuditingEntityListener;
@@ -12,10 +19,7 @@ import org.springframework.security.core.authority.SimpleGrantedAuthority;
 
 
 import java.time.LocalDate;
-import java.util.Collection;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 import java.util.stream.Collectors;
 
 @Entity
@@ -46,6 +50,12 @@ public class User implements GenericUser {
 
     @Column(name = "is_active")
     private boolean isActive = true;
+
+    @Column(name = "schema_name")
+    private String schemaName;
+
+    @Column(name = "created_by_admin_id")
+    private long createdByAdminId;
 
     @CreatedDate
     @Column(name = "created_at")
@@ -96,6 +106,11 @@ public class User implements GenericUser {
     @Override
     public boolean isEnabled() {
         return isActive;
+    }
+
+    @Override
+    public String getSchemaName() {
+        return schemaName;
     }
 
     @OneToMany(mappedBy = "user")

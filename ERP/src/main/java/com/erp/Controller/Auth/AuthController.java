@@ -23,6 +23,7 @@ public class AuthController {
 
     @PostMapping("/login")
     public ResponseEntity<ResponseStructure<AuthRecord>> login(@RequestBody LoginRequest loginRequest) {
+        // ❌ Removed tenantId from header — now auto-resolved in service
         AuthRecord authRecord = authService.login(loginRequest);
         HttpHeaders headers = tokenGenerationService.grantAccessAndRefreshToken(authRecord);
         return ResponseBuilder.success(HttpStatus.OK, headers, "Login successful", authRecord);
@@ -30,6 +31,7 @@ public class AuthController {
 
     @PostMapping("/refresh-login")
     public ResponseEntity<ResponseStructure<AuthRecord>> refreshLogin(@CookieValue("rt") String refreshToken) {
+        // ❌ No tenant ID needed — it will be extracted based on email in token
         AuthRecord authRecord = authService.refreshLogin(refreshToken);
         HttpHeaders headers = tokenGenerationService.grantAccessAndRefreshToken(authRecord);
         return ResponseBuilder.success(HttpStatus.OK, headers, "New access token generated", authRecord);

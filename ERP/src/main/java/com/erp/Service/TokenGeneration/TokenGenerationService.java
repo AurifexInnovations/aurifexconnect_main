@@ -48,10 +48,17 @@ public class TokenGenerationService {
     }
 
     public Map<String, Object> setClaim(AuthRecord authRecord){
+
+        String schema = (authRecord.schemaName() != null && !authRecord.schemaName().isBlank())
+                ? authRecord.schemaName()
+                : "public";
+
         return Map.of(
                 ClaimName.USER_ID, authRecord.id(),
                 ClaimName.USER_EMAIL, authRecord.email(),
-                ClaimName.IS_ACTIVE, authRecord.isActive()
+                ClaimName.IS_ACTIVE, authRecord.isActive(),
+                ClaimName.SCHEMA_NAME, schema,
+                ClaimName.ROLE, authRecord.roles()
         );
     }
 }

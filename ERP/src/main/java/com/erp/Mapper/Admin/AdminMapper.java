@@ -11,7 +11,7 @@ import java.util.List;
 @Mapper(componentModel = "spring")
 public interface AdminMapper {
 
-    Admin mapTAdmin (AdminRequest adminRequest);
+    Admin mapToAdmin(AdminRequest adminRequest);
 
     AdminResponse mapToAdminResponse (Admin admin);
 

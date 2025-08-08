@@ -37,9 +37,9 @@ public class SalaryAPITest {
         salaryRequest = new SalaryRequest();
         salaryRequest.setUserId(userId);
         salaryRequest.setMonth(salaryMonth);
-        salaryRequest.setBaseSalary(50000.0);
-        salaryRequest.setBonus(5000.0);
-        salaryRequest.setDeductions(2000.0);
+        salaryRequest.setBaseSalary(50000);
+        salaryRequest.setBonus(5000);
+        salaryRequest.setDeductions(2000);
         salaryRequest.setPaidDays(26);
         salaryRequest.setRemarks("Integration Test");
     }
@@ -52,9 +52,9 @@ public class SalaryAPITest {
         user.setId(userId);
         salary.setUser(user);
         salary.setMonth(salaryMonth);
-        salary.setBaseSalary(50000.0);
-        salary.setBonus(5000.0);
-        salary.setDeductions(2000.0);
+        salary.setBaseSalary(5000);
+        salary.setBonus(5000);
+        salary.setDeductions(2000);
         salary.setPaidDays(26);
         salary.setAmountStatus(null);
         salary.setRemarks("Integration Test");
@@ -97,7 +97,7 @@ public class SalaryAPITest {
     @Test
     @Order(5)
     void testUpdateSalary() throws Exception {
-        salaryRequest.setBonus(8000.0); // simulate update
+        salaryRequest.setBonus(8000); // simulate update
 
         mockMvc.perform(put("/salary/update")
                         .contentType(MediaType.APPLICATION_JSON)
