@@ -3,7 +3,11 @@ package com.erp.Service.Auth;
 import com.erp.Dto.Request.AuthRecord;
 import com.erp.Dto.Request.LoginRequest;
 import com.erp.Exception.User.UserInActiveException;
+import com.erp.Meta.MetaAdminRepository;
 import com.erp.Model.GenericUser;
+import com.erp.Model.RootUser;
+import com.erp.Multitenancy.TenantContext;
+import com.erp.Repository.Rootuser.RootUserRepository;
 import com.erp.Security.Filter.TokenBlackListService;
 import com.erp.Security.JWT.ClaimName;
 import com.erp.Security.JWT.JWTService;
@@ -13,125 +17,169 @@ import io.jsonwebtoken.Claims;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpHeaders;
-import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.BadCredentialsException;
-import org.springframework.security.authentication.DisabledException;
-import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
-import org.springframework.security.core.Authentication;
-import org.springframework.security.core.AuthenticationException;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.time.Instant;
+import java.util.List;
+import java.util.Optional;
 
 @Service
 @AllArgsConstructor
 @Slf4j
 public class GenericAuthServiceImpl implements AuthService {
 
-    private final AuthenticationManager authenticationManager;
     private final UserRepositoryRegistry userRepositoryRegistry;
     private final TokenBlackListService tokenBlackListService;
+    private final RootUserRepository rootUserRepository;
+    private final MetaAdminRepository metaAdminRepository;
     private final JWTService jwtService;
     private final CookieManager cookieManager;
+    private final PasswordEncoder passwordEncoder; // ✅ Added
 
     @Override
+    @Transactional
     public AuthRecord login(LoginRequest loginRequest) {
-        log.info("Attempting login for email: {}", loginRequest.email());
-        try {
-            UsernamePasswordAuthenticationToken token =
-                    new UsernamePasswordAuthenticationToken(loginRequest.email(), loginRequest.password());
-            Authentication authentication = authenticationManager.authenticate(token);
+        String email = loginRequest.email();
+        String password = loginRequest.password();
+        log.info("Attempting login for email: {}", email);
 
-            if (authentication.isAuthenticated()) {
-                GenericUser user = userRepositoryRegistry.findUserByEmail(loginRequest.email())
-                        .orElseThrow(() -> {
-                            log.error("User not found after authentication: {}", loginRequest.email());
-                            return new UsernameNotFoundException("User not found: " + loginRequest.email());
-                        });
-
-                if (!user.isActive()) {
-                    log.warn("Login attempt for inactive user: {}", user.getEmail());
-                    throw new UserInActiveException("User account is inactive. Please contact admin.");
-                }
-
-
-                log.info("Login successful for user: {}", user.getEmail());
-                return createAuthRecordFromUser(user);
-            } else {
-                log.error("Authentication failed for email: {}", loginRequest.email());
-                throw new UsernameNotFoundException("Failed to authenticate: " + loginRequest.email());
-            }
-        } catch (BadCredentialsException e) {
-            log.error("Invalid credentials for email: {}", loginRequest.email(), e);
-            throw new BadCredentialsException("Invalid email or password");
-        } catch (AuthenticationException e) {
-            log.error("Authentication error for email: {}", loginRequest.email(), e);
-            throw new AuthenticationException("Authentication failed: " + e.getMessage(), e) {};
+        // Step 1: RootUser in public schema
+        TenantContext.setCurrentTenant("public");
+        Optional<RootUser> rootUserOpt = rootUserRepository.findByEmail(email);
+        if (rootUserOpt.isPresent()) {
+            log.info("Login as RootUser in schema 'public'");
+            return authenticateAndBuildRecord(rootUserOpt.get(), email, password, "public");
         }
+
+        // Step 2: Admin — resolve schema from meta_admin
+        Optional<String> resolvedTenantOpt = metaAdminRepository.findSchemaNameByAdminEmail(email);
+        if (resolvedTenantOpt.isPresent()) {
+            String resolvedTenant = resolvedTenantOpt.get();
+            TenantContext.setCurrentTenant(resolvedTenant);
+            log.info("Login as Admin in tenant '{}'", resolvedTenant);
+
+            GenericUser adminUser = userRepositoryRegistry.findUserByEmail(email)
+                    .orElseThrow(() -> new UsernameNotFoundException("Admin user not found in tenant: " + resolvedTenant));
+
+            return authenticateAndBuildRecord(adminUser, email, password, resolvedTenant);
+        }
+
+        // Step 3: Normal user — expect tenant auto-resolved from AuthFilter
+        String currentTenant = TenantContext.getCurrentTenant();
+        if (currentTenant == null || currentTenant.isBlank()) {
+            throw new IllegalArgumentException("No matching tenant found for email: " + email);
+        }
+
+        log.info("Login as NormalUser in tenant '{}'", currentTenant);
+        GenericUser user = userRepositoryRegistry.findUserByEmail(email)
+                .orElseThrow(() -> new UsernameNotFoundException("User not found in tenant: " + currentTenant));
+
+        return authenticateAndBuildRecord(user, email, password, currentTenant);
+    }
+
+    private AuthRecord authenticateAndBuildRecord(GenericUser user, String email, String password, String schemaName) {
+        // ✅ Manual password verification
+        if (!passwordEncoder.matches(password, user.getPassword())) {
+            log.warn("Invalid password for user: {}", email);
+            throw new BadCredentialsException("Invalid credentials for user: " + email);
+        }
+
+        if (!user.isActive()) {
+            log.warn("Inactive user login attempt: {}", email);
+            throw new UserInActiveException("User account is inactive.");
+        }
+
+        log.info("Authentication successful for user: {} in schema: {}", email, schemaName);
+        return createAuthRecordFromUser(user, schemaName);
     }
 
     @Override
+    @Transactional
     public AuthRecord refreshLogin(String refreshToken) {
-        log.info("Attempting refresh login with token");
         try {
             Claims claims = jwtService.parseToken(refreshToken);
             String email = claims.get(ClaimName.USER_EMAIL, String.class);
+            String schemaName = claims.get(ClaimName.SCHEMA_NAME, String.class);
             long refreshExpiration = claims.getExpiration().toInstant().toEpochMilli();
 
-            GenericUser user = userRepositoryRegistry.findUserByEmail(email)
-                    .orElseThrow(() -> {
-                        log.error("User not found for refresh token: {}", email);
-                        return new UsernameNotFoundException("User not found: " + email);
-                    });
+            if (schemaName == null || schemaName.isBlank()) {
+                throw new IllegalArgumentException("Missing schema_name in token claims.");
+            }
 
-            log.info("Refresh login successful for user: {}", email);
-            long accessExpiration = Instant.now().plusSeconds(3600).toEpochMilli();
-            return new AuthRecord(
-                    user.getId(),
-                    email,
-                    user.isActive(),
-                    accessExpiration,
-                    refreshExpiration
-            );
+            TenantContext.setCurrentTenant(schemaName);
+
+            GenericUser user;
+            if ("public".equals(schemaName)) {
+                user = rootUserRepository.findByEmail(email)
+                        .orElseThrow(() -> new UsernameNotFoundException("Root user not found"));
+            } else {
+                user = userRepositoryRegistry.findUserByEmail(email)
+                        .orElseThrow(() -> new UsernameNotFoundException("User not found in schema: " + schemaName));
+            }
+
+            return buildRefreshRecord(user, schemaName, refreshExpiration);
+
         } catch (Exception e) {
-            log.error("Refresh login failed: {}", e.getMessage(), e);
+            log.error("Refresh token handling failed: {}", e.getMessage(), e);
             throw e;
         }
     }
 
+    private AuthRecord buildRefreshRecord(GenericUser user, String schemaName, long refreshExpiration) {
+        long accessExpiration = Instant.now().plusSeconds(3600).toEpochMilli();
+        List<String> roles = user.getAuthorities().stream()
+                .map(auth -> auth.getAuthority())
+                .toList();
+
+        return new AuthRecord(
+                user.getId(),
+                user.getEmail(),
+                user.isActive(),
+                schemaName,
+                accessExpiration,
+                refreshExpiration,
+                roles
+        );
+    }
+
     @Override
     public HttpHeaders logout(String refreshToken, String accessToken) {
-        log.info("Attempting logout for tokens - access: {}, refresh: {}", accessToken, refreshToken);
         try {
             tokenBlackListService.blackListToken(refreshToken);
             tokenBlackListService.blackListToken(accessToken);
 
-            String refreshCookie = cookieManager.generateCookie("rt", "", 0);
-            String accessCookie = cookieManager.generateCookie("at", "", 0);
-
             HttpHeaders headers = new HttpHeaders();
-            headers.add(HttpHeaders.SET_COOKIE, refreshCookie);
-            headers.add(HttpHeaders.SET_COOKIE, accessCookie);
-            log.info("Logout successful, cookies cleared");
+            headers.add(HttpHeaders.SET_COOKIE, cookieManager.generateCookie("rt", "", 0));
+            headers.add(HttpHeaders.SET_COOKIE, cookieManager.generateCookie("at", "", 0));
             return headers;
+
         } catch (Exception e) {
             log.error("Logout failed: {}", e.getMessage(), e);
             throw e;
         }
     }
 
-    private AuthRecord createAuthRecordFromUser(GenericUser user) {
+    private AuthRecord createAuthRecordFromUser(GenericUser user, String schemaName) {
         Instant now = Instant.now();
         long accessExpiration = now.plusSeconds(3600).toEpochMilli();
-        long refreshExpiration = now.plusSeconds(60 * 24 * 60 * 60L).toEpochMilli();
+        long refreshExpiration = now.plusSeconds(60L * 60 * 24 * 60).toEpochMilli();
+
+        List<String> roles = user.getAuthorities().stream()
+                .map(grantedAuthority -> grantedAuthority.getAuthority())
+                .toList();
 
         return new AuthRecord(
                 user.getId(),
                 user.getEmail(),
                 user.isActive(),
+                schemaName,
                 accessExpiration,
-                refreshExpiration
+                refreshExpiration,
+                roles
         );
     }
 }
