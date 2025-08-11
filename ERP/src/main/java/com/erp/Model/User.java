@@ -1,12 +1,5 @@
 package com.erp.Model;
 
-import com.erp.Exception.Admin.AdminNotFoundException;
-import com.erp.Exception.Schema.SchemaNotFound;
-import com.erp.Meta.MetaAdmin;
-import com.erp.Meta.MetaAdminRepository;
-import com.erp.Multitenancy.TenantContext;
-import com.erp.Repository.Admin.AdminUserRepository;
-import com.fasterxml.jackson.annotation.JsonManagedReference;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
@@ -15,6 +8,7 @@ import org.springframework.data.annotation.LastModifiedDate;
 import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
+
 import java.time.LocalDate;
 import java.util.*;
 import java.util.stream.Collectors;
@@ -25,6 +19,7 @@ import java.util.stream.Collectors;
 @Setter
 @EntityListeners(AuditingEntityListener.class)
 public class User implements GenericUser {
+
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "id")
@@ -65,14 +60,11 @@ public class User implements GenericUser {
     @ManyToMany(fetch = FetchType.EAGER)
     private Set<Role> roles = new HashSet<>();
 
-
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
-        Collection<SimpleGrantedAuthority> authorities = roles.stream()
+        return roles.stream()
                 .map(role -> new SimpleGrantedAuthority("ROLE_" + role.getRoleName()))
                 .collect(Collectors.toList());
-        System.out.println("Authorities: " + authorities); // Debug
-        return authorities;
     }
 
     @Override
@@ -118,7 +110,4 @@ public class User implements GenericUser {
 
     @OneToMany(mappedBy = "user")
     private List<Attendance> attendances;
-
 }
-
-

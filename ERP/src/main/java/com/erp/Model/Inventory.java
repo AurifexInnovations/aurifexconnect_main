@@ -25,17 +25,19 @@ public class Inventory {
     @Column(name = "item_name")
     private String itemName;
 
-    @Column(name = "item_quantity", nullable = false)
+    @Column(name = "item_quantity")
     private double itemQuantity;
 
     @Column(name = "item_description")
     private String itemDescription;
 
-    @Column(name = "item_cost", nullable = false)
+    @Column(name = "item_cost")
     private double itemCost;
 
     @Column(name = "categories")
     private String categories;
+
+    @Column(name = "low_stock_threshold")
     private double lowStockThreshold;
 
     @Column(name = "expiry_date")

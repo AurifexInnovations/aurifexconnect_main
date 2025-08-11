@@ -15,9 +15,13 @@ public class LineItemTax {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Column(name = "id")
     private long id;
 
+    @Column(name = "tax_rate")
     private BigDecimal taxRate;
+
+    @Column(name = "tax_amount")
     private double taxAmount;
 
     @ManyToOne
@@ -25,5 +29,4 @@ public class LineItemTax {
 
     @ManyToOne
     private Tax tax;
-
 }

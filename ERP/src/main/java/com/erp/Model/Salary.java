@@ -14,37 +14,40 @@ public class Salary {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Column(name = "id")
     private long id;
 
     @ManyToOne
     private User user;
 
-    @Column(nullable = false)
+    @Column(name = "month")
     private YearMonth month;
 
-    @Column(nullable = false)
+    @Column(name = "base_salary")
     private long baseSalary;
 
-    @Column(nullable = false)
+    @Column(name = "working_days")
     private Integer workingDays;
 
-    @Column(nullable = false)
+    @Column(name = "paid_days")
     private Integer paidDays;
 
-    @Column(nullable = false)
+    @Column(name = "deductions")
     private long deductions;
 
-    @Column(nullable = false)
+    @Column(name = "bonus")
     private long bonus;
 
-    @Column(nullable = false)
+    @Column(name = "net_salary")
     private long netSalary;
 
+    @Column(name = "remarks")
     private String remarks;
 
     @Enumerated(EnumType.STRING)
-    @Column(nullable = false)
+    @Column(name = "amount_status")
     private AmountStatus amountStatus;
 
+    @Column(name = "payment_date")
     private YearMonth paymentDate;
 }
