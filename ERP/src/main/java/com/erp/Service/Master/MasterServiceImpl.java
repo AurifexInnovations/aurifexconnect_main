@@ -29,7 +29,7 @@ import jakarta.transaction.Transactional;
 import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Service;
 
-import java.time.format.DateTimeFormatter;
+import javax.naming.LimitExceededException;
 import java.util.*;
 
 @Service
@@ -46,7 +46,7 @@ public class MasterServiceImpl implements MasterService {
 
     @Override
     @Transactional
-    public MasterResponse createMaster(MasterRequest masterRequest) {
+    public MasterResponse createMaster(MasterRequest masterRequest) throws LimitExceededException {
 
         Ledger ledger = ledgerRepository.findById(masterRequest.getLedgerId())
                 .orElseThrow(() -> new LedgerNotFoundException("Ledger not found by this id : " + masterRequest.getLedgerId() + " , Invalid LedgerId"));
@@ -110,7 +110,7 @@ public class MasterServiceImpl implements MasterService {
         return responseList;
     }
 
-    private void handleInvoice(Master invoice, MasterRequest masterRequest) {
+    private void handleInvoice(Master invoice, MasterRequest masterRequest) throws LimitExceededException {
         invoice.setReferenceType(ReferenceType.NEWREF);
         invoice.setTransactionStatus(TransactionStatus.UNPAID);
 
@@ -137,6 +137,14 @@ public class MasterServiceImpl implements MasterService {
 
         double remaining = invoice.getAmount() - totalAdjusted;
 
+        // Credit limit check
+        Double creditLimitObj = invoice.getLedger().getCreditLimit();
+        double creditLimit = creditLimitObj != null ? creditLimitObj : 0.0;
+
+        if (remaining > creditLimit) {
+            throw new LimitExceededException("Credit limit exceeded for ledger: " + invoice.getLedger().getName());
+        }
+
         if (remaining == 0) {
             invoice.setTransactionStatus(TransactionStatus.PAID);
         } else if (totalAdjusted > 0) {
@@ -147,9 +155,15 @@ public class MasterServiceImpl implements MasterService {
     }
 
 
-    private void handleBill(Master master) {
+    private void handleBill(Master master) throws LimitExceededException {
         master.setTransactionStatus(TransactionStatus.UNPAID);
         master.setReferenceType(ReferenceType.NEWREF);
+        Double debitLimitObj = master.getLedger().getDebitLimit();
+        double debitLimit = debitLimitObj != null ? debitLimitObj : 0.0;
+
+        if (master.getAmount() > debitLimit) {
+            throw new LimitExceededException("Debit limit exceeded for ledger: " + master.getLedger().getName());
+        }
     }
 
     @Transactional

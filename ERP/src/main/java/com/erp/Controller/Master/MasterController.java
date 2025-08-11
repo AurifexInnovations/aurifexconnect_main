@@ -12,6 +12,8 @@ import lombok.AllArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+
+import javax.naming.LimitExceededException;
 import java.util.List;
 import java.util.Map;
 
@@ -23,7 +25,7 @@ public class MasterController {
     private final MasterService masterService;
 
     @PostMapping("master")
-    public ResponseEntity<ResponseStructure<MasterResponse>> createMaster(@RequestBody MasterRequest masterRequest) {
+    public ResponseEntity<ResponseStructure<MasterResponse>> createMaster(@RequestBody MasterRequest masterRequest) throws LimitExceededException {
         MasterResponse masterResponse = masterService.createMaster(masterRequest);
         return ResponseBuilder.success(HttpStatus.CREATED, "Master Created Successfully", masterResponse);
     }

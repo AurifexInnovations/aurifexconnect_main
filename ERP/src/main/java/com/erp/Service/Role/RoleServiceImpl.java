@@ -41,6 +41,4 @@ public class RoleServiceImpl implements RoleServices{
         List<Role> roles = roleRepository.findAll();
         return roleMapper.toRoleResponseList(roles);
     }
-
-
 }
