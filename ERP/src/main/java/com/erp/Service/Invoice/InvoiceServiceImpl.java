@@ -36,7 +36,7 @@ public class InvoiceServiceImpl implements InvoiceService{
     public InvoiceGenerator fetchInvoice(InvoiceRequest request){
 
         return invoiceRepository.findById(request.getMasterId())
-                .orElseThrow(()-> new MasterNotFoundException("Master Not Found"));
+                .orElseThrow(()-> new MasterNotFoundException("Invoice Not Found"));
 
         //invoice.setMaster(invoice.getMaster());
     }

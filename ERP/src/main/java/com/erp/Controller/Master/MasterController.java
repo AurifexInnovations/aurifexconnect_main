@@ -46,5 +46,7 @@ public class MasterController {
 
         List<PurchaseSalesResponse> summary = masterService.getPurchaseSalesSummary(request);
         return ResponseBuilder.success(HttpStatus.OK, "Summary fetched successfully", summary);
+
+
     }
 }
