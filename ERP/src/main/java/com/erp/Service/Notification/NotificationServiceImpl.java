@@ -1,22 +1,33 @@
 package com.erp.Service.Notification;
 
 import com.erp.Model.NotificationMessage;
-import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.stereotype.Service;
 
 @Service
-@RequiredArgsConstructor
 public class NotificationServiceImpl implements NotificationService {
 
     private final SimpMessagingTemplate messagingTemplate;
 
+    @Autowired
+    public NotificationServiceImpl(SimpMessagingTemplate messagingTemplate) {
+        this.messagingTemplate = messagingTemplate;
+    }
+
     @Override
     public void sendNotification(NotificationMessage message) {
-
-        System.out.println(" Sending notification: " + message);
-
-        // Send notification to all subscribers of /topic/global
         messagingTemplate.convertAndSend("/topic/global", message);
     }
+
+    @Override
+    public void sendToUser(String username, NotificationMessage message) {
+        messagingTemplate.convertAndSendToUser(username, "/queue/notifications", message);
+    }
+
+    @Override
+    public void sendToTopic(String topicName, NotificationMessage message) {
+        messagingTemplate.convertAndSend("/topic/" + topicName, message);
+    }
+
 }

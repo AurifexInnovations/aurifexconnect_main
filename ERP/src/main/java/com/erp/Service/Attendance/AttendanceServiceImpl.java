@@ -26,7 +26,6 @@ import java.util.*;
 public class AttendanceServiceImpl implements AttendanceService {
 
     private static final double FIXED_WORKING_HOURS = 8.0;
-
     private final AttendanceRepository attendanceRepository;
     private final AttendanceMapper attendanceMapper;
     private final UserRepository userRepository;

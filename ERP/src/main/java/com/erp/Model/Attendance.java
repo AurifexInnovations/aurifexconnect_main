@@ -18,13 +18,14 @@ public class Attendance {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Column(name = "id")
     private long id;
 
     @ManyToOne
     @JoinColumn(name = "userid")
     private User user;
 
-    @Column(nullable = false)
+    @Column(name = "date")
     private LocalDate date;
 
     @CreatedDate
@@ -47,7 +48,7 @@ public class Attendance {
     @Column(name = "check_out")
     private LocalDateTime checkOut;
 
-    @Column(name = "status")
     @Enumerated(EnumType.STRING)
+    @Column(name = "status")
     private AttendanceStatus status;
 }

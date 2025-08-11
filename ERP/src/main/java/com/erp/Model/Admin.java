@@ -8,22 +8,19 @@ import org.springframework.data.annotation.LastModifiedDate;
 import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
-
 import java.time.LocalDateTime;
 import java.util.Collection;
 import java.util.List;
-
 
 @Entity
 @Getter
 @Setter
 @Table(name = "user_admin")
 @EntityListeners(AuditingEntityListener.class)
-public class Admin  implements GenericUser{
+public class Admin implements GenericUser {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-
     @Column(name = "id")
     private long id;
 
@@ -104,6 +101,6 @@ public class Admin  implements GenericUser{
 
     @Override
     public String getSchemaName() {
-       return schemaName;
+        return schemaName;
     }
 }

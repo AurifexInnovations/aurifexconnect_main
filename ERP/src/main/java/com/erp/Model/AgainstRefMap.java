@@ -12,10 +12,14 @@ public class AgainstRefMap {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Column(name = "against_id")
     private long againstId;
 
+    @Enumerated(EnumType.STRING)
+    @Column(name = "reference_type")
     private ReferenceType referenceType;
 
+    @Column(name = "amount")
     private double amount;
 
     @ManyToOne
@@ -23,5 +27,4 @@ public class AgainstRefMap {
 
     @ManyToOne
     private Master master;
-
 }
