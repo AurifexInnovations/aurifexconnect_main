@@ -9,7 +9,7 @@ import java.util.List;
 import java.util.Optional;
 
 @Repository("adminUserRepository")
-public interface AdminUserRepository extends JpaRepository<Admin, Long>, GenericUserRepository<Admin> {
+public interface AdminUserRepository extends JpaRepository<Admin, Long>, GenericUserRepository<Admin>,AdminUserRepositoryCustom {
     Optional<Admin> findByEmail(String email);
 
     /**
@@ -22,4 +22,6 @@ public interface AdminUserRepository extends JpaRepository<Admin, Long>, Generic
     Optional<Admin> findByIdOrNameAndIsActiveTrue(Long id, String name);
 
     List<Admin> findByIsActiveTrue();
+
+    boolean existsByEmail(String email);
 }
