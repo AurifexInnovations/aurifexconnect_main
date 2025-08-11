@@ -1,8 +1,8 @@
 spring:
     datasource:
-        url: jdbc:postgresql://localhost:5432/erp_db
-        username: postgres
-        password: root
+        url: ${POSTGRES_URL}
+        username: ${USERNAME}
+        password: ${PASSWORD}
         driver-class-name: org.postgresql.Driver
         hikari:
             connection-timeout: 30000
