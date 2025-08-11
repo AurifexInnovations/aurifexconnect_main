@@ -18,23 +18,30 @@ public class Staff {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Column(name = "id")
     private long id;
 
+    @Column(name = "staff_name")
     private String staffName;
+
+    @Column(name = "email")
     private String email;
+
+    @Column(name = "contact_no")
     private String contactNo;
 
     @Enumerated(EnumType.STRING)
-    private Designation designation; // Example: Manager, Salesperson, HR
+    @Column(name = "designation")
+    private Designation designation;
 
     @Enumerated(EnumType.STRING)
+    @Column(name = "staff_status")
     private StaffStatus staffStatus;
 
     @CreatedDate
+    @Column(name = "created_at")
     private LocalDateTime createdAt;
 
-    // Relation with Branch
     @ManyToOne
     private Branch branch;
-
 }

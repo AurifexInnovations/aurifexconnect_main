@@ -17,6 +17,7 @@ public class StockTransfer {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Column(name = "id")
     private long id;
 
     @ManyToOne
@@ -28,13 +29,17 @@ public class StockTransfer {
     @ManyToOne
     private Inventory inventory;
 
+    @Column(name = "quantity")
     private double quantity;
 
     @Enumerated(EnumType.STRING)
+    @Column(name = "status")
     private StockTransferStatus status;
 
+    @Column(name = "approved_by")
     private String approvedBy;
 
     @CreatedDate
+    @Column(name = "created_at")
     private LocalDateTime createdAt;
 }
