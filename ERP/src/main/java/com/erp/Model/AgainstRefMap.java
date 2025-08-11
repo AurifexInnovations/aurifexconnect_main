@@ -6,6 +6,7 @@ import lombok.Getter;
 import lombok.Setter;
 
 @Entity
+@Table(name = "against_ref_map")
 @Getter
 @Setter
 public class AgainstRefMap {
@@ -23,8 +24,10 @@ public class AgainstRefMap {
     private double amount;
 
     @ManyToOne
+    @JoinColumn(name = "ledger_ledger_id")
     private Ledger ledger;
 
     @ManyToOne
+    @JoinColumn(name = "master_master_id")
     private Master master;
 }
