@@ -1,6 +1,8 @@
 package com.erp.Enum;
 
-public enum AmountStatus {
-    PAID,UNPAID
-}
 
+public enum AmountStatus {
+    PENDING,
+    PAID,
+    FAILED
+}

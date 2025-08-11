@@ -1,19 +1,26 @@
 package com.erp.Service.Admin;
 
 import com.erp.Dto.Request.AdminRequest;
+import com.erp.Dto.Request.CommanParam;
 import com.erp.Dto.Response.AdminResponse;
+import com.erp.Exception.Admin.AdminAlreadyExistsException;
 import com.erp.Exception.Admin.AdminNotFoundException;
 import com.erp.Mapper.Admin.AdminMapper;
+import com.erp.Meta.MetaAdminRepository;
 import com.erp.Model.Admin;
 import com.erp.Model.RootUser;
+import com.erp.Multitenancy.TenantContextHolder;
 import com.erp.Repository.Admin.AdminUserRepository;
 import com.erp.Repository.Rootuser.RootUserRepository;
 import com.erp.Security.util.UserIdentity;
+import com.erp.Service.Schema.SchemaManagementService;
 import lombok.AllArgsConstructor;
-import org.springframework.security.access.prepost.PreAuthorize;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
+import java.util.Collections;
 import java.util.List;
 
 @Service
@@ -25,60 +32,77 @@ public class AdminServiceImpl implements AdminService {
     private final AdminMapper adminMapper;
     private final RootUserRepository rootUserRepository;
     private final PasswordEncoder passwordEncoder;
+    private final SchemaManagementService schemaManagementService;
+    private final MetaAdminRepository metaAdminRepository;
+    private final AdminTenantService adminTenantService;
+    private final AdminPersistenceService adminPersistenceService;
+
+    private final Logger logger = LoggerFactory.getLogger(AdminServiceImpl.class);
 
     @Override
-    @PreAuthorize("hasAuthority('ROLE_ROOT')")
     public AdminResponse createAdmin(AdminRequest adminRequest) {
-        // Get the current authenticated RootUser
-        RootUser currentUser = (RootUser) userIdentity.getCurrentUser();
+        logger.info("Creating admin for email: {}", adminRequest.getEmail());
 
-        Admin admin = adminMapper.mapTAdmin(adminRequest);
-        admin.setCreatedByRootUserId(currentUser.getId());
-        admin.setLastUpdatedByRootUserId(currentUser.getId());
-        admin.setPassword(passwordEncoder.encode(adminRequest.getPassword()));
+        String sanitizedEmail = adminRequest.getEmail().replaceAll("[^a-zA-Z0-9]", "_").toLowerCase();
+        if (sanitizedEmail.length() > 63) {
+            throw new IllegalArgumentException("Schema name too long");
+        }
+        long tenantCount;
+        try (var context = new TenantContextHolder("public")) {
+            tenantCount = metaAdminRepository.count() + 1;
+        }
+        String schemaName = "tenant_" + tenantCount + "_" + sanitizedEmail;
+        logger.info("Generated schema: {}", schemaName);
 
-        adminRepository.save(admin); // No ambiguity after removing save from GenericUserRepository
+        try (var context = new TenantContextHolder("public")) {
+            if (metaAdminRepository.existsByAdminEmail(adminRequest.getEmail())) {
+                throw new AdminAlreadyExistsException("Admin with email already exists: " + adminRequest.getEmail());
+            }
+        }
 
+        schemaManagementService.createTenantSchema(schemaName, adminRequest.getEmail());
+        logger.info("Tenant schema {} created successfully", schemaName);
+
+        Admin admin = adminPersistenceService.saveAdminInSchema(adminRequest, schemaName);
         return adminMapper.mapToAdminResponse(admin);
     }
 
+
     @Override
-    @PreAuthorize("hasAuthority('ROLE_ROOT')")
     public List<AdminResponse> getListOfAdmins() {
-        List<Admin> admins = adminRepository.findAll();
+        List<Admin> admins = adminRepository.findByIsActiveTrue();
         return adminMapper.mapToListOfAdminResponse(admins);
     }
 
     @Override
-    @PreAuthorize("hasAuthority('ROLE_ROOT')")
-    public AdminResponse updateAdminById(AdminRequest adminRequest, long adminId) {
-        // Get the current authenticated RootUser
+    public AdminResponse updateAdminById(AdminRequest adminRequest) {
         RootUser currentUser = (RootUser) userIdentity.getCurrentUser();
-
-        Admin admin = adminRepository.findById(adminId)
-                .orElseThrow(() -> new AdminNotFoundException("Invalid ID: " + adminId + " ,admin not found !"));
-
+        Admin admin = adminRepository.findById(adminRequest.getId())
+                .orElseThrow(() -> new AdminNotFoundException("Invalid ID: " + adminRequest.getId() + " ,admin not found !"));
         adminMapper.mapToAdminEntity(adminRequest, admin);
         admin.setLastUpdatedByRootUserId(currentUser.getId());
         rootUserRepository.save(currentUser);
-        adminRepository.save(admin); // No ambiguity after removing save from GenericUserRepository
-
+        adminRepository.save(admin);
         return adminMapper.mapToAdminResponse(admin);
     }
 
     @Override
-    public AdminResponse deleteAdminById(long id) {
+    public AdminResponse deleteAdminById(CommanParam commanParam) {
         RootUser currentUser = (RootUser) userIdentity.getCurrentUser();
         if (currentUser == null) {
             throw new SecurityException("No authenticated user found");
         }
-
-        Admin admin = adminRepository.findById(id)
-                .orElseThrow(()-> new AdminNotFoundException("Admin not found with this id: "+id));
-
-        admin.set_Active(false);
+        Admin admin = adminRepository.findById(commanParam.getId())
+                .orElseThrow(() -> new AdminNotFoundException("Admin not found with this id: " + commanParam.getId()));
+        admin.setActive(false);
         adminRepository.save(admin);
-
         return adminMapper.mapToAdminResponse(admin);
+    }
+
+    @Override
+    public List<AdminResponse> findAdminByIdOrName(CommanParam commonParam) {
+        List<Admin> admins = Collections.singletonList(adminRepository.findByIdOrNameAndIsActiveTrue(commonParam.getId(), commonParam.getName())
+                .orElseThrow(() -> new AdminNotFoundException("Admin not found !!")));
+        return adminMapper.mapToListOfAdminResponse(admins);
     }
 }

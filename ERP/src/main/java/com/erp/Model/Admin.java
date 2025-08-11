@@ -11,7 +11,6 @@ import org.springframework.security.core.authority.SimpleGrantedAuthority;
 
 import java.time.LocalDateTime;
 import java.util.Collection;
-import java.util.Collections;
 import java.util.List;
 
 
@@ -41,7 +40,7 @@ public class Admin  implements GenericUser{
     private String password;
 
     @Column(name = "is_active")
-    private boolean is_Active = true;
+    private boolean isActive = true;
 
     @CreatedDate
     @Column(name = "created_at")
@@ -51,17 +50,17 @@ public class Admin  implements GenericUser{
     @Column(name = "updated_at")
     private LocalDateTime updatedAt;
 
+    @Column(name = "schema_name")
+    private String schemaName;
+
     @Column(name = "created_by")
     private long createdByRootUserId;
 
     @Column(name = "last_updated_by")
     private long lastUpdatedByRootUserId;
 
-
-    @Override
-    public boolean isActive() {
-        return is_Active;
-    }
+    @OneToMany(mappedBy = "admin")
+    private List<InvoiceGenerator> invoiceGenerator;
 
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
@@ -80,17 +79,31 @@ public class Admin  implements GenericUser{
 
     @Override
     public boolean isAccountNonExpired() {
-        return true;
+        return isActive;
     }
 
     @Override
     public boolean isAccountNonLocked() {
-        return true;
+        return isActive;
     }
 
     @Override
     public boolean isCredentialsNonExpired() {
-        return true;
+        return isActive;
     }
 
+    @Override
+    public boolean isEnabled() {
+        return GenericUser.super.isEnabled();
+    }
+
+    @Override
+    public boolean isActive() {
+        return isActive;
+    }
+
+    @Override
+    public String getSchemaName() {
+        return schemaName;
+    }
 }

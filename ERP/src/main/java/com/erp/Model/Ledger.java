@@ -13,25 +13,42 @@ import java.util.List;
 @Getter
 @Setter
 @Entity
-@Table(name = "Ledger")
+@Table(name = "ledger")
 @EntityListeners(AuditingEntityListener.class)
 public class Ledger {
+
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Column(name = "ledger_id")
     private long ledgerId;
 
+    @Column(name = "name")
     private String name;
+
+    @Column(name = "email")
     private String email;
+
+    @Column(name = "phone")
     private String phone;
+
+    @Column(name = "address")
     private String address;
 
     @CreatedDate
-    private LocalDateTime created_at;
+    @Column(name = "created_at")
+    private LocalDateTime createdAt;
 
     @LastModifiedDate
+    @Column(name = "updated_at")
     private LocalDateTime updatedAt;
 
     @OneToMany(mappedBy = "ledger")
     private List<Master> masters;
 
+    @OneToMany(mappedBy = "ledger")
+    private List<AgainstRefMap> againstRefMaps;
 }
+
+
+// @OneToOne(mappedBy = "ledger")
+//    private InvoiceGenerator invoiceGenerator;

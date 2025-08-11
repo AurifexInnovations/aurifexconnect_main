@@ -1,5 +1,6 @@
 package com.erp.Controller.Ledger;
 
+import com.erp.Dto.Request.CommanParam;
 import com.erp.Dto.Request.LedgerRequest;
 import com.erp.Dto.Response.LedgerResponse;
 import com.erp.Service.LedgerService.LedgerService;
@@ -44,24 +45,10 @@ public class LedgerController {
                     @ApiResponse(responseCode = "404", description = "Ledger not found")
             }
     )
-    @PutMapping("ledger/{id}")
-    public ResponseEntity<ResponseStructure<LedgerResponse>> updateLedgerInfo(@RequestBody LedgerRequest ledgerRequest, @PathVariable long id){
-        LedgerResponse ledgerResponse = ledgerService.updateLedgerInfo(ledgerRequest, id);
+    @PutMapping("ledger-update")
+    public ResponseEntity<ResponseStructure<LedgerResponse>> updateLedgerInfo(@RequestBody LedgerRequest ledgerRequest){
+        LedgerResponse ledgerResponse = ledgerService.updateLedgerInfo(ledgerRequest);
         return ResponseBuilder.success(HttpStatus.OK,"Ledger Info Updated Successfully", ledgerResponse);
-    }
-
-    @Operation(
-            summary = "Find Ledger by ID",
-            description = "API to fetch Ledger details by ID",
-            responses = {
-                    @ApiResponse(responseCode = "200", description = "Ledger found successfully"),
-                    @ApiResponse(responseCode = "404", description = "Ledger not found")
-            }
-    )
-    @GetMapping("ledger/{ledgerId}")
-    public ResponseEntity<ResponseStructure<LedgerResponse>> findByLedgerId(@PathVariable long ledgerId){
-        LedgerResponse ledgerResponse = ledgerService.findByLedgerId(ledgerId);
-        return ResponseBuilder.success(HttpStatus.OK,"Ledger Found Successfully!", ledgerResponse);
     }
 
     @Operation(
@@ -72,8 +59,8 @@ public class LedgerController {
                     @ApiResponse(responseCode = "404", description = "Ledger not found")
             }
     )
-    @DeleteMapping("ledger/{ledgerId}")
-    public ResponseEntity<ResponseStructure<LedgerResponse>> deleteByLedgerId(@PathVariable long ledgerId){
+    @DeleteMapping("ledger-delete")
+    public ResponseEntity<ResponseStructure<LedgerResponse>> deleteByLedgerId(@RequestBody LedgerRequest ledgerId){
         LedgerResponse ledgerResponse = ledgerService.deleteByLedgerId(ledgerId);
         return ResponseBuilder.success(HttpStatus.OK,"Ledger Deleted Successfully!!", ledgerResponse);
     }
@@ -98,9 +85,9 @@ public class LedgerController {
                     @ApiResponse(responseCode = "200", description = "All Ledger fetched successfully")
             }
     )
-    @GetMapping("ledger/by-Name/{ledgerName}")
-    public ResponseEntity<ListResponseStructure<LedgerResponse>> getLedgerByName(@PathVariable String ledgerName){
-        List<LedgerResponse> ledgerResponses = ledgerService.getLedgerByName(ledgerName);
-        return ResponseBuilder.success(HttpStatus.OK,"All Ledger Fetched By NameSuccessfully", ledgerResponses);
+    @PostMapping("ledger/by-Id-Name")
+    public ResponseEntity<ListResponseStructure<LedgerResponse>> getLedgerByName(@RequestBody CommanParam param){
+        List<LedgerResponse> ledgerResponses = ledgerService.getLedgerByIdOrName(param);
+        return ResponseBuilder.success(HttpStatus.OK,"All Ledger Fetched Successfully", ledgerResponses);
     }
 }

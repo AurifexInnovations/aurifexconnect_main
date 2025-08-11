@@ -1,6 +1,5 @@
 package com.erp.Exception.BankAccount.ExceptionHandler;
 
-import com.erp.Exception.BankAccount.BankAccountNotFoundException;
 import com.erp.Exception.BankAccount.InactiveBankAccountException;
 import com.erp.Utility.ResponseBuilder;
 import com.erp.Utility.SimpleErrorResponse;

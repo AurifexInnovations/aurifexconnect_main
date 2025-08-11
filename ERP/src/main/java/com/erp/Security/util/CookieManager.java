@@ -5,6 +5,8 @@ import lombok.AllArgsConstructor;
 import org.springframework.http.ResponseCookie;
 import org.springframework.stereotype.Component;
 
+import java.net.URI;
+
 @Component
 @AllArgsConstructor
 public class CookieManager {
@@ -13,7 +15,7 @@ public class CookieManager {
 
     public String generateCookie(String name, String value, long maxAge) {
         return ResponseCookie.from(name, value)
-                .domain(env.getDomain().getName())
+//                .domain(env.getDomain().getName())
                 .path("/")
                 .sameSite(env.getDomain().getSameSite())
                 .httpOnly(true)

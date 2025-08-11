@@ -4,36 +4,42 @@ import com.erp.Enum.VoucherType;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
-import org.springframework.data.annotation.CreatedBy;
 import org.springframework.data.annotation.CreatedDate;
-import org.springframework.data.annotation.LastModifiedBy;
-import org.springframework.data.jpa.domain.support.AuditingEntityListener;
-import org.springframework.stereotype.Service;
 
 import java.time.LocalDate;
+import java.util.List;
 
 @Entity
 @Getter
 @Setter
-@EntityListeners(AuditingEntityListener.class)
 public class LineItems {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Column(name = "line_item_id")
     private long lineItemId;
 
+    @Column(name = "item_name")
     private String itemName;
 
+    @Column(name = "unit_price")
     private double unitPrice;
 
+    @Column(name = "quantity")
     private double quantity;
 
+    @Column(name = "base_amount")
+    private double baseAmount;
+
+    @Column(name = "total_price")
     private double totalPrice;
 
     @Enumerated(EnumType.STRING)
+    @Column(name = "voucher_type")
     private VoucherType voucherType;
 
     @CreatedDate
+    @Column(name = "date")
     private LocalDate date;
 
     @ManyToOne
@@ -41,4 +47,7 @@ public class LineItems {
 
     @ManyToOne
     private Master master;
+
+    @OneToMany(mappedBy = "lineItems")
+    private List<LineItemTax> lineItemTaxes;
 }

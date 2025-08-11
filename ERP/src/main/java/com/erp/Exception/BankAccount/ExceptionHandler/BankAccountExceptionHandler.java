@@ -15,5 +15,4 @@ public class BankAccountExceptionHandler {
     ResponseEntity<SimpleErrorResponse> bankAccountNotFoundHandler(BankAccountNotFoundException e){
         return ResponseBuilder.error(HttpStatus.NOT_FOUND, e.getMessage());
     }
-
 }

@@ -1,6 +1,6 @@
 package com.erp.Controller.User;
 
-
+import com.erp.Dto.Request.CommanParam;
 import com.erp.Dto.Request.UserRequest;
 import com.erp.Dto.Request.UserUpdateRequest;
 import com.erp.Dto.Response.UserResponse;
@@ -13,7 +13,6 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
-
 import java.util.List;
 
 @RestController
@@ -26,8 +25,10 @@ public class UserController {
     @PreAuthorize("hasAnyRole('ROLE_ADMIN')")
     @PostMapping("/users")
     public ResponseEntity<ResponseStructure<UserResponse>> createUser(@RequestBody UserRequest userRequest) {
+
         UserResponse userResponse = userServices.createUser(userRequest);
         return ResponseBuilder.success(HttpStatus.CREATED, "User created successfully !!", userResponse);
+
     }
 
     @PreAuthorize("hasAnyRole('ROLE_ADMIN')")
@@ -39,24 +40,32 @@ public class UserController {
 
     }
 
-    @PreAuthorize("hasRole('EMPLOYEE')")
-    @PutMapping("/user/update/{id}")
-    public ResponseEntity<ResponseStructure<UserResponse>> updateUserById
-            (@RequestBody UserUpdateRequest userUpdateRequest, @PathVariable long id) throws Exception {
+    @PreAuthorize("hasAnyRole('ROLE_ADMIN')")
+    @PostMapping("/users/search")
+    public ResponseEntity<ListResponseStructure<UserResponse>> findByIdOrName(@RequestBody CommanParam commanParamIdOrName){
 
-        UserResponse userResponse = userServices.updateUserById(userUpdateRequest ,id);
+        List<UserResponse> userResponses = userServices.findByIdOrName(commanParamIdOrName);
+        return ResponseBuilder.success(HttpStatus.OK,"User found !!", userResponses);
+
+    }
+
+    @PreAuthorize("hasAnyRole('ROLE_ADMIN')")
+    @PutMapping("/users")
+    public ResponseEntity<ResponseStructure<UserResponse>> updateUserById
+            (@RequestBody UserUpdateRequest userUpdateRequest) throws Exception {
+
+        UserResponse userResponse = userServices.updateUserById(userUpdateRequest);
         return ResponseBuilder.success(HttpStatus.OK,"User Updated Successfully !!", userResponse);
 
     }
 
     @PreAuthorize("hasAnyRole('ROLE_ADMIN')")
-    @DeleteMapping("/user/delete/{id}")
-    public ResponseEntity<ResponseStructure<UserResponse>> deleteUserById(@PathVariable long id){
+    @DeleteMapping("/users")
+    public ResponseEntity<ResponseStructure<UserResponse>> deleteUserById(@RequestBody CommanParam commanParamId){
 
-        UserResponse userResponse = userServices.deleteUserById(id);
+        UserResponse userResponse = userServices.deleteUserById(commanParamId);
         return ResponseBuilder.success(HttpStatus.OK,"User delete Successfully !!", userResponse);
 
     }
-
 
 }

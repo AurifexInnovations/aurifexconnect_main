@@ -6,22 +6,24 @@ import com.erp.Service.Auth.AuthService;
 import com.erp.Service.TokenGeneration.TokenGenerationService;
 import com.erp.Utility.ResponseBuilder;
 import com.erp.Utility.ResponseStructure;
-import com.erp.Utility.SimpleResponseStructure;
 import lombok.AllArgsConstructor;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+@CrossOrigin(origins = "http://localhost:5173")
 @RestController
 @RequestMapping("${app.base-url}")
 @AllArgsConstructor
 public class AuthController {
+
     private final AuthService authService;
     private final TokenGenerationService tokenGenerationService;
 
     @PostMapping("/login")
     public ResponseEntity<ResponseStructure<AuthRecord>> login(@RequestBody LoginRequest loginRequest) {
+        // ❌ Removed tenantId from header — now auto-resolved in service
         AuthRecord authRecord = authService.login(loginRequest);
         HttpHeaders headers = tokenGenerationService.grantAccessAndRefreshToken(authRecord);
         return ResponseBuilder.success(HttpStatus.OK, headers, "Login successful", authRecord);
@@ -29,13 +31,14 @@ public class AuthController {
 
     @PostMapping("/refresh-login")
     public ResponseEntity<ResponseStructure<AuthRecord>> refreshLogin(@CookieValue("rt") String refreshToken) {
+        // ❌ No tenant ID needed — it will be extracted based on email in token
         AuthRecord authRecord = authService.refreshLogin(refreshToken);
         HttpHeaders headers = tokenGenerationService.grantAccessAndRefreshToken(authRecord);
         return ResponseBuilder.success(HttpStatus.OK, headers, "New access token generated", authRecord);
     }
 
     @PostMapping("/logout")
-    public ResponseEntity<SimpleResponseStructure> logout(
+    public ResponseEntity<ResponseStructure<AuthRecord>> logout(
             @CookieValue("rt") String refreshToken,
             @CookieValue("at") String accessToken) {
         HttpHeaders headers = authService.logout(refreshToken, accessToken);

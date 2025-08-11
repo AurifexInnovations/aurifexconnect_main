@@ -5,6 +5,7 @@ import lombok.Getter;
 import lombok.Setter;
 import org.springframework.data.annotation.CreatedDate;
 import org.springframework.data.jpa.domain.support.AuditingEntityListener;
+
 import java.time.LocalDateTime;
 
 @Entity
@@ -15,25 +16,28 @@ public class InventoryMovement {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Column(name = "tran_id")
     private long tranId;
 
     @ManyToOne
-    private Voucher voucher; // links to voucher table
+    private Voucher voucher;
 
     @ManyToOne
-    private LineItems lineItem; // links to LineItems table
+    private LineItems lineItem;
 
     @ManyToOne
-    private Branch branch; // track branch where stock is affected
+    private Branch branch;
 
     @ManyToOne
-    private Inventory inventory;  //track inventory table
+    private Inventory inventory;
 
     @ManyToOne
-    private Ledger ledger; // links to ledger table
+    private Ledger ledger;
 
+    @Column(name = "item_quantity")
     private double itemQuantity;
 
     @CreatedDate
+    @Column(name = "tran_date")
     private LocalDateTime tranDate;
 }

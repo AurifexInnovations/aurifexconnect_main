@@ -6,4 +6,5 @@ public interface GenericUser extends UserDetails {
     long getId();
     String getEmail();
     boolean isActive();
+    String getSchemaName();
 }

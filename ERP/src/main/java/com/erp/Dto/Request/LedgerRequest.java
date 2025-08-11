@@ -26,4 +26,6 @@ public class LedgerRequest {
     @NotBlank(message = "Address is required")
     @NotEmpty
     private String address;
+
+    private long findLegerId;
 }

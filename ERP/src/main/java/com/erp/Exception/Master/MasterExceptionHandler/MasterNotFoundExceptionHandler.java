@@ -1,6 +1,5 @@
 package com.erp.Exception.Master.MasterExceptionHandler;
 
-import com.erp.Exception.Ledger.LedgerNotFoundException;
 import com.erp.Exception.Master.MasterNotFoundException;
 import com.erp.Utility.ResponseBuilder;
 import com.erp.Utility.SimpleErrorResponse;

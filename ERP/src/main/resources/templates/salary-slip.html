@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8" />
+    <title>Salary Slip</title>
+    <style>
+        body {
+            font-family: 'Arial', sans-serif;
+            margin: 40px auto;
+            padding: 20px;
+            border: 1px solid #000;
+            max-width: 700px;
+        }
+        h2 {
+            text-align: center;
+        }
+        .header, .salary-info, .footer {
+            margin-top: 20px;
+        }
+        .details, .salary-table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        .details td, .salary-table td {
+            padding: 8px;
+            vertical-align: top;
+        }
+        .salary-table th, .salary-table td {
+            border: 1px solid #000;
+        }
+        .right {
+            text-align: right;
+        }
+        .signature {
+            margin-top: 60px;
+            text-align: right;
+        }
+    </style>
+</head>
+<body>
+
+<h2>Aurifex PVT LTD</h2>
+
+<div class="header">
+    <table class="details">
+        <tr>
+            <td>
+                <strong>Pay To / Issued To:</strong><br />
+                <strong>User Id :</strong><span th:text="${salary.user.id}">[User ID]</span><br />
+                <strong>First Name:</strong><span th:text="${salary.user.firstName}">[User FirstName]</span><br />
+                <strong>Last Name:</strong><span th:text="${salary.user.lastName}">[User LastName]</span><br />
+                <strong>Remarks :</strong><span th:text="${salary.remarks}">[Remarks]</span>
+            </td>
+            <td class="right">
+                <strong>Month:</strong> <span th:text="${salary.month}">2025-06</span><br />
+                <strong>Payment Date:</strong> <span th:text="${salary.paymentDate}">2025-06</span><br />
+                <strong>Salary No:</strong> <span th:text="${salary.id}">01234</span><br />
+                <strong>Status:</strong> <span th:text="${salary.amountStatus}">PAID</span>
+            </td>
+        </tr>
+    </table>
+</div>
+
+<div class="salary-info">
+    <table class="salary-table">
+        <thead>
+        <tr>
+            <th>Description</th>
+            <th class="right">Amount</th>
+        </tr>
+        </thead>
+        <tbody>
+        <tr>
+            <td>Basic Salary</td>
+            <td class="right" th:text="${salary.baseSalary}">[Base Salary]</td>
+        </tr>
+        <tr>
+            <td>Bonus</td>
+            <td class="right" th:text="${salary.bonus}">[Bonus]</td>
+        </tr>
+        <tr>
+            <td>Deductions</td>
+            <td class="right" th:text="${salary.deductions}">[Deduction]</td>
+        </tr>
+        <tr>
+            <td>Working Days</td>
+            <td class="right" th:text="${salary.workingDays}">[Working Days]</td>
+        </tr>
+        <tr>
+            <td>Paid Days</td>
+            <td class="right" th:text="${salary.paidDays}">[Paid Days]</td>
+        </tr>
+        <tr>
+            <td><strong>Total (Net Salary)</strong></td>
+            <td class="right" th:text="${salary.netSalary}">[Net Salary]</td>
+        </tr>
+        </tbody>
+    </table>
+</div>
+<div class="signature">
+    <p>Authorized Signed</p>
+</div>
+</body>
+</html>
