@@ -13,11 +13,13 @@ import java.time.LocalDate;
 @Table(name = "holiday")
 @Getter
 @Setter
+@NoArgsConstructor
 @EntityListeners(AuditingEntityListener.class)
 public class Holiday {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Column(name = "id")
     private long id;
 
     @ManyToOne
@@ -27,7 +29,6 @@ public class Holiday {
     @Column(name = "date")
     private LocalDate date;
 
-    @CreatedDate
     @Column(name = "description")
     private String description;
 

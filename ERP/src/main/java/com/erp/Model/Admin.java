@@ -1,13 +1,8 @@
 package com.erp.Model;
 
-import com.erp.Exception.Schema.SchemaNotFound;
-import com.erp.Meta.MetaAdmin;
-import com.erp.Meta.MetaAdminRepository;
-import com.erp.Multitenancy.TenantContext;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.annotation.CreatedDate;
 import org.springframework.data.annotation.LastModifiedDate;
 import org.springframework.data.jpa.domain.support.AuditingEntityListener;
@@ -109,6 +104,6 @@ public class Admin  implements GenericUser{
 
     @Override
     public String getSchemaName() {
-       return schemaName;
+        return schemaName;
     }
 }
