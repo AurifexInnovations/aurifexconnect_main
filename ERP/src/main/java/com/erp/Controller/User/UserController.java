@@ -49,7 +49,7 @@ public class UserController {
 
     }
 
-    @PreAuthorize("hasRole('EMPLOYEE')")
+    @PreAuthorize("hasAnyRole('ROLE_ADMIN')")
     @PutMapping("/users")
     public ResponseEntity<ResponseStructure<UserResponse>> updateUserById
             (@RequestBody UserUpdateRequest userUpdateRequest) throws Exception {

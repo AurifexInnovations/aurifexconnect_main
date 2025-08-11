@@ -25,6 +25,7 @@ public interface MasterRepository extends JpaRepository<Master, Long> {
     """, nativeQuery = true)
     List<Object[]> getPurchaseSalesSummary(String format, String voucherType);//NEW
 
+
     List<Master> findByVoucherTypeInAndCreatedDateIsNotNull(List<VoucherType> voucherTypes);
 
 }
