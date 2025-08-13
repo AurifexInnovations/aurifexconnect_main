@@ -14,6 +14,7 @@ import java.time.LocalDateTime;
 import java.util.List;
 
 @Entity
+@Table(name = "bank_account")
 @Getter
 @Setter
 @EntityListeners(AuditingEntityListener.class)
