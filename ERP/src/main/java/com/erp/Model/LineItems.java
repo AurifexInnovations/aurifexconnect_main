@@ -10,6 +10,7 @@ import java.time.LocalDate;
 import java.util.List;
 
 @Entity
+@Table(name = "line_items")
 @Getter
 @Setter
 public class LineItems {

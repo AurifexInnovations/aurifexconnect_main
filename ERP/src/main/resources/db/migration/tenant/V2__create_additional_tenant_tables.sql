@@ -58,3 +58,5 @@ CREATE TABLE IF NOT EXISTS bank_account (
     ledger_ledger_id BIGINT,
     CONSTRAINT fk_ledger FOREIGN KEY (ledger_ledger_id) REFERENCES ledger(ledger_id)
 );
+
+
