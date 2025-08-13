@@ -1,16 +1,16 @@
 spring:
-  datasource:
-    url: jdbc:postgresql://localhost:5432/erp_db
-    username: postgres
-    password: root
-    driver-class-name: org.postgresql.Driver
-    hikari:
-      connection-timeout: 30000
-      maximum-pool-size: 10
-      minimum-idle: 2
-      auto-commit: false
-      connection-test-query: SELECT 1
-      validation-timeout: 5000
+    datasource:
+        url: ${POSTGRES_URL}
+        username: ${USERNAME}
+        password: ${PASSWORD}
+        driver-class-name: org.postgresql.Driver
+        hikari:
+            connection-timeout: 30000
+            maximum-pool-size: 10
+            minimum-idle: 2
+            auto-commit: false
+            connection-test-query: SELECT 1
+            validation-timeout: 5000
 
   jpa:
     database-platform: org.hibernate.dialect.PostgreSQLDialect
