@@ -29,15 +29,13 @@ public class InventoryMovementServiceNotificationImpl implements InventoryMoveme
                 branchName
         );
 
-        NotificationMessage notification = new NotificationMessage(
-                "Inventory Movement",
-                message,
-                System.currentTimeMillis(),
-                "System",
-                "admin@erp.com" // replace if dynamic
-        );
+        NotificationMessage notification = new NotificationMessage();
+        notification.setTitle("Inventory Movement");
+        notification.setMessage(message);
+        notification.setTimestamp(System.currentTimeMillis());
+        notification.setFrom("System");
+        notification.setTo("admin@erp.com");
 
         notificationService.sendNotification(notification);
     }
 }
-

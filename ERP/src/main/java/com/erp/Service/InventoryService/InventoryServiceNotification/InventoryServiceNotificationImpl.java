@@ -7,12 +7,12 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 @Service
-public class InventoryServiceNotificationimpl implements InventoryServiceNotification {
+public class InventoryServiceNotificationImpl implements InventoryServiceNotification {
 
     private final NotificationService notificationService;
 
     @Autowired
-    public InventoryServiceNotificationimpl(NotificationService notificationService) {
+    public InventoryServiceNotificationImpl(NotificationService notificationService) {
         this.notificationService = notificationService;
     }
 
@@ -38,13 +38,13 @@ public class InventoryServiceNotificationimpl implements InventoryServiceNotific
     }
 
     private void send(String title, String message, String to) {
-        NotificationMessage notification = new NotificationMessage(
-                title,
-                message,
-                System.currentTimeMillis(),
-                "System",
-                to
-        );
+        NotificationMessage notification = new NotificationMessage();
+        notification.setTitle(title);
+        notification.setMessage(message);
+        notification.setTimestamp(System.currentTimeMillis());
+        notification.setFrom("System");
+        notification.setTo(to);
+
         notificationService.sendNotification(notification);
     }
 

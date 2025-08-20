@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>ERP WebSocket Test</title>
+    <script src="https://cdn.jsdelivr.net/npm/sockjs-client@1/dist/sockjs.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/stompjs@2.3.3/lib/stomp.min.js"></script>
+</head>
+<body>
+<h2>🔔 ERP WebSocket Test</h2>
+
+<div>
+    <label>Username: <input type="text" id="username" value="alice"></label>
+    <button onclick="connect()">Connect</button>
+</div>
+
+<hr>
+
+<div>
+    <h3>🌍 Chat</h3>
+    <input type="text" id="chatMessage" placeholder="Type message">
+    <button onclick="sendChat()">Send</button>
+    <div id="chatBox"></div>
+</div>
+
+<hr>
+
+<div>
+    <h3>📩 Private Messaging</h3>
+    <label>To: <input type="text" id="recipient" value="bob"></label>
+    <input type="text" id="privateMessage" placeholder="Private message">
+    <button onclick="sendPrivate()">Send</button>
+    <div id="privateBox"></div>
+</div>
+
+<script>
+    let stompClient = null;
+    let username = null;
+
+    function connect() {
+        username = document.getElementById("username").value;
+
+        const socket = new SockJS("/ws");
+        stompClient = Stomp.over(socket);
+
+        stompClient.connect({}, (frame) => {
+            console.log("✅ Connected: " + frame);
+
+            // Subscribe to global chat
+            stompClient.subscribe("/topic/chat", (msg) => {
+                const m = JSON.parse(msg.body);
+                document.getElementById("chatBox").innerHTML +=
+                    `<p><b>${m.from}:</b> ${m.message}</p>`;
+            });
+
+            // Subscribe to personal queue
+            stompClient.subscribe("/user/queue/private", (msg) => {
+                const m = JSON.parse(msg.body);
+                document.getElementById("privateBox").innerHTML +=
+                    `<p><b>${m.from} → you:</b> ${m.message}</p>`;
+            });
+        });
+    }
+
+    function sendChat() {
+        const msg = document.getElementById("chatMessage").value;
+        stompClient.send("/app/chat", {}, JSON.stringify({from: username, message: msg}));
+    }
+
+    function sendPrivate() {
+        const to = document.getElementById("recipient").value;
+        const msg = document.getElementById("privateMessage").value;
+        stompClient.send("/app/private-message", {}, JSON.stringify({from: username, to: to, message: msg}));
+    }
+</script>
+</body>
+</html>

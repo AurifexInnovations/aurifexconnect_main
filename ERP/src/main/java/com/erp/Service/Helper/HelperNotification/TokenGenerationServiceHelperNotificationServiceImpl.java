@@ -22,18 +22,19 @@ public class TokenGenerationServiceHelperNotificationServiceImpl implements Toke
     @Override
     public void notifyTokenGenerated(TokenType tokenType, Map<String, Object> claims, Instant expiry) {
         String userEmail = (String) claims.getOrDefault("email", "Unknown");
-        String message = String.format("A %s token was generated for %s. Expiry: %s",
+        String message = String.format(
+                "A %s token was generated for %s. Expiry: %s",
                 tokenType.name(),
                 userEmail,
-                expiry);
-
-        NotificationMessage notification = new NotificationMessage(
-                "Token Generated",
-                message,
-                System.currentTimeMillis(),
-                "System",
-                userEmail
+                expiry
         );
+
+        NotificationMessage notification = new NotificationMessage();
+        notification.setTitle("Token Generated");
+        notification.setMessage(message);
+        notification.setTimestamp(System.currentTimeMillis());
+        notification.setFrom("System");
+        notification.setTo(userEmail);
 
         notificationService.sendNotification(notification);
     }

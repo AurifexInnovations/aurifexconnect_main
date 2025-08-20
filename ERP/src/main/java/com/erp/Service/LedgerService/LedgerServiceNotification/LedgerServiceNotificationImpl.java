@@ -46,13 +46,12 @@ public class LedgerServiceNotificationImpl implements LedgerServiceNotification 
     private void send(String title, String message, String to) {
         if (to == null || to.isBlank()) return;
 
-        NotificationMessage notification = new NotificationMessage(
-                title,
-                message,
-                System.currentTimeMillis(),
-                "ERP System",
-                to
-        );
+        NotificationMessage notification = new NotificationMessage();
+        notification.setTitle(title);
+        notification.setMessage(message);
+        notification.setTimestamp(System.currentTimeMillis());
+        notification.setFrom("ERP System");
+        notification.setTo(to);
 
         notificationService.sendNotification(notification);
     }

@@ -49,13 +49,13 @@ public class LeaveServiceNotificationImpl implements LeaveServiceNotification {
     }
 
     private void send(String title, String message, String to) {
-        NotificationMessage notification = new NotificationMessage(
-                title,
-                message,
-                System.currentTimeMillis(),
-                "System",
-                to
-        );
+        NotificationMessage notification = new NotificationMessage();
+        notification.setTitle(title);
+        notification.setMessage(message);
+        notification.setTimestamp(System.currentTimeMillis());
+        notification.setFrom("System");
+        notification.setTo(to);
+
         notificationService.sendNotification(notification);
     }
 }

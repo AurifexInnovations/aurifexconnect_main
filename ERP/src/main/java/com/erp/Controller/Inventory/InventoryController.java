@@ -88,7 +88,6 @@ public class InventoryController {
 
     }
 
-
     @GetMapping("inventory/all")
     @Operation(description = """
             The API Endpoints to Found All_Inventory 
@@ -128,5 +127,4 @@ public class InventoryController {
         List<InventoryResponse> responses = inventoryService.getLowStockItems();
         return ResponseBuilder.success(HttpStatus.OK, "Low Stock Items fetched successfully", responses);
     }
-
 }
