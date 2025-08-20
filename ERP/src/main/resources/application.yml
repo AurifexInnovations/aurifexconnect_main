@@ -1,8 +1,8 @@
 spring:
   datasource:
-    url: jdbc:postgresql://localhost:5433/erp_db
-    username: postgres
-    password: root
+    url: ${POSTGRES_URL}
+    username: ${POSTGRES_USERNAME}
+    password: ${POSTGRES_PASSWORD}
     driver-class-name: org.postgresql.Driver
     hikari:
       connection-timeout: 30000
@@ -15,7 +15,7 @@ spring:
   jpa:
     database-platform: org.hibernate.dialect.PostgreSQLDialect
     hibernate:
-      ddl-auto: none  # Prevents Hibernate from overriding Flyway schema changes
+      ddl-auto: none
     show-sql: true
     properties:
       hibernate:
@@ -25,7 +25,7 @@ spring:
         multi_tenant_connection_provider: com.erp.Multitenancy.MultiTenantConnectionProviderImpl
         tenant_identifier_resolver: com.erp.Multitenancy.CurrentTenantIdentifierResolverImpl
         connection.provider_disables_autocommit: true
-        connection.isolation: 2  # TRANSACTION_READ_COMMITTED
+        connection.isolation: 2 # TRANSACTION_READ_COMMITTED
 
   flyway:
     enabled: true
@@ -34,7 +34,6 @@ spring:
     schemas: public
     baseline-on-migrate: true
     table: flyway_schema_history
-    validate-on-migrate: true  # Ensures migrations are checked before running
 
   mail:
     host: smtp.gmail.com
@@ -71,8 +70,8 @@ logging:
       hibernate.type.descriptor.sql.BasicBinder: TRACE
       hibernate.orm.jdbc.bind: TRACE
 
-  jackson:
-    date-format: dd-MM-yyyy hh:mm:ss a
-    time-zone: Asia/Kolkata
-    serialization:
-      write-dates-as-timestamps: false
+jackson:
+  date-format: dd-MM-yyyy hh:mm:ss a
+  time-zone: Asia/Kolkata
+  serialization:
+    write-dates-as-timestamps: false

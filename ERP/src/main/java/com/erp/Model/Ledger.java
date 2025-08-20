@@ -47,6 +47,7 @@ public class Ledger {
 
     @OneToMany(mappedBy = "ledger")
     private List<AgainstRefMap> againstRefMaps;
+
 }
 
 
