@@ -9,6 +9,7 @@ import lombok.Setter;
 import java.math.BigDecimal;
 
 @Entity
+@Table(name = "line_item_tax")
 @Getter
 @Setter
 public class LineItemTax {

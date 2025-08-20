@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>ERP Notifications</title>
+    <script src="https://cdn.jsdelivr.net/npm/sockjs-client@1/dist/sockjs.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/stompjs@2/dist/stomp.min.js"></script>
+</head>
+<body>
+<h2>ERP Notification System</h2>
+
+<div>
+    <h3>Global Notifications</h3>
+    <ul id="global"></ul>
+</div>
+
+<div>
+    <h3>Private Notifications</h3>
+    <ul id="private"></ul>
+</div>
+
+<div>
+    <input id="toUser" placeholder="Recipient Username" />
+    <input id="msg" placeholder="Your message" />
+    <button onclick="sendPrivateMessage()">Send Private Message</button>
+</div>
+
+<script>
+    let stompClient = null;
+
+    function connect() {
+      const socket = new SockJS('http://localhost:8080/ws');
+      stompClient = Stomp.over(socket);
+
+      stompClient.connect({}, function (frame) {
+        console.log("Connected: " + frame);
+
+        // Subscribe to global topic
+        stompClient.subscribe('/topic/chat', function (notification) {
+          showMessage(JSON.parse(notification.body), "global");
+        });
+
+        // Subscribe to private queue for user "user1" (change dynamically if needed)
+        stompClient.subscribe('/user/user1/queue/private', function (notification) {
+          showMessage(JSON.parse(notification.body), "private");
+        });
+      });
+    }
+
+    function sendPrivateMessage() {
+      const to = document.getElementById("toUser").value;
+      const msg = document.getElementById("msg").value;
+
+      stompClient.send("/app/private-message", {}, JSON.stringify({
+        to: to,
+        message: msg,
+        title: "Private Message",
+        from: "user1" // static sender for now
+      }));
+    }
+
+    function showMessage(notification, type) {
+      const li = document.createElement("li");
+      li.innerText = `[${notification.from}] ${notification.title}: ${notification.message}`;
+      document.getElementById(type).appendChild(li);
+    }
+
+    connect();
+</script>
+</body>
+</html>

@@ -11,6 +11,8 @@ import com.erp.Model.Branch;
 import com.erp.Model.Staff;
 import com.erp.Repository.Branch.BranchRepository;
 import com.erp.Repository.Staff.StaffRepository;
+import com.erp.Service.StaffService.StaffServiceNotification.StaffServiceNotification;
+import com.erp.Service.StaffService.StaffServiceNotification.StaffServiceNotificationImpl;
 import lombok.AllArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -26,6 +28,8 @@ public class StaffServiceImpl implements StaffService {
     private final StaffRepository staffRepository;
     private final StaffMapper staffMapper;
     private final BranchRepository branchRepository;
+    private final StaffServiceNotification staffServiceNotification;
+    private final StaffServiceNotificationImpl StaffServiceNotificationImpl;
 
     @Override
     public StaffResponse createStaff(StaffRequest staffRequest) {
@@ -35,6 +39,7 @@ public class StaffServiceImpl implements StaffService {
         Staff staff = staffMapper.mapToStaff(staffRequest);
         staff.setBranch(branch);
         staffRepository.save(staff);
+        staffServiceNotification.notifyStaffCreated(staff);
         return staffMapper.mapToStaffResponse(staff);
     }
 
@@ -45,6 +50,7 @@ public class StaffServiceImpl implements StaffService {
 
         staffMapper.mapToStaffEntity(staffRequest, staff);
         staffRepository.save(staff);
+        staffServiceNotification.notifyStaffUpdated(staff);
         return staffMapper.mapToStaffResponse(staff);
     }
 
@@ -54,6 +60,7 @@ public class StaffServiceImpl implements StaffService {
                 .orElseThrow(() -> new StaffNotFoundException("Staff not found for id " + param.getId()));
 
         staffRepository.deleteById(param.getId());
+        staffServiceNotification.notifyStaffDeleted(staff);
         return staffMapper.mapToStaffResponse(staff);
     }
 

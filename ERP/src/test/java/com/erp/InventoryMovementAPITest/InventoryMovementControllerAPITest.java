@@ -2,7 +2,6 @@ package com.erp.InventoryMovementAPITest;
 
 import com.erp.Dto.Request.InventoryMovementRequest;
 import com.erp.Model.Branch;
-import com.erp.Model.InventoryMovement;
 import com.erp.Repository.Branch.BranchRepository;
 import com.erp.Repository.InventoryMovement.InventoryMovementRepository;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -12,7 +11,6 @@ import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMock
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
-
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
@@ -64,7 +62,6 @@ public class InventoryMovementControllerAPITest {
                 .andExpect(jsonPath("$.message").value("Inventory Movement processed successfully!"))
                 .andExpect(jsonPath("$.data.itemQuantity").value(5.5));
     }
-
 
     @Test
     @Order(3)
