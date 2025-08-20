@@ -24,6 +24,7 @@ import com.erp.Repository.Ledger.LedgerRepository;
 import com.erp.Repository.Master.MasterRepository;
 import com.erp.Repository.Voucher.VoucherRepository;
 import com.erp.Service.AgainstRefMap.AgainstRefMapService;
+import com.erp.Service.Master.MasterNotification.MasterServiceNotification;
 import com.erp.Service.Voucher.VoucherService;
 import jakarta.transaction.Transactional;
 import lombok.AllArgsConstructor;
@@ -43,7 +44,7 @@ public class MasterServiceImpl implements MasterService {
     private final BankAccountRepository bankAccountRepository;
     private final VoucherRepository voucherRepository;
     private final AgainstRefMapService againstRefMapService;
-
+    private final MasterServiceNotification masterServiceNotification;
     @Override
     @Transactional
     public MasterResponse createMaster(MasterRequest masterRequest) {
@@ -63,6 +64,7 @@ public class MasterServiceImpl implements MasterService {
 
         String formattedVoucherId = voucherService.getFormattedVoucherId(voucher);
         master.setVoucherIndex(formattedVoucherId);
+        masterServiceNotification.notifyMasterCreated(master);
 
         masterRepository.save(master);
 
@@ -335,8 +337,6 @@ public class MasterServiceImpl implements MasterService {
 //
 //        masterRepository.deleteById(masterId);
 //        return masterMapper.mapToMasterResponse(master);
-
-
 
 //
 //   }.
