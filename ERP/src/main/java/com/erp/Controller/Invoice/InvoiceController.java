@@ -71,5 +71,4 @@ public class InvoiceController {
         return  ResponseEntity.ok("Email Sent To : "+customerEmail);
 
     }
-
 }

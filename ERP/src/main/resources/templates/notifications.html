@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>ERP Notifications</title>
+    <script src="https://cdn.jsdelivr.net/npm/sockjs-client@1/dist/sockjs.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/stompjs@2.3.3/lib/stomp.min.js"></script>
+</head>
+<body>
+<h1>Notifications</h1>
+<ul id="notifications"></ul>
+
+<script>
+    const socket = new SockJS("http://localhost:8080/ws");
+    const stompClient = Stomp.over(socket);
+
+    stompClient.connect({}, function (frame) {
+      console.log("Connected: " + frame);
+
+      // Subscribe to global notifications
+      stompClient.subscribe("/topic/global", function (notification) {
+        const msg = JSON.parse(notification.body);
+        addNotification("GLOBAL: " + msg.message);
+      });
+
+      // Subscribe to user-specific private queue (replace 'john.doe')
+      stompClient.subscribe("/user/john.doe/queue/notifications", function (notification) {
+        const msg = JSON.parse(notification.body);
+        addNotification("PRIVATE: " + msg.message);
+      });
+    });
+
+    function addNotification(message) {
+      const ul = document.getElementById("notifications");
+      const li = document.createElement("li");
+      li.innerText = message;
+      ul.appendChild(li);
+    }
+</script>
+</body>
+</html>

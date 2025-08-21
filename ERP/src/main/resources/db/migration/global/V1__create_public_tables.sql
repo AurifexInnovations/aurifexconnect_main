@@ -21,3 +21,4 @@ CREATE TABLE IF NOT EXISTS public.token_black_list (
     token TEXT NOT NULL UNIQUE,
     expiration BIGINT NOT NULL
 );
+

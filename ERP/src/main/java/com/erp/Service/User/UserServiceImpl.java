@@ -15,6 +15,7 @@ import com.erp.Multitenancy.TenantContext;
 import com.erp.Repository.Role.RoleRepository;
 import com.erp.Repository.User.UserRepository;
 import com.erp.Security.util.UserIdentity;
+import com.erp.Service.User.UserNotification.UserNotification;
 import jakarta.transaction.Transactional;
 import lombok.AllArgsConstructor;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -35,7 +36,7 @@ public class UserServiceImpl implements UserServices {
     private final RoleRepository roleRepository;
     private final UserIdentity userIdentity;
     private final static String DEFAULT_ROLE = "EMPLOYEE";
-
+    private final UserNotification userNotification;
     @Override
     @Transactional
     public UserResponse createUser(UserRequest userRequest) {
@@ -47,12 +48,12 @@ public class UserServiceImpl implements UserServices {
                 throw new SameEmailFoundException("Employee already exists with this email");
             }
 
-            User user = userMapper.mapToUser(userRequest);
-            user.setPassword(passwordEncoder.encode(userRequest.getPassword()));
-            user.setRoles(new HashSet<>());
-            user.setCreatedByAdminId(currentAdmin.getId());
-            user.setSchemaName(schemaName);
-            user = userRepository.save(user);
+        User user = userMapper.mapToUser(userRequest);
+        user.setPassword(passwordEncoder.encode(userRequest.getPassword()));
+        user.setRoles(new HashSet<>()); // Clear any transient roles
+        userNotification.notifyUserUpdated(user);
+        // Save user first to generate ID
+        user = userRepository.save(user);
 
             Set<Role> attachedRoles = new HashSet<>();
             for (RoleRequest roleRequest : userRequest.getRoles()) {
@@ -117,7 +118,9 @@ public class UserServiceImpl implements UserServices {
                 .orElseThrow(()-> new UserNotFoundException("User not found with this id: "+ commanParamId.getId()));
 
         user.setActive(false);
+
         userRepository.save(user);
+        userNotification.notifyUserDeleted(user);
         return userMapper.mapToUserResponse(user);
 
     }
@@ -132,7 +135,7 @@ public class UserServiceImpl implements UserServices {
 
         List<User> users = Collections.singletonList(userRepository.findByIdOrFirstNameAndIsActiveTrue(commanParamIdOrName.getId(), commanParamIdOrName.getName())
                 .orElseThrow(() -> new UserNotFoundException(("User not found !"))));
-
+        userNotification.notifyUserSearchPerformed(commanParamIdOrName.getName());
         return userMapper.mapToListOfUserResponse(users);
 
     }

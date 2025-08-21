@@ -249,6 +249,4 @@ public class LineItemsServiceImpl implements LineItemService {
 //
 //        updateMasterTotal(master);
 //    }
-
-
 }

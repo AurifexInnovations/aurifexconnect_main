@@ -1,16 +1,16 @@
 spring:
-    datasource:
-        url: ${POSTGRES_URL}
-        username: ${USERNAME}
-        password: ${PASSWORD}
-        driver-class-name: org.postgresql.Driver
-        hikari:
-            connection-timeout: 30000
-            maximum-pool-size: 10
-            minimum-idle: 2
-            auto-commit: false
-            connection-test-query: SELECT 1
-            validation-timeout: 5000
+  datasource:
+    url: ${POSTGRES_URL}
+    username: ${POSTGRES_USERNAME}
+    password: ${POSTGRES_PASSWORD}
+    driver-class-name: org.postgresql.Driver
+    hikari:
+      connection-timeout: 30000
+      maximum-pool-size: 10
+      minimum-idle: 2
+      auto-commit: false
+      connection-test-query: SELECT 1
+      validation-timeout: 5000
 
     jpa:
       database-platform: org.hibernate.dialect.PostgreSQLDialect
@@ -26,6 +26,13 @@ spring:
           tenant_identifier_resolver: com.erp.Multitenancy.CurrentTenantIdentifierResolverImpl
           connection.provider_disables_autocommit: true
           connection.isolation: 2  # TRANSACTION_READ_COMMITTED
+        format_sql: true
+        enable_lazy_load_no_trans: true
+        multiTenancy: SCHEMA
+        multi_tenant_connection_provider: com.erp.Multitenancy.MultiTenantConnectionProviderImpl
+        tenant_identifier_resolver: com.erp.Multitenancy.CurrentTenantIdentifierResolverImpl
+        connection.provider_disables_autocommit: true
+        connection.isolation: 2 # TRANSACTION_READ_COMMITTED
 
     flyway:
       enabled: true
@@ -70,8 +77,8 @@ logging:
       hibernate.type.descriptor.sql.BasicBinder: TRACE
       hibernate.orm.jdbc.bind: TRACE
 
-  jackson:
-    date-format: dd-MM-yyyy hh:mm:ss a
-    time-zone: Asia/Kolkata
-    serialization:
-      write-dates-as-timestamps: false
+jackson:
+  date-format: dd-MM-yyyy hh:mm:ss a
+  time-zone: Asia/Kolkata
+  serialization:
+    write-dates-as-timestamps: false

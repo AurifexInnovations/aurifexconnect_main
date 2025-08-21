@@ -7,6 +7,7 @@ import com.erp.Exception.Service_Exception.ServiceNotFoundByIdException;
 import com.erp.Mapper.Service.ServiceMapper;
 import com.erp.Model.Service;
 import com.erp.Repository.Service.ServiceRepository;
+import com.erp.Service.ServiceType.ServiceTypeNotification.ServiceTypeNotification;
 import lombok.AllArgsConstructor;
 import org.springframework.web.bind.annotation.RequestBody;
 
@@ -18,11 +19,13 @@ public class ServiceTypeImpl implements ServiceType {
 
     private final ServiceRepository repository;
     private final ServiceMapper serviceMapper;
+    private final ServiceTypeNotification serviceTypeNotification;
 
     @Override
     public ServiceResponse addService(ServiceRequest serviceRequest) {
         Service service = serviceMapper.mapToService(serviceRequest);
         repository.save(service);
+        serviceTypeNotification.notifyServiceAdded(service);
         return serviceMapper.mapToServiceResponse(service);
     }
 
@@ -33,6 +36,7 @@ public class ServiceTypeImpl implements ServiceType {
 
         serviceMapper.mapToServiceEntity(serviceRequest, service);
         repository.save(service);
+        serviceTypeNotification.notifyServiceUpdated(service);
         return serviceMapper.mapToServiceResponse(service);
     }
 
@@ -50,6 +54,7 @@ public class ServiceTypeImpl implements ServiceType {
         Service service = repository.findById(param.getId())
                 .orElseThrow(() -> new ServiceNotFoundByIdException("Service not found, invalid ID."));
         repository.deleteById(param.getId());
+        serviceTypeNotification.notifyServiceDeleted(service);
         return serviceMapper.mapToServiceResponse(service);
     }
 

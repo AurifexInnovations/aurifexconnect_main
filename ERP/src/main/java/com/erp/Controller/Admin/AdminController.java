@@ -14,6 +14,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 import java.util.List;
+
 @RestController
 @RequestMapping("${app.base-url}")
 @AllArgsConstructor
@@ -54,6 +55,5 @@ public class AdminController {
     public ResponseEntity<ResponseStructure<AdminResponse>> deleteAdminById(@RequestBody CommanParam commanParam){
         AdminResponse adminResponse = adminService.deleteAdminById(commanParam);
         return ResponseBuilder.success(HttpStatus.OK,"Admin delete Successfully !!",adminResponse);
-
     }
  }

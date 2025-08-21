@@ -2,9 +2,7 @@ package com.erp.Controller.Salary;
 
 import com.erp.Dto.Request.Param;
 import com.erp.Dto.Request.SalaryRequest;
-import com.erp.Dto.Response.MonthlySalaryResponse;
 import com.erp.Dto.Response.SalaryResponse;
-import com.erp.Dto.Response.SalarySummaryResponse;
 import com.erp.Service.SalaryService.SalaryService;
 import com.erp.Utility.ListResponseStructure;
 import com.erp.Utility.ResponseBuilder;
@@ -137,5 +135,4 @@ public class SalaryController {
         Map<String, Object> overview = salaryService.getSalaryOverview(year, startDate, endDate);
         return ResponseBuilder.success(HttpStatus.OK, "Salary overview fetched successfully", overview);
     }
-
 }
