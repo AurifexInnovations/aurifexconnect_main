@@ -48,4 +48,3 @@ public class TechnicianController {
         return ResponseBuilder.success(HttpStatus.OK,"Delete SuccessFully", technicianResponse);
     }
 }
-

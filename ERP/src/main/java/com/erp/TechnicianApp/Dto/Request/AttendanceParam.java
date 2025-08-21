@@ -5,9 +5,9 @@ import lombok.Setter;
 
 @Getter
 @Setter
-public class CommonParam {
+public class AttendanceParam {
 
-    private long id;
-    private String name;
+    private long techId;
+    private long taskId;
 
 }

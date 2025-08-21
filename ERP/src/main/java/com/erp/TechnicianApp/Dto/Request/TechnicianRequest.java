@@ -1,6 +1,7 @@
 package com.erp.TechnicianApp.Dto.Request;
 
-import lombok.*;
+import lombok.Getter;
+import lombok.Setter;
 
 @Getter
 @Setter
@@ -13,4 +14,5 @@ public class TechnicianRequest {
     private String role;
     private String mobileNumber;
     private String panNumber;
+
 }

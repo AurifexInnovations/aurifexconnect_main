@@ -1,8 +1,9 @@
 package com.erp.TechnicianApp.Model.Task;
 
+import com.erp.Enum.TaskStatus;
 
-import com.erp.TechnicianApp.Enum.TaskStatus;
 import com.erp.TechnicianApp.Model.Technician.Technician;
+import com.erp.TechnicianApp.Model.TechnicianAttendance.TechnicianAttendance;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
@@ -11,6 +12,8 @@ import org.springframework.data.annotation.LastModifiedDate;
 import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.List;
 
 @Entity
 @Getter
@@ -41,4 +44,8 @@ public class Task {
     @ManyToOne(optional = true) // allow null
     @JoinColumn(name = "technician_id", nullable = true)
     private Technician technician;
+
+    @OneToMany(mappedBy = "task", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<TechnicianAttendance> attendances = new ArrayList<>();
+
 }

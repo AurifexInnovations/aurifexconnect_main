@@ -1,7 +1,7 @@
 package com.erp.TechnicianApp.Dto.Response;
 
-import lombok.*;
-
+import lombok.Getter;
+import lombok.Setter;
 
 import java.time.LocalDateTime;
 

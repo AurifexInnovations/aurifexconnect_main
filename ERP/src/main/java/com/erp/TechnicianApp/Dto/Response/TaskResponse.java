@@ -2,6 +2,7 @@ package com.erp.TechnicianApp.Dto.Response;
 
 import lombok.Getter;
 import lombok.Setter;
+
 import java.time.LocalDateTime;
 
 @Getter
@@ -9,6 +10,8 @@ import java.time.LocalDateTime;
 public class TaskResponse {
 
     private long taskId;
+    private Long technicianId;
+    private String technicianName;
     private String clientName;
     private String clientLocation;
     private String serviceType;

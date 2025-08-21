@@ -1,5 +1,6 @@
 package com.erp.TechnicianApp.Repository.Technician;
 
+
 import com.erp.TechnicianApp.Model.Technician.Technician;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
