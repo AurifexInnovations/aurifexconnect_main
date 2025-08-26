@@ -31,10 +31,8 @@ public class AdminServiceImpl implements AdminService {
     private final AdminUserRepository adminRepository;
     private final AdminMapper adminMapper;
     private final RootUserRepository rootUserRepository;
-    private final PasswordEncoder passwordEncoder;
     private final SchemaManagementService schemaManagementService;
     private final MetaAdminRepository metaAdminRepository;
-    private final AdminTenantService adminTenantService;
     private final AdminPersistenceService adminPersistenceService;
 
     private final Logger logger = LoggerFactory.getLogger(AdminServiceImpl.class);
