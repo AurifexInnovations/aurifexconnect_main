@@ -177,10 +177,9 @@ public class SecurityConfig {
         CorsConfiguration config = new CorsConfiguration();
 
         config.setAllowCredentials(true);
-        config.setAllowedOrigins(Arrays.asList(
-                "http://localhost:3000",
-                "http://localhost:5174",
-                "https://erpaurifex.netlify.app"
+        config.setAllowedOriginPatterns(Arrays.asList(
+                "http://localhost:*",          // allow any localhost port
+                "https://erpaurifex.netlify.app" // your deployed frontend
         ));
         config.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "DELETE", "OPTIONS", "PATCH"));
         config.setAllowedHeaders(Arrays.asList("*"));
@@ -191,4 +190,5 @@ public class SecurityConfig {
 
         return source;
     }
+
 }
