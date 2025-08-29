@@ -51,7 +51,6 @@ public class TenantFilter extends OncePerRequestFilter {
             schemaName = "public";
             log.debug("⚠️ No schema found, using default: public");
         }
-
         // Set current tenant for this request
         TenantContext.setCurrentTenant(schemaName);
 
