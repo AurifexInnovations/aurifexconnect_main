@@ -5,8 +5,6 @@ import lombok.AllArgsConstructor;
 import org.springframework.http.ResponseCookie;
 import org.springframework.stereotype.Component;
 
-import java.net.URI;
-
 @Component
 @AllArgsConstructor
 public class CookieManager {

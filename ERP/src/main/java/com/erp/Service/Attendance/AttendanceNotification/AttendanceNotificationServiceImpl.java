@@ -52,7 +52,6 @@ public class AttendanceNotificationServiceImpl implements AttendanceNotification
         notification.setTimestamp(System.currentTimeMillis());
         notification.setFrom("System");
         notification.setTo(to);
-
         notificationService.sendNotification(notification);
     }
 

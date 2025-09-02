@@ -1,0 +1,205 @@
+package com.erp.Service.Helper;
+
+import com.erp.Dto.Request.LeaveRequest;
+import com.erp.Dto.Request.Param;
+import com.erp.Dto.Response.LeaveResponse;
+import com.erp.Enum.LeaveStatus;
+import com.erp.Enum.LeaveType;
+import com.erp.Exception.Leave.LeaveNotFoundException;
+import com.erp.Exception.User.UserNotFoundException;
+import com.erp.Mapper.Leave.LeaveMapper;
+import com.erp.Model.Leave;
+import com.erp.Model.User;
+import com.erp.Repository.Leave.LeaveRepository;
+import com.erp.Repository.User.UserRepository;
+import lombok.RequiredArgsConstructor;
+import org.springframework.stereotype.Component;
+import java.time.LocalDate;
+import java.time.temporal.ChronoUnit;
+import java.util.List;
+
+@Component
+@RequiredArgsConstructor
+public class LeaveHelper {
+
+    private final LeaveRepository leaveRepository;
+    private final LeaveMapper leaveMapper;
+    private final UserRepository userRepository;
+
+    private static final int ANNUAL_PAID_LEAVE_ALLOWANCE = 12;
+
+    // ✅ Apply Leave
+    public LeaveResponse applyLeave(LeaveRequest request) {
+        validateLeaveDates(request.getStartDate(), request.getEndDate());
+
+        User user = userRepository.findById(request.getUserId())
+                .orElseThrow(() -> new UserNotFoundException("User not found with id: " + request.getUserId()));
+
+        Leave leave = leaveMapper.mapToLeave(request);
+        leave.setUser(user);
+        leave.setStatus(LeaveStatus.PENDING);
+        leave.setLeaveType(parseLeaveType(request.getLeaveType()));
+
+        leaveRepository.save(leave);
+
+        return leaveMapper.mapToLeaveResponse(leave);
+    }
+
+    // ✅ Update Leave
+    public LeaveResponse updateLeave(LeaveRequest request) {
+        validateLeaveDates(request.getStartDate(), request.getEndDate());
+
+        Leave leave = leaveRepository.findById(request.getId())
+                .orElseThrow(() -> new LeaveNotFoundException("Leave not found with id: " + request.getId()));
+
+        leaveMapper.updateLeave(request, leave);
+        leave.setLeaveType(parseLeaveType(request.getLeaveType()));
+
+        leaveRepository.save(leave);
+
+        return leaveMapper.mapToLeaveResponse(leave);
+    }
+
+    // ✅ Get Leaves by User
+    public List<LeaveResponse> getLeavesByUser(Param param) {
+        List<Leave> leaves = leaveRepository.findByUserId(param.getUserId());
+        if (leaves.isEmpty()) {
+            throw new LeaveNotFoundException("No leave records found for user id: " + param.getUserId());
+        }
+        return leaveMapper.mapToLeaveResponseList(leaves);
+    }
+
+    // ✅ Get Leaves by Date Range
+    public List<LeaveResponse> getLeavesByDateRange(LeaveRequest request) {
+        LocalDate start = request.getStartDate();
+        LocalDate end = request.getEndDate();
+
+        if (start == null || end == null) {
+            throw new IllegalArgumentException("Start and end dates must not be null.");
+        }
+
+        List<Leave> leaves = leaveRepository.findByStartDateBetween(start, end);
+        if (leaves.isEmpty()) {
+            throw new LeaveNotFoundException("No leave records found between " + start + " and " + end);
+        }
+        return leaveMapper.mapToLeaveResponseList(leaves);
+    }
+
+    // ✅ Get Leaves by Status
+    public List<LeaveResponse> getLeavesByStatus(LeaveRequest request) {
+        if (request.getStatus() == null) {
+            throw new IllegalArgumentException("Leave status must not be null.");
+        }
+
+        List<Leave> leaves = leaveRepository.findByStatus(request.getStatus());
+        if (leaves.isEmpty()) {
+            throw new LeaveNotFoundException("No leave records found with status: " + request.getStatus());
+        }
+        return leaveMapper.mapToLeaveResponseList(leaves);
+    }
+
+    // ✅ Get All Leaves
+    public List<LeaveResponse> getAllLeaves() {
+        List<Leave> leaves = leaveRepository.findAll();
+        if (leaves.isEmpty()) {
+            throw new LeaveNotFoundException("No leave records found.");
+        }
+        return leaveMapper.mapToLeaveResponseList(leaves);
+    }
+
+    // ✅ Update Leave Status
+    public LeaveResponse updateLeaveStatus(LeaveRequest request) {
+        Leave leave = leaveRepository.findById(request.getId())
+                .orElseThrow(() -> new LeaveNotFoundException("Leave not found with id: " + request.getId()));
+
+        LeaveStatus oldStatus = leave.getStatus();
+        LeaveStatus newStatus = request.getStatus();
+
+        if (newStatus == null || !isValidStatus(newStatus)) {
+            throw new IllegalArgumentException("Invalid leave status: " + newStatus);
+        }
+
+        User user = leave.getUser();
+
+        // If approving PAID leave, check balance
+        if (leave.getLeaveType() == LeaveType.PAID
+                && oldStatus != LeaveStatus.APPROVED
+                && newStatus == LeaveStatus.APPROVED) {
+
+            long leaveDays = ChronoUnit.DAYS.between(leave.getStartDate(), leave.getEndDate()) + 1;
+            int leaveBalance = calculateLeaveBalance(user.getId());
+
+            if (leaveBalance < leaveDays) {
+                throw new IllegalArgumentException("Insufficient leave balance to approve paid leave.");
+            }
+
+            leave.setLeaveBalance(leaveBalance - (int) leaveDays);
+        }
+
+        leave.setStatus(newStatus);
+        leaveRepository.save(leave);
+
+        return leaveMapper.mapToLeaveResponse(leave);
+    }
+
+    // ✅ Delete Leave
+    public LeaveResponse deleteLeave(Param param) {
+        Leave leave = leaveRepository.findById(param.getId())
+                .orElseThrow(() -> new LeaveNotFoundException("Leave not found with id: " + param.getId()));
+
+        leaveRepository.delete(leave);
+
+        return leaveMapper.mapToLeaveResponse(leave);
+    }
+
+    // -------------------
+    // 🔹 Helper Methods
+    // -------------------
+
+    private int calculateLeaveBalance(Long userId) {
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new UserNotFoundException("User not found with id: " + userId));
+
+        LocalDate joiningDate = user.getCreatedAt();
+        LocalDate today = LocalDate.now();
+
+        // months worked since joining
+        int monthsWorked = joiningDate.until(today).getYears() * 12 + joiningDate.until(today).getMonths();
+
+        int proratedLeaveAllowance = Math.min(monthsWorked, ANNUAL_PAID_LEAVE_ALLOWANCE);
+
+        List<Leave> approvedPaidLeaves = leaveRepository.findByUserIdAndStatusAndLeaveType(
+                userId, LeaveStatus.APPROVED, LeaveType.PAID);
+
+        int usedDays = 0;
+        for (Leave leave : approvedPaidLeaves) {
+            long days = ChronoUnit.DAYS.between(leave.getStartDate(), leave.getEndDate()) + 1;
+            usedDays += days;
+        }
+
+        return proratedLeaveAllowance - usedDays;
+    }
+
+    private void validateLeaveDates(LocalDate start, LocalDate end) {
+        if (start == null || end == null || start.isAfter(end)) {
+            throw new IllegalArgumentException("Invalid leave dates: start must be before or equal to end.");
+        }
+    }
+
+    private LeaveType parseLeaveType(String type) {
+        if (type == null || type.isBlank()) {
+            return LeaveType.UNPAID;
+        }
+        try {
+            return LeaveType.valueOf(type.toUpperCase());
+        } catch (IllegalArgumentException e) {
+            return LeaveType.UNPAID;
+        }
+    }
+
+    private boolean isValidStatus(LeaveStatus status) {
+        return status == LeaveStatus.PENDING ||
+                status == LeaveStatus.APPROVED ||
+                status == LeaveStatus.REJECTED;
+    }
+}

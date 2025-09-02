@@ -12,6 +12,5 @@ public interface ContactService {
     ContactResponse getById(Long id);
     List<ContactResponse> getAll();
     void delete(Long id);
-
     void deleteAll();
 }

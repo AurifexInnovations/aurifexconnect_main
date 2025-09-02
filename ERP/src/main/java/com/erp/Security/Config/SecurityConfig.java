@@ -11,7 +11,6 @@ import com.erp.Security.Filter.TokenBlackListService;
 import com.erp.Security.JWT.JWTService;
 import com.erp.Security.util.CookieManager;
 import com.erp.Security.util.UserRepositoryRegistry;
-import com.erp.Service.Auth.GenericAuthServiceImpl;
 import com.erp.Tenant.Filter.TenantCleanupFilter;
 import com.erp.Tenant.Filter.TenantFilter;
 import lombok.AllArgsConstructor;
