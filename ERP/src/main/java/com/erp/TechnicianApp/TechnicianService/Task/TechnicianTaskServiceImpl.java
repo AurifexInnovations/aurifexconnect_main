@@ -5,9 +5,9 @@ import com.erp.Repository.User.UserRepository;
 import com.erp.TechnicianApp.TechnicianDto.Request.TechnicianTaskRequest;
 import com.erp.TechnicianApp.TechnicianDto.Request.TaskStatusUpdateRequest;
 import com.erp.TechnicianApp.TechnicianDto.Response.TechnicianTaskResponse;
-import com.erp.TechnicianApp.TechnicianEnum.TechnicianTaskStatus;
 import com.erp.TechnicianApp.TechnicianMapper.Task.TechnicianTaskMapper;
 import com.erp.TechnicianApp.TechnicianModel.TechnicianTask;
+import com.erp.TechnicianApp.TechnicianModel.TechnicianTask.TechnicianTaskStatus;
 import com.erp.TechnicianApp.TechnicianRepository.TechnicianTaskRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -30,7 +30,7 @@ public class TechnicianTaskServiceImpl implements TechnicianTaskService {
 
         TechnicianTask task = mapper.toEntity(request);
         task.setUser(user);
-        task.setStatus(TechnicianTaskStatus.PENDING);
+        task.setStatus(TechnicianTaskStatus.PENDING); // ✅ now correct enum
         task.setAssignedAt(LocalDateTime.now());
 
         return mapper.toResponse(taskRepository.save(task));

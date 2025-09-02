@@ -15,17 +15,17 @@ public class TechnicianPerformance {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(name = "performance_id", updatable = false)
+    @Column(name = "performance_id")
     private Long performanceId;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "user_id", nullable = false) // ✅ explicit join column
+    @JoinColumn(name = "user_id")
     private User user;
 
-    @Column(name = "month", nullable = false)
+    @Column(name = "month")
     private Integer month;
 
-    @Column(name = "year", nullable = false)
+    @Column(name = "year")
     private Integer year;
 
     @Column(name = "punctuality_score")
@@ -42,4 +42,11 @@ public class TechnicianPerformance {
 
     @Column(name = "final_rating")
     private BigDecimal finalRating;
+
+
+    public enum TechnicianStatus {
+        ACTIVE,
+        IDLE,
+        OFFLINE
+    }
 }

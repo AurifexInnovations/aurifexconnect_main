@@ -18,12 +18,12 @@ public class TechnicianLocation {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(name = "location_id", nullable = false, updatable = false)
+    @Column(name = "location_id")
     private Long locationId;
 
     /** 🔹 Linked technician (User) */
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "user_id", nullable = false)
+    @JoinColumn(name = "user_id")
     private User user;
 
     /** 🔹 Attendance session (check-in/out) */
@@ -37,10 +37,10 @@ public class TechnicianLocation {
     private TechnicianTask task;
 
     /** 🔹 GPS Data */
-    @Column(name = "latitude", nullable = false, precision = 10, scale = 7)
+    @Column(name = "latitude")
     private Double latitude;
 
-    @Column(name = "longitude", nullable = false, precision = 10, scale = 7)
+    @Column(name = "longitude")
     private Double longitude;
 
     @Column(name = "altitude")
@@ -66,10 +66,10 @@ public class TechnicianLocation {
     private String note;
 
     /** 🔹 Image proof (optional) */
-    @Column(name = "image_url", length = 500)
+    @Column(name = "image_url")
     private String imageUrl;
 
     /** 🔹 Timestamp */
-    @Column(name = "recorded_at", nullable = false)
+    @Column(name = "recorded_at")
     private LocalDateTime recordedAt;
 }

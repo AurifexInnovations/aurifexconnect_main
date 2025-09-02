@@ -1,6 +1,6 @@
 package com.erp.TechnicianApp.TechnicianDto.Response;
 
-import com.erp.TechnicianApp.TechnicianEnum.TechnicianTaskStatus;
+import com.erp.TechnicianApp.TechnicianModel.TechnicianTask.TechnicianTaskStatus;
 import lombok.Getter;
 import lombok.Setter;
 
