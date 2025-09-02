@@ -8,7 +8,7 @@ import org.springframework.scheduling.annotation.EnableScheduling;
 
 @EnableScheduling
 @EnableJpaAuditing
-@SpringBootApplication
+@SpringBootApplication(scanBasePackages = "com.erp")
 @EnableRetry
 public class ERPApplication {
 	public static void main(String[] args) {

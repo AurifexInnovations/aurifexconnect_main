@@ -5,6 +5,6 @@ import lombok.Data;
 
 @Data
 public class TaskStatusUpdateRequest {
-    private TechnicianTaskStatus status;
+    private TechnicianTaskStatus status; // must be nested enum type
 }
 

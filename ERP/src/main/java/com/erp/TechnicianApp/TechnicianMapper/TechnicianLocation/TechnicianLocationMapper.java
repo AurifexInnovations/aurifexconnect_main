@@ -13,12 +13,12 @@ public interface TechnicianLocationMapper {
 
     @Mapping(target = "user.id", source = "userId")
     @Mapping(target = "attendance.id", source = "attendanceId")
-    @Mapping(target = "task.taskId", source = "taskId")   // 🔹 fix here
+    @Mapping(target = "task.taskId", source = "taskId")
     TechnicianLocation toEntity(TechnicianLocationRequest request);
 
     @Mapping(target = "userId", source = "user.id")
     @Mapping(target = "attendanceId", source = "attendance.id")
-    @Mapping(target = "taskId", source = "task.taskId")   // 🔹 fix here
+    @Mapping(target = "taskId", source = "task.taskId")
     TechnicianLocationResponse toResponse(TechnicianLocation location);
 
     List<TechnicianLocationResponse> toResponseList(List<TechnicianLocation> locations);

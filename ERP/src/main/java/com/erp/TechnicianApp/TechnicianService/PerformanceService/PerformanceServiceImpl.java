@@ -12,7 +12,6 @@ import com.erp.TechnicianApp.TechnicianModel.TechnicianPerformance;
 import com.erp.TechnicianApp.TechnicianRepository.PerformanceRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
-
 import java.math.BigDecimal;
 import java.util.List;
 import java.util.Optional;
@@ -61,7 +60,7 @@ public class PerformanceServiceImpl implements PerformanceService {
     @Override
     public PerformanceResponse getPerformanceRecord(PerformanceRecordRequest request) {
         Optional<TechnicianPerformance> perfOpt = performanceRepository
-                .findByUser_UserIdAndMonthAndYear(
+                .findByUser_IdAndMonthAndYear(
                         request.getUserId(),
                         request.getMonth(),
                         request.getYear()
@@ -80,7 +79,7 @@ public class PerformanceServiceImpl implements PerformanceService {
 
     @Override
     public List<PerformanceResponse> getPerformanceHistory(Long userId) {
-        List<TechnicianPerformance> history = performanceRepository.findByUser_UserId(userId);
+        List<TechnicianPerformance> history = performanceRepository.findByUser_Id(userId);
 
         if (history == null || history.isEmpty()) {
             throw new PerformanceNotFoundException(

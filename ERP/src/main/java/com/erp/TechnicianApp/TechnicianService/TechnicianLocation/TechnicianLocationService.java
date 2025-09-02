@@ -8,11 +8,18 @@ import java.time.LocalDateTime;
 import java.util.List;
 
 public interface TechnicianLocationService {
+
     TechnicianLocationResponse pushLocation(TechnicianLocationRequest request);
+
     TechnicianLocationResponse pushLocationWithImage(TechnicianLocationImageRequest request);
+
     TechnicianLocationResponse getLatest(Long userId);
-    TechnicianLocationResponse getLatestForAttendance(Long userId, Long attendanceId); // ✅ new
+
+    TechnicianLocationResponse getLatestForAttendance(Long userId, Long attendanceId);
+
     List<TechnicianLocationResponse> getHistory(Long userId, LocalDateTime start, LocalDateTime end);
-    List<TechnicianLocationResponse> getHistoryForAttendance(Long userId, Long attendanceId); // ✅ new
+
+    List<TechnicianLocationResponse> getHistoryForAttendance(Long userId, Long attendanceId);
+
     List<TechnicianLocationResponse> getAll();
 }

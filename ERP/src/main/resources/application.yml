@@ -26,13 +26,6 @@ spring:
           tenant_identifier_resolver: com.erp.Multitenancy.CurrentTenantIdentifierResolverImpl
           connection.provider_disables_autocommit: true
           connection.isolation: 2  # TRANSACTION_READ_COMMITTED
-        format_sql: true
-        enable_lazy_load_no_trans: true
-        multiTenancy: SCHEMA
-        multi_tenant_connection_provider: com.erp.Multitenancy.MultiTenantConnectionProviderImpl
-        tenant_identifier_resolver: com.erp.Multitenancy.CurrentTenantIdentifierResolverImpl
-        connection.provider_disables_autocommit: true
-        connection.isolation: 2 # TRANSACTION_READ_COMMITTED
 
     flyway:
       enabled: true
@@ -42,14 +35,19 @@ spring:
       baseline-on-migrate: true
       table: flyway_schema_history
 
-    mail:
+  mail:
       host: smtp.gmail.com
       port: 587
       username: ${SMTP_MAIL}
       password: ${SMTP_PASSWORD}
       properties:
-        mail.smtp.auth: true
-        mail.smtp.starttls.enable: true
+        mail:
+          smtp:
+            auth: true
+            starttls:
+              enable: true
+              required: true
+
 
 root:
   email: ${ROOT_EMAIL}
