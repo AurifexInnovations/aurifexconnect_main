@@ -36,7 +36,7 @@ public class RefreshAuthFilter extends OncePerRequestFilter {
         log.debug("Looking for token type: {}", TokenType.REFRESH.type());
 
         // Skip filter for public/auth/logout paths
-        if (path.startsWith("/api/v1/login") || path.startsWith("/api/v1/auth/")
+        if (path.startsWith("/api/v1/login") || path.startsWith("/healthz")
                 || path.equals("/error") || path.equals("/api/v1/logout")) {
             log.debug("Skipping RefreshAuthFilter for path: {}", path);
             filterChain.doFilter(request, response);

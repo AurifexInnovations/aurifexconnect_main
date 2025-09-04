@@ -118,12 +118,12 @@ public class SecurityConfig {
     public SecurityFilterChain publicSecurityFilterChain(HttpSecurity http, AuthenticationManager authManager) throws Exception {
         String baseUrl = env.getBaseUrl();
         return http
-                .securityMatcher(baseUrl + "/auth/**", baseUrl + "/login")
+                .securityMatcher( baseUrl + "/login","/healthz")
                 .csrf(csrf -> csrf.disable())
                 .cors(cors -> cors.configurationSource(corsConfigurationSource()))
                 .authorizeHttpRequests(authorize -> authorize
                         .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
-                        .requestMatchers(baseUrl + "/auth/register/**", baseUrl + "/login").permitAll()
+                        .requestMatchers(baseUrl + "/login","/healthz").permitAll()
                         .anyRequest().authenticated())
                 .authenticationManager(authManager)
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
