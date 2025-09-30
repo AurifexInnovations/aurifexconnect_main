@@ -13,6 +13,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
+
 import java.util.List;
 
 @RestController
@@ -25,7 +26,6 @@ public class UserController {
     @PreAuthorize("hasAnyRole('ROLE_ADMIN')")
     @PostMapping("/users")
     public ResponseEntity<ResponseStructure<UserResponse>> createUser(@RequestBody UserRequest userRequest) {
-
         UserResponse userResponse = userServices.createUser(userRequest);
         return ResponseBuilder.success(HttpStatus.CREATED, "User created successfully !!", userResponse);
 
@@ -33,19 +33,17 @@ public class UserController {
 
     @PreAuthorize("hasAnyRole('ROLE_ADMIN')")
     @GetMapping("/users")
-    public ResponseEntity<ListResponseStructure<UserResponse>> getListOfUsers(){
-
+    public ResponseEntity<ListResponseStructure<UserResponse>> getListOfUsers() {
         List<UserResponse> userResponses = userServices.getListOfUsers();
-        return ResponseBuilder.success(HttpStatus.OK,"List of users !!", userResponses);
+        return ResponseBuilder.success(HttpStatus.OK, "List of users !!", userResponses);
 
     }
 
     @PreAuthorize("hasAnyRole('ROLE_ADMIN')")
     @PostMapping("/users/search")
-    public ResponseEntity<ListResponseStructure<UserResponse>> findByIdOrName(@RequestBody CommanParam commanParamIdOrName){
-
+    public ResponseEntity<ListResponseStructure<UserResponse>> findByIdOrName(@RequestBody CommanParam commanParamIdOrName) {
         List<UserResponse> userResponses = userServices.findByIdOrName(commanParamIdOrName);
-        return ResponseBuilder.success(HttpStatus.OK,"User found !!", userResponses);
+        return ResponseBuilder.success(HttpStatus.OK, "User found !!", userResponses);
 
     }
 
@@ -53,18 +51,16 @@ public class UserController {
     @PutMapping("/users")
     public ResponseEntity<ResponseStructure<UserResponse>> updateUserById
             (@RequestBody UserUpdateRequest userUpdateRequest) throws Exception {
-
         UserResponse userResponse = userServices.updateUserById(userUpdateRequest);
-        return ResponseBuilder.success(HttpStatus.OK,"User Updated Successfully !!", userResponse);
+        return ResponseBuilder.success(HttpStatus.OK, "User Updated Successfully !!", userResponse);
 
     }
 
     @PreAuthorize("hasAnyRole('ROLE_ADMIN')")
     @DeleteMapping("/users")
-    public ResponseEntity<ResponseStructure<UserResponse>> deleteUserById(@RequestBody CommanParam commanParamId){
-
+    public ResponseEntity<ResponseStructure<UserResponse>> deleteUserById(@RequestBody CommanParam commanParamId) {
         UserResponse userResponse = userServices.deleteUserById(commanParamId);
-        return ResponseBuilder.success(HttpStatus.OK,"User delete Successfully !!", userResponse);
+        return ResponseBuilder.success(HttpStatus.OK, "User delete Successfully !!", userResponse);
 
     }
 

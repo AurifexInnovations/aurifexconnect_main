@@ -3,9 +3,9 @@ package com.erp.Dto.Request;
 import com.erp.Dto.Constraints.ContactNumber;
 import com.erp.Dto.Constraints.Name;
 import com.erp.Dto.Constraints.Password;
-import com.erp.Dto.Request.RoleRequest;
-
-import jakarta.validation.constraints.*;
+import jakarta.validation.constraints.Email;
+import jakarta.validation.constraints.NotEmpty;
+import jakarta.validation.constraints.Size;
 import lombok.Getter;
 import lombok.Setter;
 
@@ -35,6 +35,10 @@ public class UserRequest {
     @NotEmpty(message = "Roles cannot be empty")
     @Size(min = 1, message = "User must have at least one role")
     private Set<RoleRequest> roles = new HashSet<>();
+
+
+    @NotEmpty(message = "At least one module must be selected")
+    private Set<String> modules = new HashSet<>();
 
     @Override
     public boolean equals(Object o) {

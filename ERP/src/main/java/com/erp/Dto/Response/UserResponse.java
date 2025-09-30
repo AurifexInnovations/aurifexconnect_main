@@ -2,6 +2,7 @@ package com.erp.Dto.Response;
 
 import lombok.Getter;
 import lombok.Setter;
+
 import java.time.LocalDate;
 import java.util.List;
 
@@ -28,6 +29,8 @@ public class UserResponse {
     private LocalDate lastModifiedAt;
 
     private List<String> roleNames;
+
+    private List<String> moduleNames;
 
 
 }

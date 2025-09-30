@@ -1,5 +1,6 @@
 package com.erp.Model;
 
+import com.erp.Enum.AssignModule;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
@@ -59,6 +60,13 @@ public class User implements GenericUser {
 
     @ManyToMany(fetch = FetchType.EAGER)
     private Set<Role> roles = new HashSet<>();
+
+
+    @ElementCollection(targetClass = AssignModule.class)
+    @Enumerated(EnumType.STRING)
+    @CollectionTable(name = "user_modules", joinColumns = @JoinColumn(name = "user_id"))
+    @Column(name = "module")
+    private Set<AssignModule> modules = new HashSet<>();
 
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
