@@ -8,11 +8,10 @@ import com.erp.Mapper.TaskMapper.TaskDetailsMapper;
 import com.erp.Mapper.TaskMapper.TaskMapper;
 
 import com.erp.Model.Task;
-import com.erp.Model.Tax;
+
 import com.erp.Model.*;
 import com.erp.Repository.Task.*;
 import com.erp.Service.ServiceType.ServiceType;
-import com.erp.constant.AppConstants;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -20,8 +19,6 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
 import java.util.Collections;
-import java.util.List;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
