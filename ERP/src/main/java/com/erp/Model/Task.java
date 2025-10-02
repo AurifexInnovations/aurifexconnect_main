@@ -1,7 +1,11 @@
 package com.erp.Model;
 
+import com.erp.Enum.TaskCategory;
+import com.erp.Enum.TaskStatus;
 import jakarta.persistence.*;
 import lombok.*;
+import org.w3c.dom.Text;
+
 import java.time.LocalDateTime;
 
 @Entity
@@ -17,20 +21,23 @@ public class Task {
     @Column(name = "task_id")
     private Long taskId;
 
-    @Column(name = "task_name", nullable = false, length = 255)
+    @Column(name = "task_name", nullable = false)
     private String taskName;
-
-    @Column(name = "task_category", length = 255)
-    private String taskCategory;
-
-    @Column(name = "task_details", columnDefinition = "TEXT")
-    private String taskDetails;
 
     @Column(name = "customer_id", nullable = false)
     private Long customerId;
 
-    @Column(name = "status", nullable = false, length = 20)
-    private String status;
+    @Enumerated(EnumType.STRING)
+    @Column(name = "task_category")
+    private TaskCategory taskCategory;
+
+
+    @Column(name = "task_details", columnDefinition = "TEXT")
+    private Text taskDetails;
+
+    @Enumerated(EnumType.STRING)
+    @Column(name = "status", nullable = false)
+    private TaskStatus taskStatus;
 
     @Column(name = "created_at", columnDefinition = "TIMESTAMP")
     private LocalDateTime createdAt;

@@ -9,7 +9,9 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 public class MaterialDto {
 
+
     private Long productId;
-    private String unit;
+    private Double unit;
     private Double quantity;
+
 }

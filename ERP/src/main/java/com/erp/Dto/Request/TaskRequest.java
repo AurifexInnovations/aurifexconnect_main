@@ -11,6 +11,7 @@ import org.w3c.dom.Text;
 
 import java.sql.Time;
 import java.time.LocalDate;
+import java.time.LocalTime;
 import java.util.List;
 
 @Data
@@ -25,17 +26,21 @@ public class TaskRequest {
     private String taskName;
     private Long customerId;
     private TaskCategory taskCategory;
-    private String taskDetails;
-    private LocalDate assignedDate;
-    private Time assignedTime;
     private TaskStatus taskStatus = TaskStatus.PENDING;
-    private List<Integer> serviceId;
+    private Text taskDetail;
+
+
+
+
+    private LocalDate assignedDate;
+    private LocalTime assignedTime;
+
+    private List<Long> serviceId;
     private String googleLocationLink;
     private TechnicianTaskStatus technicianTaskStatus = TechnicianTaskStatus.ASSIGNED;
     private FieldType fieldType;
-    private Text taskDetail;
     private Text ServiceLocation;
     private List<Long>  technicianId;
-    private  MaterialDto materialDto ;
+    private  List<MaterialDto> materialDto ;
 
 }
