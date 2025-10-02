@@ -274,8 +274,6 @@ public class MasterServiceImpl implements MasterService {
 }
 
 
-
-
 //    @Override
 //    public MasterResponse deleteMaster(Long masterId) {
 //        Master master = masterRepository.findById(masterId)

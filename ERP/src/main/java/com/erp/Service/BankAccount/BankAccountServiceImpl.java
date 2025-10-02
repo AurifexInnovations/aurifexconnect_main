@@ -89,5 +89,4 @@ public class BankAccountServiceImpl implements BankAccountService{
 
         return new BankBalanceResponse("Total Bank Balance", total);
     }
-
 }
