@@ -2,6 +2,7 @@ package com.erp.Controller.Task;
 
 
 import com.erp.Dto.Request.TaskRequest;
+import com.erp.Dto.Response.GetAllTaskResponse;
 import com.erp.Dto.Response.TaskResponse;
 import com.erp.Service.TaskService.TaskService;
 import com.erp.Utility.ResponseBuilder;
@@ -16,10 +17,9 @@ import lombok.extern.slf4j.Slf4j;
 
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
 
 @RestController
 @RequiredArgsConstructor
@@ -43,5 +43,36 @@ public class TaskController {
         return ResponseBuilder.success(HttpStatus.CREATED, "Task Created", response);
 
     }
+
+    @GetMapping("/all")
+    @Operation(
+            summary = "Get All Task Requests",
+            description = "Retrieve all task requests with optional pagination.",
+            responses = {
+                    @ApiResponse(responseCode = "200", description = "Task requests retrieved successfully"),
+                    @ApiResponse(responseCode = "400", description = "Invalid request data")
+            }
+    )
+    public ResponseEntity<ResponseStructure<List<GetAllTaskResponse>>> getAllTasks(
+            @RequestParam(required = false) Integer page,
+            @RequestParam(required = false) Integer size) {
+
+        // Set default values if null
+        int safePage = (page == null || page < 0) ? 0 : page;
+        int safeSize = (size == null || size <= 0) ? 10 : size;
+
+        log.info("[TaskController] [getAllTaskRequests] Fetching tasks, page: {}, size: {}", safePage, safeSize);
+
+        List<GetAllTaskResponse> response = taskService.getAllTasks(safePage, safeSize);
+
+        log.info("[TaskController] [getAllTaskRequests] Fetched {} tasks", response.size());
+
+        return ResponseBuilder.<List<GetAllTaskResponse>>success(
+                HttpStatus.OK,
+                "Task requests retrieved successfully",
+                response
+        );
+    }
+
 
 }
