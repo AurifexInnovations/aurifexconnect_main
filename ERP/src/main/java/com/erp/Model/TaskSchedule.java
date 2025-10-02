@@ -1,7 +1,10 @@
 package com.erp.Model;
 
+import com.erp.Enum.FieldType;
 import jakarta.persistence.*;
 import lombok.*;
+import org.w3c.dom.Text;
+
 import java.time.LocalDate;
 import java.time.LocalTime;
 import java.time.LocalDateTime;
@@ -19,7 +22,7 @@ public class TaskSchedule {
     @Column(name = "task_schedule_id")
     private Long id;
 
-    @JoinColumn(name = "task_id", nullable = false)
+    @Column(name = "task_id", nullable = false)
     private Long taskId;
 
     @Column(name = "assigned_date")
@@ -31,11 +34,13 @@ public class TaskSchedule {
     @Column(name = "google_location_link", columnDefinition = "TEXT")
     private String googleLocationLink;
 
-    @Column(name = "field_type", length = 100)
-    private String fieldType;
+
+    @Enumerated(EnumType.STRING)
+    @Column(name = "field_type")
+    private FieldType fieldType;
 
     @Column(name = "service_location", columnDefinition = "TEXT")
-    private String serviceLocation;
+    private Text serviceLocation;
 
     @Column(name = "feedback_id")
     private Long feedbackId;
