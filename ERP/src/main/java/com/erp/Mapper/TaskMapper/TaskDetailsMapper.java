@@ -3,7 +3,7 @@ import com.erp.Dto.Request.MaterialDto;
 import com.erp.Dto.Request.TaskRequest;
 import com.erp.Dto.Response.TaskResponse;
 import com.erp.Model.*;
-import com.erp.constant.AppConstants;
+//import com.erp.constant.AppConstants;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 
@@ -32,7 +32,7 @@ public class TaskDetailsMapper {
         );
 
         taskResponse.setTaskId(formattedId);
-        taskResponse.setMessage(AppConstants.TASK_ASSIGNED_MESSAGE);
+//        taskResponse.setMessage(AppConstants.TASK_ASSIGNED_MESSAGE);
         log.info("[TaskDetailsMapper][mapToTaskResponse]  Exit  mapToTaskResponse ...");
         return taskResponse;
     }

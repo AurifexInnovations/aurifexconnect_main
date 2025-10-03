@@ -206,8 +206,10 @@ public class TaskServiceImpl  implements  TaskService{
     }
 
 
-
-
+    @Override
+    public boolean getTask(long taskId){
+        return taskRepository.findById(taskId).isPresent();
+    }
 
 
 

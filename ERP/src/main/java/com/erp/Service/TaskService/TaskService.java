@@ -13,6 +13,7 @@ public interface TaskService {
     List<GetAllTaskResponse> getAllTasks(Integer page, Integer size);
 
 
+    boolean getTask(long taskId);
 
 
 }
