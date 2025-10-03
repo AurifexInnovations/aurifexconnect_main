@@ -2,8 +2,10 @@ package com.erp.Controller.Task;
 
 
 import com.erp.Dto.Request.TaskRequest;
+import com.erp.Dto.Request.TechnicianRequest;
 import com.erp.Dto.Response.GetAllTaskResponse;
 import com.erp.Dto.Response.TaskResponse;
+import com.erp.Projection.TechnicianResponse;
 import com.erp.Service.TaskService.TaskService;
 import com.erp.Utility.ResponseBuilder;
 import com.erp.Utility.ResponseStructure;
@@ -44,7 +46,7 @@ public class TaskController {
 
     }
 
-    @GetMapping("/all")
+    @GetMapping("/getAll")
     @Operation(
             summary = "Get All Task Requests",
             description = "Retrieve all task requests with optional pagination.",
@@ -73,6 +75,36 @@ public class TaskController {
                 response
         );
     }
+
+    @PostMapping("/search")
+    @Operation(
+            summary = "Search Task Technicians",
+            description = "Retrieve all technicians matching search criteria.",
+            responses = {
+                    @ApiResponse(responseCode = "200", description = "Technicians retrieved successfully"),
+                    @ApiResponse(responseCode = "400", description = "Invalid request data")
+            }
+    )
+    public ResponseEntity<List<TechnicianResponse>> searchTechnicians(
+            @Valid @RequestBody TechnicianRequest technicianRequest) {
+
+        log.info("[TechnicianController] Entering searchTechnicians with request: {}", technicianRequest);
+
+        List<TechnicianResponse> technicians;
+        try {
+            technicians = taskService.getTechnicians(technicianRequest);
+            log.info("[TechnicianController] Found {} technicians matching criteria", technicians.size());
+        } catch (Exception e) {
+            log.error("[TechnicianController] Error while searching technicians", e);
+            return ResponseEntity.status(500).build();
+        }
+
+        log.info("[TechnicianController] Returning response successfully");
+        return ResponseEntity.ok(technicians);
+    }
+
+
+
 
 
 }

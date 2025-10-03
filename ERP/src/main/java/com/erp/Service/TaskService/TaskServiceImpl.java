@@ -1,6 +1,7 @@
 package com.erp.Service.TaskService;
 
 import com.erp.Dto.Request.TaskRequest;
+import com.erp.Dto.Request.TechnicianRequest;
 import com.erp.Dto.Response.GetAllTaskResponse;
 import com.erp.Dto.Response.TaskResponse;
 import com.erp.Exception.Tax.TaxNotFoundException;
@@ -10,6 +11,7 @@ import com.erp.Mapper.TaskMapper.TaskMapper;
 import com.erp.Model.Task;
 
 import com.erp.Model.*;
+import com.erp.Projection.TechnicianResponse;
 import com.erp.Repository.Task.*;
 import com.erp.Service.ServiceType.ServiceType;
 import jakarta.transaction.Transactional;
@@ -18,10 +20,7 @@ import lombok.extern.slf4j.Slf4j;
 
 import org.springframework.stereotype.Service;
 
-import java.util.Collections;
-import java.util.List;
-import java.util.Objects;
-import java.util.Optional;
+import java.util.*;
 
 @Service
 @RequiredArgsConstructor
@@ -205,20 +204,37 @@ public class TaskServiceImpl  implements  TaskService{
         }
     }
 
+    @Override
+    public List<TechnicianResponse> getTechnicians(TechnicianRequest technicianRequest) {
+        log.info("[TaskService] [getTechnicians] Entered with request: {}", technicianRequest);
 
+        List<TechnicianResponse> technicianList = new ArrayList<>();
 
+        try {
 
+            if (technicianRequest.getStatus() != null
+                    && technicianRequest.getCategory() != null
+                    && technicianRequest.getStartDate() != null
+                    && technicianRequest.getEndDate() != null) {
 
+                technicianList = taskRepository.searchTasksWithScheduleAndTechnicians(
+                        technicianRequest.getStatus(),
+                        technicianRequest.getCategory(),
+                        technicianRequest.getStartDate(),
+                        technicianRequest.getEndDate(),
+                        technicianRequest.getOffset(),
+                        technicianRequest.getSize()
+                );
+            }
+            log.info("[TaskService] [getTechnicians] Found {} technicians", technicianList.size());
+        } catch (Exception e) {
+            log.error("[TaskService] [getTechnicians] Error while fetching technicians", e);
+            throw new RuntimeException("Failed to fetch technicians", e);
+        }
 
-
-
-
-
-
-
-
-
-
+        log.info("[TaskService] [getTechnicians] Exiting method");
+        return technicianList;
+    }
 
 
 }
