@@ -3,7 +3,7 @@ package com.erp.Model;
 import com.erp.Enum.FieldType;
 import jakarta.persistence.*;
 import lombok.*;
-import org.w3c.dom.Text;
+
 
 import java.time.LocalDate;
 import java.time.LocalTime;
@@ -40,31 +40,15 @@ public class TaskSchedule {
     private FieldType fieldType;
 
     @Column(name = "service_location", columnDefinition = "TEXT")
-    private Text serviceLocation;
+    private String serviceLocation;
 
     @Column(name = "feedback_id")
     private Long feedbackId;
 
-    @Column(name = "created_at", columnDefinition = "TIMESTAMP")
-    private LocalDateTime createdAt;
+    private LocalTime taskStartTime;
 
-    @Column(name = "updated_at", columnDefinition = "TIMESTAMP")
-    private LocalDateTime updatedAt;
+    private LocalTime taskEndTime;
 
-    @Column(name = "created_by")
-    private Long createdBy;
 
-    @Column(name = "updated_by")
-    private Long updatedBy;
 
-    @PrePersist
-    protected void onCreate() {
-        createdAt = LocalDateTime.now();
-        updatedAt = LocalDateTime.now();
-    }
-
-    @PreUpdate
-    protected void onUpdate() {
-        updatedAt = LocalDateTime.now();
-    }
 }

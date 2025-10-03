@@ -7,9 +7,9 @@ import com.erp.Enum.TechnicianTaskStatus;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotEmpty;
 import lombok.*;
-import org.w3c.dom.Text;
 
-import java.sql.Time;
+
+
 import java.time.LocalDate;
 import java.time.LocalTime;
 import java.util.List;
@@ -27,7 +27,7 @@ public class TaskRequest {
     private Long customerId;
     private TaskCategory taskCategory;
     private TaskStatus taskStatus = TaskStatus.PENDING;
-    private Text taskDetail;
+    private String taskDetail;
 
 
 
@@ -39,7 +39,7 @@ public class TaskRequest {
     private String googleLocationLink;
     private TechnicianTaskStatus technicianTaskStatus = TechnicianTaskStatus.ASSIGNED;
     private FieldType fieldType;
-    private Text ServiceLocation;
+    private String ServiceLocation;
     private List<Long>  technicianId;
     private  List<MaterialDto> materialDto ;
 

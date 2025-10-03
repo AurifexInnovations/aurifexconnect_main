@@ -4,9 +4,10 @@ import com.erp.Enum.TaskCategory;
 import com.erp.Enum.TaskStatus;
 import jakarta.persistence.*;
 import lombok.*;
-import org.w3c.dom.Text;
+
 
 import java.time.LocalDateTime;
+import java.time.LocalTime;
 
 @Entity
 @Table(name = "task")
@@ -33,7 +34,7 @@ public class Task {
 
 
     @Column(name = "task_details", columnDefinition = "TEXT")
-    private Text taskDetails;
+    private String taskDetails;
 
     @Enumerated(EnumType.STRING)
     @Column(name = "status", nullable = false)
