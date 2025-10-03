@@ -59,4 +59,17 @@ CREATE TABLE IF NOT EXISTS bank_account (
     CONSTRAINT fk_ledger FOREIGN KEY (ledger_ledger_id) REFERENCES ledger(ledger_id)
 );
 
+CREATE TABLE task (
+    task_id BIGSERIAL PRIMARY KEY,
+    task_name VARCHAR(255) NOT NULL,
+    customer_id BIGINT NOT NULL,
+    task_category VARCHAR(255),
+    task_details TEXT,
+    status VARCHAR(50) NOT NULL,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    created_by BIGINT,
+    updated_by BIGINT
+);
+
 
