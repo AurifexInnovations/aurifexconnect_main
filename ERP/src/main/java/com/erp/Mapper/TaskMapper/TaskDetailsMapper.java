@@ -32,7 +32,7 @@ public class TaskDetailsMapper {
         );
 
         taskResponse.setTaskId(formattedId);
-//        taskResponse.setMessage(AppConstants.TASK_ASSIGNED_MESSAGE);
+        taskResponse.setMessage(AppConstants.TASK_ASSIGNED_MESSAGE);
         log.info("[TaskDetailsMapper][mapToTaskResponse]  Exit  mapToTaskResponse ...");
         return taskResponse;
     }
