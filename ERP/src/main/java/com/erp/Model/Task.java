@@ -33,7 +33,7 @@ public class Task {
     private TaskCategory taskCategory;
 
 
-    @Column(name = "task_details", columnDefinition = "TEXT")
+    @Column(name = "task_details")
     private String taskDetails;
 
     @Enumerated(EnumType.STRING)

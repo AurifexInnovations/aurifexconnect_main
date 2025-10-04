@@ -27,7 +27,7 @@ import java.util.List;
 
 @RestController
 @RequiredArgsConstructor
-@RequestMapping("/")
+@RequestMapping("/api/v1/")
 @Slf4j
 @Tag(name = "Task Controller", description = "API Endpoints for Managing Task Data")
 public class TaskController {
@@ -131,6 +131,11 @@ public class TaskController {
 
         log.info("[TechnicianController] Returning response successfully");
         return ResponseEntity.ok(technicians);
+    }
+
+    @GetMapping("test")
+    public String getMessage(){
+        return "tested successfully ";
     }
 
 

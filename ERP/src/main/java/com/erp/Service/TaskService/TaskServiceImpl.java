@@ -47,7 +47,6 @@ public class TaskServiceImpl  implements  TaskService{
     private final ServiceType serviceType;
 
     @Override
-    @Transactional
     public TaskResponse addTask(TaskRequest taskRequest) {
      log.info("");
 
