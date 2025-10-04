@@ -159,4 +159,9 @@ CREATE TABLE feedbacks (
     updated_at TIMESTAMP NOT NULL DEFAULT NOW()
 );
 
+CREATE TABLE task_technicians (
+    task_technicians_id BIGSERIAL PRIMARY KEY,
+    task_id             BIGINT NOT NULL,
+    technician_id       BIGINT NOT NULL
+);
 
