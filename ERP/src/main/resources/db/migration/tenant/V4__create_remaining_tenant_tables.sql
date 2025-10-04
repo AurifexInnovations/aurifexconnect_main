@@ -147,3 +147,16 @@ CREATE TABLE leaderboard (
     rank INT NOT NULL
 );
 
+CREATE TABLE feedbacks (
+    id BIGSERIAL PRIMARY KEY,
+    customer_id BIGINT NOT NULL,
+    task_id BIGINT NOT NULL,
+    rating REAL NOT NULL,
+    comment VARCHAR(1000),
+    otp INT,
+    is_active BOOLEAN NOT NULL DEFAULT TRUE,
+    created_at TIMESTAMP NOT NULL DEFAULT NOW(),
+    updated_at TIMESTAMP NOT NULL DEFAULT NOW()
+);
+
+
