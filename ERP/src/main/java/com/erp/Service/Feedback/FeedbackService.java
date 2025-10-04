@@ -5,13 +5,13 @@ import com.erp.Dto.Response.FeedbackResponse;
 import com.erp.Dto.Response.FileResponse;
 import com.erp.Mapper.Feedback.FeedbackMapper;
 import com.erp.Model.Feedback;
-import com.erp.Model.File;
 import com.erp.Model.GenericUser;
 import com.erp.Repository.Feedback.FeedbackRepository;
 import com.erp.Security.util.UserIdentity;
 import com.erp.Service.Utility.FileService;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
@@ -21,6 +21,7 @@ import java.util.Optional;
 
 @Service
 @RequiredArgsConstructor
+@Slf4j
 public class FeedbackService {
 
     private final static String DIGITAL_SIGNATURE = "DIGITAL_SIGNATURE";
@@ -33,8 +34,11 @@ public class FeedbackService {
     @Transactional
     public FeedbackResponse addFeedBack(long taskId ,
                              FeedbackRequest feedbackRequest){
+        log.info("Into [FeedbackService] [addFeedBack] ");
 
         GenericUser currentUser =  userIdentity.getCurrentUser();
+
+        log.info("[FeedbackService] [addFeedBack] :: currentUserId {} " , currentUser.getId());
 
         Feedback feedback = getFeedback(taskId , currentUser.getId());
 
@@ -55,15 +59,16 @@ public class FeedbackService {
 
         setDigitalSignatureData(taskId , feedbackResponse);
 
+        log.info("Exit [FeedbackService] [addFeedBack] ");
         return feedbackResponse;
     }
 
     public FeedbackResponse updateFeedback(long feedbackId ,FeedbackRequest feedbackRequest){
+        log.info("Into [FeedbackService] [updateFeedback] ");
 
         Feedback feedback  = getFeedback(feedbackId);
 
-        feedback  =
-                feedbackMapper.update( feedback, feedbackRequest);
+        feedback  = feedbackMapper.update( feedback, feedbackRequest);
 
         feedback.setUpdatedAt(LocalDateTime.now());
 
@@ -73,16 +78,26 @@ public class FeedbackService {
 
         setDigitalSignatureData(feedback.getTaskId() , feedbackResponse);
 
+        log.info("Exit [FeedbackService] [updateFeedback] ");
+
         return feedbackResponse;
     }
 
     private void setDigitalSignatureData(long taskId , FeedbackResponse feedbackResponse){
+        log.info("Into [FeedbackService] [setDigitalSignatureData]");
+
         List<FileResponse> signature = fileService.getAllFiles(taskId , DIGITAL_SIGNATURE);
 
         feedbackResponse.setDigitalSignatureId(signature.get(0).getId());
         feedbackResponse.setDigitalSignatureUrl(signature.get(0).getUrl());
+
+        log.info("[FeedbackService] [setDigitalSignatureData] :: signatures  {} " , signature);
+        log.info("Exit [FeedbackService] [setDigitalSignatureData]");
+
     }
     private Feedback getFeedback(long feedbackId){
+        log.info("Into [FeedbackService] [getFeedback] ");
+
         Optional<Feedback> feedbackContainer =
                 feedbackRepository.findById(feedbackId);
 
@@ -90,36 +105,47 @@ public class FeedbackService {
 //             add error here
         }
 
+        log.info("Exit [FeedbackService] [getFeedback] ");
         return  feedbackContainer.get();
     }
 
     @Transactional
     public void deleteFeedback(long feedbackId){
+        log.info("Into [FeedbackService] [getFeedback] ");
+
         Feedback feedback = getFeedback(feedbackId);
 
         List<FileResponse> signature =
                 fileService.getAllFiles(feedback.getTaskId() , DIGITAL_SIGNATURE);
 
         fileService.deleteFile(signature.get(0).getId() , feedback.getTaskId() ,  DIGITAL_SIGNATURE);
-
         feedback.setActive(false);
 
+        feedbackRepository.save(feedback);
+
+        log.info("Exit [FeedbackService] [getFeedback] ");
     }
 
     public FeedbackResponse getFeedbackById(long feedbackId){
+        log.info("Into [FeedbackService] [getFeedback] ");
+
         Feedback feedback  = getFeedback(feedbackId);
 
         FeedbackResponse feedbackResponse = feedbackMapper.map(feedback);
 
         setDigitalSignatureData(feedback.getTaskId() , feedbackResponse);
 
+        log.info("Exit [FeedbackService] [getFeedbackById] ");
         return feedbackResponse;
 
     }
     private Feedback getFeedback(long taskId , long customerId){
+        log.info("Into [FeedbackService] [getFeedback] ");
+
         Feedback feedback =
                 feedbackRepository.findByTaskIdAndCustomerId(taskId , customerId);
 
+        log.info("Exit [FeedbackService] [getFeedback] ");
         return feedback;
     }
 }
