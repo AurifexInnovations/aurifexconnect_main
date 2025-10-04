@@ -17,6 +17,7 @@ public interface TaskService {
     List<TechnicianResponse> getTechnicians(TechnicianRequest technicianRequest);
 
 
+    boolean getTask(long taskId);
 
 
 }
