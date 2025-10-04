@@ -99,3 +99,51 @@ CREATE TABLE IF NOT EXISTS stock_transfer (
     FOREIGN KEY (to_branch_branch_id) REFERENCES branch(branch_id),
     FOREIGN KEY (inventory_item_id) REFERENCES inventory(item_id)
 );
+
+CREATE TABLE task_material (
+    task_material_id BIGSERIAL PRIMARY KEY,
+    task_id          BIGINT NOT NULL,
+    material_id      BIGINT NOT NULL,
+    unit             DOUBLE PRECISION,
+    is_used          BOOLEAN
+);
+
+CREATE TABLE task (
+    task_id BIGSERIAL PRIMARY KEY,
+    task_name VARCHAR(255) NOT NULL,
+    customer_id BIGINT NOT NULL,
+    task_category VARCHAR(255),
+    task_details TEXT,
+    status VARCHAR(50) NOT NULL,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    created_by BIGINT,
+    updated_by BIGINT
+);
+
+CREATE TABLE task_services (
+    task_service_id BIGSERIAL PRIMARY KEY,
+    task_id         BIGINT NOT NULL,
+    service_id      BIGINT NOT NULL
+);
+
+CREATE TABLE task_schedule (
+    task_schedule_id     BIGSERIAL PRIMARY KEY,
+    task_id              BIGINT NOT NULL,
+    assigned_date        DATE,
+    assigned_time        TIME,
+    google_location_link VARCHAR(255),
+    field_type           VARCHAR(255),
+    service_location     VARCHAR(255),
+    feedback_id          BIGINT,
+    task_start_time      TIME,
+    task_end_time        TIME
+);
+
+
+CREATE TABLE leaderboard (
+    id BIGSERIAL PRIMARY KEY,
+    technician_id BIGINT NOT NULL,
+    rank INT NOT NULL
+);
+
