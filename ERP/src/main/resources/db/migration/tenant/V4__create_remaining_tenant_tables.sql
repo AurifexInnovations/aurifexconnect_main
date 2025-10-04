@@ -165,3 +165,17 @@ CREATE TABLE task_technicians (
     technician_id       BIGINT NOT NULL
 );
 
+
+CREATE TABLE files (
+    file_id       BIGSERIAL PRIMARY KEY,
+    file_url      VARCHAR(255),
+    sequence      INT,
+    category      VARCHAR(255),
+    uploaded_by   BIGINT,
+    gen_id        BIGINT,
+    extension     VARCHAR(50),
+    active        BOOLEAN,
+    uploaded_at   TIMESTAMP,
+    modified_at   TIMESTAMP,
+    deleted_at    TIMESTAMP
+);
