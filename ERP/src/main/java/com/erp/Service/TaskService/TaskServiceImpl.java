@@ -1,10 +1,9 @@
 package com.erp.Service.TaskService;
 
-import com.erp.Dto.Request.TaskRequest;
-import com.erp.Dto.Request.TechnicianRequest;
-import com.erp.Dto.Request.TechnicianTaskRequest;
+import com.erp.Dto.Request.*;
 import com.erp.Dto.Response.GetAllTaskResponse;
 import com.erp.Dto.Response.TaskResponse;
+import com.erp.Dto.Response.TechnicianPerformanceDTO;
 import com.erp.Exception.Tax.TaxNotFoundException;
 import com.erp.Mapper.TaskMapper.TaskDetailsMapper;
 import com.erp.Mapper.TaskMapper.TaskMapper;
@@ -24,6 +23,7 @@ import org.springframework.stereotype.Service;
 
 import java.time.LocalDate;
 import java.util.*;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -211,6 +211,8 @@ public class TaskServiceImpl  implements  TaskService{
         return taskRepository.findById(taskId).isPresent();
     }
 
+
+
     @Override
     public List<TechnicianResponse> getTechnicians(TechnicianRequest technicianRequest) {
         log.info("[TaskService] [getTechnicians] Entered with request: {}", technicianRequest);
@@ -273,6 +275,75 @@ public class TaskServiceImpl  implements  TaskService{
 
         return technicianList;
     }
+
+
+
+
+
+    public List<TechnicianPerformanceDTO> getTechniciansReportPerformanceByAssigenDate(LocalDate startDate, LocalDate endDate) {
+        log.info("Starting getTechniciansReportPerformanceByAssigenDate with startDate={} and endDate={}", startDate, endDate);
+
+        List<TechnicianPerformanceDTO> performanceList;
+        Map<Long, TechnicianPerformanceDTO> technicianMap = new LinkedHashMap<>();
+
+        try {
+            performanceList = taskScheduleRepository.getTechnicianPerformance(startDate, endDate);
+            log.info("Fetched {} technician performance records from repository", performanceList.size());
+
+            for (TechnicianPerformanceDTO dto : performanceList) {
+                TechnicianPerformanceDTO tech = technicianMap.getOrDefault(dto.getTechnicianId(),
+                        new TechnicianPerformanceDTO());
+
+                tech.setTechnicianId(dto.getTechnicianId());
+                tech.setName(dto.getName());
+                tech.setTasksCompleted(dto.getTasksCompleted());
+                tech.setAverageRating(dto.getAverageRating());
+                tech.setCompletedTasks(dto.getCompletedTasks());
+
+                // Initialize leaderboard list if null
+                if (tech.getLeaderboardDTO() == null) {
+                    tech.setLeaderboardDTO(new ArrayList<>());
+                }
+
+                // Add leaderboard entry
+                tech.getLeaderboardDTO().add(new LeaderboardDTO(dto.getTechnicianId(), dto.getName(), null));
+
+                // Add chemical usage
+                if (dto.getChemicalUsage() != null) {
+                    if (tech.getChemicalUsage() == null) tech.setChemicalUsage(new ArrayList<>());
+                    tech.getChemicalUsage().addAll(dto.getChemicalUsage());
+                }
+
+                technicianMap.put(dto.getTechnicianId(), tech);
+            }
+
+            // Sort by averageRating descending
+            List<TechnicianPerformanceDTO> sortedTechnicians = technicianMap.values().stream()
+                    .sorted(Comparator.comparing(TechnicianPerformanceDTO::getAverageRating).reversed())
+                    .collect(Collectors.toList());
+
+            log.info("Sorted technicians by averageRating descending");
+
+            // Assign ranks to the first leaderboard entry in the list
+            int rank = 1;
+            for (TechnicianPerformanceDTO tech : sortedTechnicians) {
+                if (tech.getLeaderboardDTO() != null && !tech.getLeaderboardDTO().isEmpty()) {
+                    tech.getLeaderboardDTO().get(0).setRank(rank++);
+                }
+            }
+
+            log.info("Assigned ranks to technicians");
+
+            return sortedTechnicians;
+
+        } catch (Exception e) {
+            log.error("Error while generating technician performance report for dates {} to {}", startDate, endDate, e);
+
+            return new ArrayList<>();
+        }
+    }
+
+
 
 
 }
