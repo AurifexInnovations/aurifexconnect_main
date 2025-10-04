@@ -12,6 +12,7 @@ import com.erp.Model.Task;
 
 import com.erp.Model.*;
 import com.erp.Projection.TechnicianResponse;
+import com.erp.Projection.TechnicianTaskProjection;
 import com.erp.Repository.Task.*;
 import com.erp.Service.ServiceType.ServiceType;
 import jakarta.transaction.Transactional;
@@ -20,6 +21,7 @@ import lombok.extern.slf4j.Slf4j;
 
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDate;
 import java.util.*;
 
 @Service
@@ -238,6 +240,37 @@ public class TaskServiceImpl  implements  TaskService{
         }
 
         log.info("[TaskService] [getTechnicians] Exiting method");
+        return technicianList;
+    }
+
+    @Override
+    public List<TechnicianTaskProjection> getTechniciansByDateAndAssigenDate(TechnicianTaskRequest technicianTaskRequest) {
+
+        List<TechnicianTaskProjection> technicianList = new ArrayList<>();
+
+        try {
+            log.info("Fetching technician tasks for technicianId={} on assignedDate={} with offset={} and size={}",
+                    technicianTaskRequest.getTechnicianId(),
+                    technicianTaskRequest.getAssignedDate(),
+                    technicianTaskRequest.getOffset(),
+                    technicianTaskRequest.getSize());
+
+            technicianList = taskScheduleRepository.getTechnicianTasks(
+                    technicianTaskRequest.getAssignedDate(),
+                    technicianTaskRequest.getTechnicianId(),
+                    technicianTaskRequest.getSize(),
+                    technicianTaskRequest.getOffset()
+            );
+
+            log.info("Fetched {} technician tasks successfully", technicianList.size());
+
+        } catch (Exception e) {
+            log.error("Unexpected error while fetching technician tasks for technicianId={} on assignedDate={}",
+                    technicianTaskRequest.getTechnicianId(),
+                    technicianTaskRequest.getAssignedDate(), e);
+            throw new RuntimeException("Unexpected error occurred", e);
+        }
+
         return technicianList;
     }
 

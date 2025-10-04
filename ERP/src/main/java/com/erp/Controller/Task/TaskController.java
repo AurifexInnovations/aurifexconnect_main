@@ -3,9 +3,11 @@ package com.erp.Controller.Task;
 
 import com.erp.Dto.Request.TaskRequest;
 import com.erp.Dto.Request.TechnicianRequest;
+import com.erp.Dto.Request.TechnicianTaskRequest;
 import com.erp.Dto.Response.GetAllTaskResponse;
 import com.erp.Dto.Response.TaskResponse;
 import com.erp.Projection.TechnicianResponse;
+import com.erp.Projection.TechnicianTaskProjection;
 import com.erp.Service.TaskService.TaskService;
 import com.erp.Utility.ResponseBuilder;
 import com.erp.Utility.ResponseStructure;
@@ -96,6 +98,34 @@ public class TaskController {
             log.info("[TechnicianController] Found {} technicians matching criteria", technicians.size());
         } catch (Exception e) {
             log.error("[TechnicianController] Error while searching technicians", e);
+            return ResponseEntity.status(500).build();
+        }
+
+        log.info("[TechnicianController] Returning response successfully");
+        return ResponseEntity.ok(technicians);
+    }
+
+
+    @PostMapping("/searchByDate")
+    @Operation(
+            summary = "Search Technicians by Date and Assigned Date",
+            description = "Retrieve all technicians based on date and assigned date criteria.",
+            responses = {
+                    @ApiResponse(responseCode = "200", description = "Technicians retrieved successfully"),
+                    @ApiResponse(responseCode = "400", description = "Invalid request data")
+            }
+    )
+    public ResponseEntity<List<TechnicianTaskProjection>> searchTechniciansByDateAndAssignedDate(
+            @Valid @RequestBody TechnicianTaskRequest technicianTaskRequest) {
+
+        log.info("[TechnicianController] Entering searchTechniciansByDateAndAssignedDate with request: {}", technicianTaskRequest);
+
+        List<TechnicianTaskProjection> technicians;
+        try {
+            technicians = taskService.getTechniciansByDateAndAssigenDate(technicianTaskRequest);
+            log.info("[TechnicianController] Found {} technicians matching date criteria", technicians.size());
+        } catch (Exception e) {
+            log.error("[TechnicianController] Error while searching technicians by date and assigned date", e);
             return ResponseEntity.status(500).build();
         }
 
