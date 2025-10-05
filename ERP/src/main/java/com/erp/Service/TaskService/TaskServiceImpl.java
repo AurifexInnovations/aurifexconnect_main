@@ -5,6 +5,7 @@ import com.erp.Dto.Response.GetAllTaskResponse;
 import com.erp.Dto.Response.TaskResponse;
 import com.erp.Dto.Response.TechnicianPerformanceDTO;
 import com.erp.Enum.TaskStatus;
+import com.erp.Exception.Task.TaskNoFoundException;
 import com.erp.Exception.Tax.TaxNotFoundException;
 import com.erp.Mapper.TaskMapper.TaskDetailsMapper;
 import com.erp.Mapper.TaskMapper.TaskMapper;
@@ -48,6 +49,7 @@ public class TaskServiceImpl  implements  TaskService{
     private final ServiceType serviceType;
 
     @Override
+    @Transactional
     public TaskResponse addTask(TaskRequest taskRequest) {
      log.info("[TaskServiceImpl]  [addTask] Into add task ");
 
@@ -346,27 +348,31 @@ public class TaskServiceImpl  implements  TaskService{
 
     @Override
     public void updateTaskStatusTOInProgress(Long taskId) {
-        try {
-            log.info("Updating status of task with ID: {}", taskId);
+        log.info("Updating status of task with ID: {}", taskId);
 
-            int rowsUpdated = taskRepository.updateTaskStatus(taskId, TaskStatus.IN_PROGRESS);
+        validateTaskById(taskId);
 
-            if (rowsUpdated > 0) {
-                log.info("Successfully updated status of task with ID: {}", taskId);
-            } else {
-                log.warn("No task found with ID: {}. Status not updated.", taskId);
-            }
+        int rowsUpdated = taskRepository.updateTaskStatus(taskId, TaskStatus.IN_PROGRESS);
 
-        } catch (Exception e) {
-            log.error("Error while updating status of task with ID: {}", taskId, e);
-
+        if (rowsUpdated > 0) {
+            log.info("Successfully updated status of task with ID: {}", taskId);
+        } else {
+            log.info("No task found with ID: {}. Status not updated.", taskId);
         }
+    }
+
+
+    private Task validateTaskById(Long taskId){
+        return taskRepository.findById(taskId)
+                .orElseThrow(() -> new TaskNoFoundException("Task not found with this  task id : " + taskId ));
     }
 
     @Override
     public void updateTaskStatusToCompleted(Long taskId) {
-        try {
+
             log.info("Updating status of task with ID: {} to COMPLETED", taskId);
+
+            Task  task=  validateTaskById(taskId);
 
             int rowsUpdated = taskRepository.updateTaskStatus(taskId, TaskStatus.COMPLETED);
 
@@ -376,9 +382,7 @@ public class TaskServiceImpl  implements  TaskService{
                 log.warn("No task found with ID: {}. Status not updated.", taskId);
             }
 
-        } catch (Exception e) {
-            log.error("Error while updating status of task with ID: {} to COMPLETED", taskId, e);
-        }
+
     }
 
 

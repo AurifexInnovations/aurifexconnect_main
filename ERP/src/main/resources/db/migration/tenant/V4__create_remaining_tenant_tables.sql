@@ -105,7 +105,8 @@ CREATE TABLE task_material (
     task_id          BIGINT NOT NULL,
     material_id      BIGINT NOT NULL,
     unit             DOUBLE PRECISION,
-    is_used          BOOLEAN
+    is_used          BOOLEAN,
+    quantity         BIGINT
 );
 
 CREATE TABLE task (

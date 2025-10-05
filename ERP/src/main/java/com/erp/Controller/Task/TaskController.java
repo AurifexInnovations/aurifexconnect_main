@@ -171,7 +171,7 @@ public class TaskController {
     }
 
 
-    @PostMapping("/inProgress/{taskId}")
+    @PostMapping("/task/inProgress/{taskId}")
     @Operation(
             summary = "Update Task Status to IN_PROGRESS",
             description = "Update the status of a task to IN_PROGRESS by task ID",
@@ -185,7 +185,7 @@ public class TaskController {
         return ResponseBuilder.success(HttpStatus.OK, "Task status updated to IN_PROGRESS", "Task ID: " + taskId);
     }
 
-    @PostMapping("/completed/{taskId}")
+    @PostMapping("/task/completed/{taskId}")
     @Operation(
             summary = "Update Task Status to COMPLETED",
             description = "Update the status of a task to COMPLETED by task ID",
@@ -199,7 +199,7 @@ public class TaskController {
         return ResponseBuilder.success(HttpStatus.OK, "Task status updated to COMPLETED", "Task ID: " + taskId);
     }
 
-    @PostMapping("/updateMaterials/{taskId}")
+    @PostMapping("/task/updateMaterials/{taskId}")
     @Operation(
             summary = "Update Task Materials for a Task",
             description = "Update or add task materials for the given task ID",
