@@ -51,6 +51,8 @@ public class FileService {
             fileList.add(file);
         }
 
+        fileList = fileRepository.saveAll(fileList);
+
         List<FileResponse> fileResponses = new ArrayList<>(filePaths.size());
 
         for (File file : fileList){

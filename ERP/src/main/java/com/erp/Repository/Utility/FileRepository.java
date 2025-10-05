@@ -10,7 +10,7 @@ public interface FileRepository extends JpaRepository<File , Long> {
 
     @Query(value = "select max(sequence) from files where gen_id = :genId and " +
             "   category = :category and active = true" ,nativeQuery = true)
-    int findByGenIdAndCategoryMaxSequence(long genId , String category);
+    Integer findByGenIdAndCategoryMaxSequence(long genId , String category);
 
     @Query(value = "select * from files where gen_id = :genId and " +
             "   category = :category and active = true and order by sequence" ,nativeQuery = true)

@@ -6,9 +6,12 @@ import com.erp.Service.TaskService.TaskService;
 import com.erp.Validator.FileTypeValidator;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.core.io.ClassPathResource;
 import org.springframework.stereotype.Component;
 import org.springframework.web.multipart.MultipartFile;
 
+import java.io.File;
+import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -23,7 +26,7 @@ import static com.erp.constants.FileUploadConstants.CATEGORIES;
 public class TaskImageUploadStrategy implements FileUploadStrategy {
 
     // Base template path (placeholders will be replaced dynamically)
-    private final String basePathTemplate = "technitian/{tId}/task/{taskId}/category/{cName}";
+    private final String basePathTemplate = "uploads/technitian/{tId}/task/{taskId}/category/{cName}";
 
     @Qualifier("imageValidator")
     private final FileTypeValidator imageValidator;
@@ -42,42 +45,43 @@ public class TaskImageUploadStrategy implements FileUploadStrategy {
     }
 
     @Override
-    public List<String> uploadFiles(int seq , Long taskId, String category, MultipartFile[] files) {
-
+    public List<String> uploadFiles(int seq, Long taskId, String category, MultipartFile[] files) {
         GenericUser user = userIdentity.getCurrentUser();
-        Long tId = user.getId(); // ✅ using logged in user as technicianId
+        Long tId = user.getId();
 
-        if (!validateId(taskId)) {
+        boolean isValideTask = validateId(taskId);
+        if (!isValideTask) {
             throw new RuntimeException("Invalid taskId provided: " + taskId);
         }
 
         List<String> filePaths = new ArrayList<>();
 
         try {
-            // 🔹 Replace placeholders in path
+            // Replace placeholders dynamically
             String resolvedPath = basePathTemplate
                     .replace("{tId}", String.valueOf(tId))
                     .replace("{taskId}", String.valueOf(taskId))
                     .replace("{cName}", category);
 
-            Path taskFolder = Paths.get(resolvedPath);
+            Path uploadDir = Paths.get(resolvedPath);
 
-            // Create directories if not exist
-            if (!Files.exists(taskFolder)) {
-                Files.createDirectories(taskFolder);
+            // ✅ Create directory if it doesn’t exist
+            if (!Files.exists(uploadDir)) {
+                Files.createDirectories(uploadDir);
             }
 
+            // Upload each file
             for (MultipartFile file : files) {
                 if (!imageValidator.isValid(file)) {
                     throw new RuntimeException("Invalid file type: " + file.getOriginalFilename());
                 }
 
                 String extension = getExtension(file.getOriginalFilename());
-                String fileName = "file_" + ++seq +"." + extension;
-                Path target = taskFolder.resolve(fileName);
+                String fileName = "file_" + (++seq) + "." + extension;
+
+                Path target = uploadDir.resolve(fileName);
 
                 Files.copy(file.getInputStream(), target, StandardCopyOption.REPLACE_EXISTING);
-
                 filePaths.add(target.toAbsolutePath().toString());
             }
         } catch (Exception e) {
@@ -86,6 +90,7 @@ public class TaskImageUploadStrategy implements FileUploadStrategy {
 
         return filePaths;
     }
+
 
     private String getExtension(String filename) {
         return filename != null && filename.contains(".")
