@@ -21,6 +21,9 @@ import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDate;
@@ -229,14 +232,29 @@ public class TaskServiceImpl  implements  TaskService{
                     && technicianRequest.getStartDate() != null
                     && technicianRequest.getEndDate() != null) {
 
-                technicianList = taskRepository.searchTasksWithScheduleAndTechnicians(
-                        technicianRequest.getStatus(),
-                        technicianRequest.getCategory(),
-                        technicianRequest.getStartDate(),
-                        technicianRequest.getEndDate(),
-                        technicianRequest.getOffset(),
-                        technicianRequest.getSize()
+                Pageable pageable = PageRequest.of(
+                        technicianRequest.getOffset() / technicianRequest.getSize(), // page number
+                        technicianRequest.getSize(),
+                        Sort.by(Sort.Direction.DESC, "task_id")
                 );
+
+//                LocalDate startDate = technicianRequest.getStartDate();
+//                LocalDate endDate = technicianRequest.getEndDate();
+//
+//                if (startDate == null) startDate = LocalDate.of(startDate);
+//                if (endDate == null) endDate = LocalDate.of(endDate);
+
+                LocalDate startDate = technicianRequest.getStartDate();
+                LocalDate endDate = technicianRequest.getEndDate();
+
+
+                return taskRepository.searchTasksWithScheduleAndTechnicians(
+                        startDate,
+                        endDate,
+                        technicianRequest.getStatus(),
+                        technicianRequest.getCategory()
+                );
+
             }
             log.info("[TaskService] [getTechnicians] Found {} technicians", technicianList.size());
         } catch (Exception e) {
