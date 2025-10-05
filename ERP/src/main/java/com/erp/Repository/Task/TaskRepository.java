@@ -64,6 +64,38 @@ public interface TaskRepository extends JpaRepository<Task,Long> {
 //
 
 
+//    @Query(value = """
+//    SELECT
+//        u.id AS id,
+//        t.task_category AS category,
+//        u.first_name || ' ' || u.last_name AS name,
+//        u.email AS email,
+//        u.phone_no AS phone,
+//        u.designation AS designation,
+//        u.status AS status,
+//        u.created_at AS createdAt,
+//        u.last_modified_at AS updatedAt
+//    FROM task t
+//    LEFT JOIN task_technicians tt ON t.task_id = tt.task_id
+//    LEFT JOIN users u ON tt.technician_id = u.id
+//    LEFT JOIN task_schedule ts
+//        ON t.task_id = ts.task_id
+//        AND (:assignedDateStart IS NULL OR ts.assigned_date BETWEEN :assignedDateStart AND :assignedDateEnd)
+//    WHERE (:status IS NULL OR u.status = :status)
+//      AND (:category IS NULL OR t.task_category = :category)
+//    ORDER BY t.task_id DESC
+//    OFFSET :offset ROWS FETCH NEXT :limit ROWS ONLY
+//    """, nativeQuery = true)
+//    List<TechnicianResponse> searchTasksWithScheduleAndTechnicians(
+//            @Param("status") String status,
+//            @Param("category") String category,
+//            @Param("assignedDateStart") LocalDate assignedDateStart,
+//            @Param("assignedDateEnd") LocalDate assignedDateEnd,
+//            @Param("offset") int offset,
+//            @Param("limit") int limit
+//    );
+
+
     @Query(value = """
     SELECT 
         u.id AS id,
@@ -80,7 +112,7 @@ public interface TaskRepository extends JpaRepository<Task,Long> {
     LEFT JOIN users u ON tt.technician_id = u.id
     LEFT JOIN task_schedule ts 
         ON t.task_id = ts.task_id 
-        AND (:assignedDateStart IS NULL OR ts.assigned_date BETWEEN :assignedDateStart AND :assignedDateEnd)
+        AND (:assignedDateStart IS NULL OR ts.assigned_date BETWEEN :assignedDateStart::date AND :assignedDateEnd::date)
     WHERE (:status IS NULL OR u.status = :status)
       AND (:category IS NULL OR t.task_category = :category)
     ORDER BY t.task_id DESC
@@ -94,6 +126,7 @@ public interface TaskRepository extends JpaRepository<Task,Long> {
             @Param("offset") int offset,
             @Param("limit") int limit
     );
+
 
 
     @Transactional

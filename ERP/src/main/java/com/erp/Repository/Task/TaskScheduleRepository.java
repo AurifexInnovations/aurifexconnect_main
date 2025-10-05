@@ -14,25 +14,26 @@ import java.util.List;
 public interface TaskScheduleRepository extends JpaRepository<TaskSchedule,Long> {
 
     @Query(value = """
-        SELECT 
-            u.first_name || ' ' || u.last_name AS technicianName,
-            ts.service_location AS attendanceLocation,
-            t.task_name AS taskName
-        FROM task t
-        LEFT JOIN task_schedule ts ON t.task_id = ts.task_id
-        LEFT JOIN task_technicians tt ON t.task_id = tt.task_id
-        LEFT JOIN users u ON tt.technician_id = u.id
-        WHERE (:assignedDate IS NULL OR ts.assigned_date = :assignedDate)
-          AND (:technicianId IS NULL OR u.id = :technicianId)
-        ORDER BY t.created_at DESC
-        LIMIT :size OFFSET :offset
-        """, nativeQuery = true)
+    SELECT 
+        u.first_name || ' ' || u.last_name AS technicianName,
+        ts.service_location AS attendanceLocation,
+        t.task_name AS taskName
+    FROM task t
+    LEFT JOIN task_schedule ts ON t.task_id = ts.task_id
+    LEFT JOIN task_technicians tt ON t.task_id = tt.task_id
+    LEFT JOIN users u ON tt.technician_id = u.id
+    WHERE ts.assigned_date = COALESCE(:assignedDate, ts.assigned_date)
+      AND u.id = COALESCE(:technicianId, u.id)
+    ORDER BY t.created_at DESC
+    LIMIT :size OFFSET :offset
+    """, nativeQuery = true)
     List<TechnicianTaskProjection> getTechnicianTasks(
-            @Param("assignedDate") LocalDate localDateassignedDate,
+            @Param("assignedDate") LocalDate assignedDate,
             @Param("technicianId") Long technicianId,
             @Param("size") int size,
             @Param("offset") int offset
     );
+
 
 
     @Query(value = """

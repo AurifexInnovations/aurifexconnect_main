@@ -91,6 +91,7 @@ public class TaskDetailsMapper {
             taskMaterial.setMaterialId(materialDto.getMaterialId());
             taskMaterial.setUnit(materialDto.getUnit());
             taskMaterial.setIsUsed(materialDto.getIsUsed());
+            taskMaterial.setQuantity(materialDto.getQuantity());
             list.add(taskMaterial);
         }
 
