@@ -81,7 +81,7 @@ public class TaskController {
         );
     }
 
-    @PostMapping("/search")
+    @PostMapping("/technician/search")
     @Operation(
             summary = "Search Task Technicians",
             description = "Retrieve all technicians matching search criteria.",
@@ -136,13 +136,9 @@ public class TaskController {
         return ResponseEntity.ok(technicians);
     }
 
-    @GetMapping("test")
-    public String getMessage(){
-        return "tested successfully ";
-    }
 
 
-    @GetMapping("/performance/report")
+    @GetMapping("/task/performance/report")
     @Operation(
             summary = "Get Technician Performance Report",
             description = "Retrieve performance report of technicians between a start date and end date",
