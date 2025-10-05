@@ -1,6 +1,7 @@
 package com.erp.Controller.Task;
 
 
+import com.erp.Dto.Request.TaskMaterialDTO;
 import com.erp.Dto.Request.TaskRequest;
 import com.erp.Dto.Request.TechnicianRequest;
 import com.erp.Dto.Request.TechnicianTaskRequest;
@@ -167,6 +168,57 @@ public class TaskController {
 
         log.info("[TechnicianPerformanceController] Returning response successfully");
         return ResponseEntity.ok(performanceList);
+    }
+
+
+    @PostMapping("/inProgress/{taskId}")
+    @Operation(
+            summary = "Update Task Status to IN_PROGRESS",
+            description = "Update the status of a task to IN_PROGRESS by task ID",
+            responses = {
+                    @ApiResponse(responseCode = "200", description = "Task status updated to IN_PROGRESS"),
+                    @ApiResponse(responseCode = "400", description = "Invalid task ID")
+            }
+    )
+    public ResponseEntity<ResponseStructure<String>> updateTaskToInProgress(@PathVariable Long taskId) {
+        taskService.updateTaskStatusTOInProgress(taskId);
+        return ResponseBuilder.success(HttpStatus.OK, "Task status updated to IN_PROGRESS", "Task ID: " + taskId);
+    }
+
+    @PostMapping("/completed/{taskId}")
+    @Operation(
+            summary = "Update Task Status to COMPLETED",
+            description = "Update the status of a task to COMPLETED by task ID",
+            responses = {
+                    @ApiResponse(responseCode = "200", description = "Task status updated to COMPLETED"),
+                    @ApiResponse(responseCode = "400", description = "Invalid task ID")
+            }
+    )
+    public ResponseEntity<ResponseStructure<String>> updateTaskToCompleted(@PathVariable Long taskId) {
+        taskService.updateTaskStatusToCompleted(taskId);
+        return ResponseBuilder.success(HttpStatus.OK, "Task status updated to COMPLETED", "Task ID: " + taskId);
+    }
+
+    @PostMapping("/updateMaterials/{taskId}")
+    @Operation(
+            summary = "Update Task Materials for a Task",
+            description = "Update or add task materials for the given task ID",
+            responses = {
+                    @ApiResponse(responseCode = "200", description = "Task materials updated successfully"),
+                    @ApiResponse(responseCode = "400", description = "Invalid task ID or task material list")
+            }
+    )
+    public ResponseEntity<ResponseStructure<String>> updateTaskMaterials(
+            @PathVariable Long taskId,
+            @RequestBody List<TaskMaterialDTO> taskMaterialList) {
+
+        taskService.updateTaskMaterialForStatusProgress(taskId, taskMaterialList);
+
+        return ResponseBuilder.success(
+                HttpStatus.OK,
+                "Task materials updated successfully",
+                "Task ID: " + taskId + " | Total materials processed: " + (taskMaterialList != null ? taskMaterialList.size() : 0)
+        );
     }
 
 

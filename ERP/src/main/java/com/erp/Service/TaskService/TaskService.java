@@ -1,5 +1,6 @@
 package com.erp.Service.TaskService;
 
+import com.erp.Dto.Request.TaskMaterialDTO;
 import com.erp.Dto.Request.TaskRequest;
 import com.erp.Dto.Request.TechnicianRequest;
 import com.erp.Dto.Request.TechnicianTaskRequest;
@@ -26,5 +27,15 @@ public interface TaskService {
 
 
      List<TechnicianPerformanceDTO>  getTechniciansReportPerformanceByAssigenDate(LocalDate startDate, LocalDate endDate);
+
+     void  updateTaskStatusTOInProgress(Long taskId);
+
+     void updateTaskStatusToCompleted(Long taskId);
+
+    void updateTaskMaterialForStatusProgress(Long taskId, List<TaskMaterialDTO> taskMaterialList);
+
+
+
+
 
 }

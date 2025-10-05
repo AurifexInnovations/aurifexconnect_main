@@ -4,6 +4,7 @@ import com.erp.Dto.Request.*;
 import com.erp.Dto.Response.GetAllTaskResponse;
 import com.erp.Dto.Response.TaskResponse;
 import com.erp.Dto.Response.TechnicianPerformanceDTO;
+import com.erp.Enum.TaskStatus;
 import com.erp.Exception.Tax.TaxNotFoundException;
 import com.erp.Mapper.TaskMapper.TaskDetailsMapper;
 import com.erp.Mapper.TaskMapper.TaskMapper;
@@ -343,7 +344,101 @@ public class TaskServiceImpl  implements  TaskService{
         }
     }
 
+    @Override
+    public void updateTaskStatusTOInProgress(Long taskId) {
+        try {
+            log.info("Updating status of task with ID: {}", taskId);
 
+            int rowsUpdated = taskRepository.updateTaskStatus(taskId, TaskStatus.IN_PROGRESS);
+
+            if (rowsUpdated > 0) {
+                log.info("Successfully updated status of task with ID: {}", taskId);
+            } else {
+                log.warn("No task found with ID: {}. Status not updated.", taskId);
+            }
+
+        } catch (Exception e) {
+            log.error("Error while updating status of task with ID: {}", taskId, e);
+
+        }
+    }
+
+    @Override
+    public void updateTaskStatusToCompleted(Long taskId) {
+        try {
+            log.info("Updating status of task with ID: {} to COMPLETED", taskId);
+
+            int rowsUpdated = taskRepository.updateTaskStatus(taskId, TaskStatus.COMPLETED);
+
+            if (rowsUpdated > 0) {
+                log.info("Successfully updated status of task with ID: {} to COMPLETED", taskId);
+            } else {
+                log.warn("No task found with ID: {}. Status not updated.", taskId);
+            }
+
+        } catch (Exception e) {
+            log.error("Error while updating status of task with ID: {} to COMPLETED", taskId, e);
+        }
+    }
+
+
+    @Transactional
+    public void updateTaskMaterialForStatusProgress(Long taskId, List<TaskMaterialDTO> taskMaterialList) {
+        log.info("Starting updateTaskMaterialForStatusProgress for taskId: {}", taskId);
+
+        if (taskMaterialList == null || taskMaterialList.isEmpty()) {
+            log.warn("No task materials provided for taskId: {}", taskId);
+            return;
+        }
+
+        try {
+            log.info("Fetching existing task materials for taskId: {}", taskId);
+            List<TaskMaterial> existingMaterials = taskMaterialRepository.findByTaskId(taskId);
+            log.info("Found {} existing task materials for taskId: {}", existingMaterials.size(), taskId);
+
+            Map<Long, TaskMaterial> existingMap = new HashMap<>();
+            for (TaskMaterial tm : existingMaterials) {
+                existingMap.put(tm.getMaterialId(), tm);
+                log.debug("Existing material mapped: materialId={}, unit={}, quantity={}, isUsed={}",
+                        tm.getMaterialId(), tm.getUnit(), tm.getQuantity(), tm.getIsUsed());
+            }
+
+            List<TaskMaterial> materialsToSave = new ArrayList<>();
+
+            for (TaskMaterialDTO dto : taskMaterialList) {
+                log.debug("Processing DTO: materialId={}, unit={}, quantity={}, isUsed={}",
+                        dto.getMaterialId(), dto.getUnit(), dto.getQuantity(), dto.getIsUsed());
+
+                TaskMaterial taskMaterial = existingMap.get(dto.getMaterialId());
+
+                if (taskMaterial != null) {
+                    log.info("Updating existing material: materialId={}", dto.getMaterialId());
+                    taskMaterial.setUnit(dto.getUnit());
+                    taskMaterial.setIsUsed(dto.getIsUsed());
+                    taskMaterial.setQuantity(dto.getQuantity());
+                    materialsToSave.add(taskMaterial);
+                } else {
+                    log.info("Adding new material: materialId={}", dto.getMaterialId());
+                    TaskMaterial newMaterial = TaskMaterial.builder()
+                            .taskId(taskId)
+                            .materialId(dto.getMaterialId())
+                            .unit(dto.getUnit())
+                            .isUsed(dto.getIsUsed())
+                            .quantity(dto.getQuantity())
+                            .build();
+                    materialsToSave.add(newMaterial);
+                }
+            }
+
+            log.info("Saving {} task materials for taskId: {}", materialsToSave.size(), taskId);
+            taskMaterialRepository.saveAll(materialsToSave);
+            log.info("Task materials successfully updated for taskId: {}", taskId);
+
+        } catch (Exception e) {
+            log.error("Error updating task materials for taskId: {}", taskId, e);
+            throw e;
+        }
+    }
 
 
 }

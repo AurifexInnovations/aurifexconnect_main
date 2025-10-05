@@ -30,6 +30,9 @@ public class TaskMaterial {
     @Column(name ="is_used" )
     private  Boolean isUsed;
 
+    @Column(name ="quantity" )
+    private Long quantity;
+
 
 
 }
