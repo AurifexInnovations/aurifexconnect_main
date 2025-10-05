@@ -19,6 +19,9 @@ public class Leaderboard {
     @Column(name = "technician_id", nullable = false)
     private Long technicianId;
 
-    @Column(name = "rank", nullable = false)
-    private Integer rank;
+    @Column(name = "average_rating", nullable = false)
+    private Double averageRating;
+
+    @Column(name="tasks_completed",nullable = false)
+    private Long tasksCompleted;
 }

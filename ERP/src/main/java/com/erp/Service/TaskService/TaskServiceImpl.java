@@ -1,10 +1,10 @@
 package com.erp.Service.TaskService;
 
-import com.erp.Dto.Request.TaskRequest;
-import com.erp.Dto.Request.TechnicianRequest;
-import com.erp.Dto.Request.TechnicianTaskRequest;
+import com.erp.Dto.Request.*;
 import com.erp.Dto.Response.GetAllTaskResponse;
 import com.erp.Dto.Response.TaskResponse;
+import com.erp.Dto.Response.TechnicianPerformanceDTO;
+import com.erp.Enum.TaskStatus;
 import com.erp.Exception.Tax.TaxNotFoundException;
 import com.erp.Mapper.TaskMapper.TaskDetailsMapper;
 import com.erp.Mapper.TaskMapper.TaskMapper;
@@ -24,6 +24,7 @@ import org.springframework.stereotype.Service;
 
 import java.time.LocalDate;
 import java.util.*;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -47,9 +48,8 @@ public class TaskServiceImpl  implements  TaskService{
     private final ServiceType serviceType;
 
     @Override
-    @Transactional
     public TaskResponse addTask(TaskRequest taskRequest) {
-     log.info("");
+     log.info("[TaskServiceImpl]  [addTask] Into add task ");
 
         Task  task ;
 
@@ -212,6 +212,8 @@ public class TaskServiceImpl  implements  TaskService{
         return taskRepository.findById(taskId).isPresent();
     }
 
+
+
     @Override
     public List<TechnicianResponse> getTechnicians(TechnicianRequest technicianRequest) {
         log.info("[TaskService] [getTechnicians] Entered with request: {}", technicianRequest);
@@ -273,6 +275,169 @@ public class TaskServiceImpl  implements  TaskService{
         }
 
         return technicianList;
+    }
+
+
+
+
+
+    public List<TechnicianPerformanceDTO> getTechniciansReportPerformanceByAssigenDate(LocalDate startDate, LocalDate endDate) {
+        log.info("Starting getTechniciansReportPerformanceByAssigenDate with startDate={} and endDate={}", startDate, endDate);
+
+        List<TechnicianPerformanceDTO> performanceList;
+        Map<Long, TechnicianPerformanceDTO> technicianMap = new LinkedHashMap<>();
+
+        try {
+            performanceList = taskScheduleRepository.getTechnicianPerformance(startDate, endDate);
+            log.info("Fetched {} technician performance records from repository", performanceList.size());
+
+            for (TechnicianPerformanceDTO dto : performanceList) {
+                TechnicianPerformanceDTO tech = technicianMap.getOrDefault(dto.getTechnicianId(),
+                        new TechnicianPerformanceDTO());
+
+                tech.setTechnicianId(dto.getTechnicianId());
+                tech.setName(dto.getName());
+                tech.setTasksCompleted(dto.getTasksCompleted());
+                tech.setAverageRating(dto.getAverageRating());
+                tech.setCompletedTasks(dto.getCompletedTasks());
+
+                // Initialize leaderboard list if null
+                if (tech.getLeaderboardDTO() == null) {
+                    tech.setLeaderboardDTO(new ArrayList<>());
+                }
+
+                // Add leaderboard entry
+                tech.getLeaderboardDTO().add(new LeaderboardDTO(dto.getTechnicianId(), dto.getName(), null));
+
+                // Add chemical usage
+                if (dto.getChemicalUsage() != null) {
+                    if (tech.getChemicalUsage() == null) tech.setChemicalUsage(new ArrayList<>());
+                    tech.getChemicalUsage().addAll(dto.getChemicalUsage());
+                }
+
+                technicianMap.put(dto.getTechnicianId(), tech);
+            }
+
+            // Sort by averageRating descending
+            List<TechnicianPerformanceDTO> sortedTechnicians = technicianMap.values().stream()
+                    .sorted(Comparator.comparing(TechnicianPerformanceDTO::getAverageRating).reversed())
+                    .collect(Collectors.toList());
+
+            log.info("Sorted technicians by averageRating descending");
+
+            // Assign ranks to the first leaderboard entry in the list
+            int rank = 1;
+            for (TechnicianPerformanceDTO tech : sortedTechnicians) {
+                if (tech.getLeaderboardDTO() != null && !tech.getLeaderboardDTO().isEmpty()) {
+                    tech.getLeaderboardDTO().get(0).setRank(rank++);
+                }
+            }
+
+            log.info("Assigned ranks to technicians");
+
+            return sortedTechnicians;
+
+        } catch (Exception e) {
+            log.error("Error while generating technician performance report for dates {} to {}", startDate, endDate, e);
+
+            return new ArrayList<>();
+        }
+    }
+
+    @Override
+    public void updateTaskStatusTOInProgress(Long taskId) {
+        try {
+            log.info("Updating status of task with ID: {}", taskId);
+
+            int rowsUpdated = taskRepository.updateTaskStatus(taskId, TaskStatus.IN_PROGRESS);
+
+            if (rowsUpdated > 0) {
+                log.info("Successfully updated status of task with ID: {}", taskId);
+            } else {
+                log.warn("No task found with ID: {}. Status not updated.", taskId);
+            }
+
+        } catch (Exception e) {
+            log.error("Error while updating status of task with ID: {}", taskId, e);
+
+        }
+    }
+
+    @Override
+    public void updateTaskStatusToCompleted(Long taskId) {
+        try {
+            log.info("Updating status of task with ID: {} to COMPLETED", taskId);
+
+            int rowsUpdated = taskRepository.updateTaskStatus(taskId, TaskStatus.COMPLETED);
+
+            if (rowsUpdated > 0) {
+                log.info("Successfully updated status of task with ID: {} to COMPLETED", taskId);
+            } else {
+                log.warn("No task found with ID: {}. Status not updated.", taskId);
+            }
+
+        } catch (Exception e) {
+            log.error("Error while updating status of task with ID: {} to COMPLETED", taskId, e);
+        }
+    }
+
+
+    @Transactional
+    public void updateTaskMaterialForStatusProgress(Long taskId, List<TaskMaterialDTO> taskMaterialList) {
+        log.info("Starting updateTaskMaterialForStatusProgress for taskId: {}", taskId);
+
+        if (taskMaterialList == null || taskMaterialList.isEmpty()) {
+            log.warn("No task materials provided for taskId: {}", taskId);
+            return;
+        }
+
+        try {
+            log.info("Fetching existing task materials for taskId: {}", taskId);
+            List<TaskMaterial> existingMaterials = taskMaterialRepository.findByTaskId(taskId);
+            log.info("Found {} existing task materials for taskId: {}", existingMaterials.size(), taskId);
+
+            Map<Long, TaskMaterial> existingMap = new HashMap<>();
+            for (TaskMaterial tm : existingMaterials) {
+                existingMap.put(tm.getMaterialId(), tm);
+                log.debug("Existing material mapped: materialId={}, unit={}, quantity={}, isUsed={}",
+                        tm.getMaterialId(), tm.getUnit(), tm.getQuantity(), tm.getIsUsed());
+            }
+
+            List<TaskMaterial> materialsToSave = new ArrayList<>();
+
+            for (TaskMaterialDTO dto : taskMaterialList) {
+                log.debug("Processing DTO: materialId={}, unit={}, quantity={}, isUsed={}",
+                        dto.getMaterialId(), dto.getUnit(), dto.getQuantity(), dto.getIsUsed());
+
+                TaskMaterial taskMaterial = existingMap.get(dto.getMaterialId());
+
+                if (taskMaterial != null) {
+                    log.info("Updating existing material: materialId={}", dto.getMaterialId());
+                    taskMaterial.setUnit(dto.getUnit());
+                    taskMaterial.setIsUsed(dto.getIsUsed());
+                    taskMaterial.setQuantity(dto.getQuantity());
+                    materialsToSave.add(taskMaterial);
+                } else {
+                    log.info("Adding new material: materialId={}", dto.getMaterialId());
+                    TaskMaterial newMaterial = TaskMaterial.builder()
+                            .taskId(taskId)
+                            .materialId(dto.getMaterialId())
+                            .unit(dto.getUnit())
+                            .isUsed(dto.getIsUsed())
+                            .quantity(dto.getQuantity())
+                            .build();
+                    materialsToSave.add(newMaterial);
+                }
+            }
+
+            log.info("Saving {} task materials for taskId: {}", materialsToSave.size(), taskId);
+            taskMaterialRepository.saveAll(materialsToSave);
+            log.info("Task materials successfully updated for taskId: {}", taskId);
+
+        } catch (Exception e) {
+            log.error("Error updating task materials for taskId: {}", taskId, e);
+            throw e;
+        }
     }
 
 

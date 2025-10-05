@@ -45,8 +45,10 @@ public class TaskSchedule {
     @Column(name = "feedback_id")
     private Long feedbackId;
 
+    @Column(name = "task_start_time")
     private LocalTime taskStartTime;
 
+    @Column(name = "task_end_time")
     private LocalTime taskEndTime;
 
 

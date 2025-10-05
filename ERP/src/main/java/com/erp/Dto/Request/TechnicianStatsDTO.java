@@ -7,12 +7,9 @@ import lombok.NoArgsConstructor;
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
-public class MaterialDto {
-
-
-    private Long materialId;
-    private Double unit;
-    private Double quantity;
-    private  Boolean isUsed;
-
+public class TechnicianStatsDTO {
+    private Long technicianId;
+    private Long completedTasks;
+    private Double averageRating;
+    private Long tasksCompleted;
 }

@@ -1,5 +1,6 @@
 package com.erp.Repository.Task;
 
+import com.erp.Dto.Response.TechnicianPerformanceDTO;
 import com.erp.Model.TaskSchedule;
 import com.erp.Projection.TechnicianResponse;
 import com.erp.Projection.TechnicianTaskProjection;
@@ -32,5 +33,29 @@ public interface TaskScheduleRepository extends JpaRepository<TaskSchedule,Long>
             @Param("size") int size,
             @Param("offset") int offset
     );
+
+
+    @Query(value = """
+    SELECT u.id as technicianId,
+           CONCAT(u.first_name, ' ', u.last_name) as name,
+           lb.tasks_completed as tasksCompleted,
+           lb.average_rating as averageRating,
+           0 as rank,
+           m.item_name as productName,
+           tm.unit as unit
+    FROM task_schedule ts
+    JOIN technician_task_mapper tt ON ts.task_id = tt.task_id
+    JOIN user u ON tt.technician_id = u.id
+    LEFT JOIN leaderboard lb ON u.id = lb.technician_id
+    LEFT JOIN task_material tm ON ts.task_id = tm.task_id
+    LEFT JOIN inventory m ON tm.material_id = m.id
+    WHERE ts.assigned_date BETWEEN :startDate AND :endDate
+""", nativeQuery = true)
+    List<TechnicianPerformanceDTO> getTechnicianPerformance(
+            @Param("startDate") LocalDate startDate,
+            @Param("endDate") LocalDate endDate
+    );
+
+
 
 }

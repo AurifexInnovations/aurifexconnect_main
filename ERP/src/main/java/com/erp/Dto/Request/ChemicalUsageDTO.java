@@ -7,12 +7,8 @@ import lombok.NoArgsConstructor;
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
-public class MaterialDto {
-
-
-    private Long materialId;
-    private Double unit;
+public class ChemicalUsageDTO {
+    private String productName;
     private Double quantity;
-    private  Boolean isUsed;
-
+    private String unit;
 }

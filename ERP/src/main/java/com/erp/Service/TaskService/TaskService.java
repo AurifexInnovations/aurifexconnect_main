@@ -1,10 +1,12 @@
 package com.erp.Service.TaskService;
 
+import com.erp.Dto.Request.TaskMaterialDTO;
 import com.erp.Dto.Request.TaskRequest;
 import com.erp.Dto.Request.TechnicianRequest;
 import com.erp.Dto.Request.TechnicianTaskRequest;
 import com.erp.Dto.Response.GetAllTaskResponse;
 import com.erp.Dto.Response.TaskResponse;
+import com.erp.Dto.Response.TechnicianPerformanceDTO;
 import com.erp.Projection.TechnicianResponse;
 import com.erp.Projection.TechnicianTaskProjection;
 
@@ -21,8 +23,19 @@ public interface TaskService {
 
     List<TechnicianTaskProjection> getTechniciansByDateAndAssigenDate(TechnicianTaskRequest technicianTaskRequest);
 
-
     boolean getTask(long taskId);
+
+
+     List<TechnicianPerformanceDTO>  getTechniciansReportPerformanceByAssigenDate(LocalDate startDate, LocalDate endDate);
+
+     void  updateTaskStatusTOInProgress(Long taskId);
+
+     void updateTaskStatusToCompleted(Long taskId);
+
+    void updateTaskMaterialForStatusProgress(Long taskId, List<TaskMaterialDTO> taskMaterialList);
+
+
+
 
 
 }

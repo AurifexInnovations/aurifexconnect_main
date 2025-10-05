@@ -27,12 +27,9 @@ public class TaskDetailsMapper {
             return new TaskResponse();
         }
 
-        String formattedId = String.format("T-%s-%d",
-                java.time.LocalDate.now().toString().replaceAll("-", ""),
-                taskId
-        );
 
-        taskResponse.setTaskId(formattedId);
+
+        taskResponse.setTaskId(taskId);
         taskResponse.setMessage(AppConstants.TASK_ASSIGNED_MESSAGE);
         log.info("[TaskDetailsMapper][mapToTaskResponse]  Exit  mapToTaskResponse ...");
         return taskResponse;
@@ -91,8 +88,9 @@ public class TaskDetailsMapper {
         for (MaterialDto materialDto : taskRequest.getMaterialDto()) {
             TaskMaterial taskMaterial = new TaskMaterial();
             taskMaterial.setTaskId(taskRequest.getTaskId());
-            taskMaterial.setMaterialId(materialDto.getProductId());
+            taskMaterial.setMaterialId(materialDto.getMaterialId());
             taskMaterial.setUnit(materialDto.getUnit());
+            taskMaterial.setIsUsed(materialDto.getIsUsed());
             list.add(taskMaterial);
         }
 

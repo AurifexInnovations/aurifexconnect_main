@@ -27,5 +27,12 @@ public class TaskMaterial {
     private Double unit;
 
 
+    @Column(name ="is_used" )
+    private  Boolean isUsed;
+
+    @Column(name ="quantity" )
+    private Long quantity;
+
+
 
 }

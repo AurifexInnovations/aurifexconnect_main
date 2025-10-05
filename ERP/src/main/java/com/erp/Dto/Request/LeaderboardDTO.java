@@ -7,12 +7,13 @@ import lombok.NoArgsConstructor;
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
-public class MaterialDto {
+public class LeaderboardDTO {
 
 
-    private Long materialId;
-    private Double unit;
-    private Double quantity;
-    private  Boolean isUsed;
+    private Long technicianId;
+
+    private String name;
+
+    private Integer rank;
 
 }
