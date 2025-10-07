@@ -7,8 +7,10 @@ import com.erp.Dto.Request.TechnicianTaskRequest;
 import com.erp.Dto.Response.GetAllTaskResponse;
 import com.erp.Dto.Response.TaskResponse;
 import com.erp.Dto.Response.TechnicianPerformanceDTO;
+import com.erp.Model.TechnicianTaskMapper;
 import com.erp.Projection.TechnicianResponse;
 import com.erp.Projection.TechnicianTaskProjection;
+import com.erp.Projection.TechnitianFeedbackDetailProjection;
 
 import java.time.LocalDate;
 import java.util.List;
@@ -34,8 +36,8 @@ public interface TaskService {
 
     void updateTaskMaterialForStatusProgress(Long taskId, List<TaskMaterialDTO> taskMaterialList);
 
+    List<TechnicianTaskMapper> getTechnitianByTaskId(long taskId);
 
-
-
-
+    void updateTechnitianFeedBack(long taskId , long feedbackId);
+    List<TechnitianFeedbackDetailProjection> getTechnitianFeedbackDetails(long feedbackId);
 }

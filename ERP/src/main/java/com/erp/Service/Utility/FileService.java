@@ -90,10 +90,11 @@ public class FileService {
                 file.setDeletedAt(LocalDateTime.now());
 
                 updatedFiles.add(file);
+                continue;
             }
 
             if(isDeleted){
-                file.setSequence(previousSequence++);
+                file.setSequence(++previousSequence);
                 file.setModifiedAt(LocalDateTime.now());
 
                 updatedFiles.add(file);
