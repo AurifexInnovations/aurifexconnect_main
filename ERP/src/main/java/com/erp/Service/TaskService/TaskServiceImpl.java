@@ -1,9 +1,7 @@
 package com.erp.Service.TaskService;
 
 import com.erp.Dto.Request.*;
-import com.erp.Dto.Response.GetAllTaskResponse;
-import com.erp.Dto.Response.TaskResponse;
-import com.erp.Dto.Response.TechnicianPerformanceDTO;
+import com.erp.Dto.Response.*;
 import com.erp.Enum.TaskStatus;
 import com.erp.Exception.Task.TaskNoFoundException;
 import com.erp.Exception.Tax.TaxNotFoundException;
@@ -13,6 +11,8 @@ import com.erp.Mapper.TaskMapper.TaskMapper;
 import com.erp.Model.Task;
 
 import com.erp.Model.*;
+import com.erp.Projection.LeaderboardProjection;
+import com.erp.Projection.TechnicianPerformanceProjection;
 import com.erp.Projection.TechnicianResponse;
 import com.erp.Projection.TechnicianTaskProjection;
 import com.erp.Repository.Task.*;
@@ -300,69 +300,49 @@ public class TaskServiceImpl  implements  TaskService{
 
 
 
+    public TechnicianPerformanceResponse getTechnicianPerformance(LocalDate startDate, LocalDate endDate) {
 
-    public List<TechnicianPerformanceDTO> getTechniciansReportPerformanceByAssigenDate(LocalDate startDate, LocalDate endDate) {
-        log.info("Starting getTechniciansReportPerformanceByAssigenDate with startDate={} and endDate={}", startDate, endDate);
+        List<TechnicianPerformanceProjection> performanceList = taskScheduleRepository.getTechnicianPerformance(startDate, endDate);
+        List<LeaderboardProjection> leaderboardList = taskScheduleRepository.getLeaderboard();
 
-        List<TechnicianPerformanceDTO> performanceList;
-        Map<Long, TechnicianPerformanceDTO> technicianMap = new LinkedHashMap<>();
+        Map<Long, TechnicianStatsDTO> technicianStatsMap = new HashMap<>();
+        Map<Long, List<ChemicalUsageDTO>> chemicalUsageMap = new HashMap<>();
 
-        try {
-            performanceList = taskScheduleRepository.getTechnicianPerformance(startDate, endDate);
-            log.info("Fetched {} technician performance records from repository", performanceList.size());
+        for (TechnicianPerformanceProjection p : performanceList) {
 
-            for (TechnicianPerformanceDTO dto : performanceList) {
-                TechnicianPerformanceDTO tech = technicianMap.getOrDefault(dto.getTechnicianId(),
-                        new TechnicianPerformanceDTO());
+            technicianStatsMap.computeIfAbsent(p.getTechnicianId(), id -> {
+                TechnicianStatsDTO stats = new TechnicianStatsDTO();
+                stats.setTechnicianId(id);
+                stats.setTasksCompleted(p.getTasksCompleted());
+                stats.setAverageRating(p.getAverageRating());
+                return stats;
+            });
 
-                tech.setTechnicianId(dto.getTechnicianId());
-                tech.setName(dto.getName());
-                tech.setTasksCompleted(dto.getTasksCompleted());
-                tech.setAverageRating(dto.getAverageRating());
-                tech.setCompletedTasks(dto.getCompletedTasks());
-
-                // Initialize leaderboard list if null
-                if (tech.getLeaderboardDTO() == null) {
-                    tech.setLeaderboardDTO(new ArrayList<>());
-                }
-
-                // Add leaderboard entry
-                tech.getLeaderboardDTO().add(new LeaderboardDTO(dto.getTechnicianId(), dto.getName(), null));
-
-                // Add chemical usage
-                if (dto.getChemicalUsage() != null) {
-                    if (tech.getChemicalUsage() == null) tech.setChemicalUsage(new ArrayList<>());
-                    tech.getChemicalUsage().addAll(dto.getChemicalUsage());
-                }
-
-                technicianMap.put(dto.getTechnicianId(), tech);
+            if (p.getProductName() != null) {
+                chemicalUsageMap.computeIfAbsent(p.getTechnicianId(), id -> new ArrayList<>())
+                        .add(new ChemicalUsageDTO(p.getProductName(), p.getQuantity(), p.getUnit()));
             }
-
-            // Sort by averageRating descending
-            List<TechnicianPerformanceDTO> sortedTechnicians = technicianMap.values().stream()
-                    .sorted(Comparator.comparing(TechnicianPerformanceDTO::getAverageRating).reversed())
-                    .collect(Collectors.toList());
-
-            log.info("Sorted technicians by averageRating descending");
-
-            // Assign ranks to the first leaderboard entry in the list
-            int rank = 1;
-            for (TechnicianPerformanceDTO tech : sortedTechnicians) {
-                if (tech.getLeaderboardDTO() != null && !tech.getLeaderboardDTO().isEmpty()) {
-                    tech.getLeaderboardDTO().get(0).setRank(rank++);
-                }
-            }
-
-            log.info("Assigned ranks to technicians");
-
-            return sortedTechnicians;
-
-        } catch (Exception e) {
-            log.error("Error while generating technician performance report for dates {} to {}", startDate, endDate, e);
-
-            return new ArrayList<>();
         }
+
+        List<TechnicianStatsDTO> technicianStats = technicianStatsMap.values().stream().map(stats -> {
+            stats.setChemicalUsage(chemicalUsageMap.getOrDefault(stats.getTechnicianId(), new ArrayList<>()));
+            return stats;
+        }).collect(Collectors.toList());
+
+        List<LeaderboardDTO> leaderboard = leaderboardList.stream()
+                .map(l -> new LeaderboardDTO(
+                        l.getTechnicianId(),
+                        l.getName(),
+                        l.getRank(),
+                        l.getAverageRating()
+                ))
+                .collect(Collectors.toList());
+
+        return new TechnicianPerformanceResponse(technicianStats, leaderboard);
     }
+
+
+
 
     @Override
     public void updateTaskStatusTOInProgress(Long taskId) {

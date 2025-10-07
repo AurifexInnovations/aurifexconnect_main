@@ -7,6 +7,7 @@ import com.erp.Dto.Request.TechnicianTaskRequest;
 import com.erp.Dto.Response.GetAllTaskResponse;
 import com.erp.Dto.Response.TaskResponse;
 import com.erp.Dto.Response.TechnicianPerformanceDTO;
+import com.erp.Dto.Response.TechnicianPerformanceResponse;
 import com.erp.Projection.TechnicianResponse;
 import com.erp.Projection.TechnicianTaskProjection;
 
@@ -26,7 +27,7 @@ public interface TaskService {
     boolean getTask(long taskId);
 
 
-     List<TechnicianPerformanceDTO>  getTechniciansReportPerformanceByAssigenDate(LocalDate startDate, LocalDate endDate);
+    public TechnicianPerformanceResponse getTechnicianPerformance(LocalDate startDate, LocalDate endDate);
 
      void  updateTaskStatusTOInProgress(Long taskId);
 

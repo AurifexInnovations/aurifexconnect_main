@@ -9,11 +9,9 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 public class LeaderboardDTO {
 
-
     private Long technicianId;
-
     private String name;
-
     private Integer rank;
+    private Double averageRating;
 
 }

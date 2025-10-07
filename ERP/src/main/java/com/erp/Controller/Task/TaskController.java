@@ -8,6 +8,7 @@ import com.erp.Dto.Request.TechnicianTaskRequest;
 import com.erp.Dto.Response.GetAllTaskResponse;
 import com.erp.Dto.Response.TaskResponse;
 import com.erp.Dto.Response.TechnicianPerformanceDTO;
+import com.erp.Dto.Response.TechnicianPerformanceResponse;
 import com.erp.Projection.TechnicianResponse;
 import com.erp.Projection.TechnicianTaskProjection;
 import com.erp.Service.TaskService.TaskService;
@@ -137,7 +138,6 @@ public class TaskController {
     }
 
 
-
     @GetMapping("/task/performance/report")
     @Operation(
             summary = "Get Technician Performance Report",
@@ -147,23 +147,24 @@ public class TaskController {
                     @ApiResponse(responseCode = "400", description = "Invalid request parameters")
             }
     )
-    public ResponseEntity<List<TechnicianPerformanceDTO>> getTechnicianPerformanceReport(
-            @RequestParam  LocalDate startDate,
+    public ResponseEntity<TechnicianPerformanceResponse> getTechnicianPerformanceReport(
+            @RequestParam LocalDate startDate,
             @RequestParam LocalDate endDate) {
 
         log.info("[TechnicianPerformanceController] Entering getTechnicianPerformanceReport with startDate: {} and endDate: {}", startDate, endDate);
 
-        List<TechnicianPerformanceDTO> performanceList;
         try {
-            performanceList = taskService.getTechniciansReportPerformanceByAssigenDate(startDate, endDate);
-            log.info("[TechnicianPerformanceController] Found {} performance records", performanceList.size());
+
+            TechnicianPerformanceResponse response = taskService.getTechnicianPerformance(startDate, endDate);
+
+            log.info("[TechnicianPerformanceController] Returning response with {} technicians",
+                    response.getTechnicians().size());
+            return ResponseEntity.ok(response);
+
         } catch (Exception e) {
             log.error("[TechnicianPerformanceController] Error while fetching technician performance report", e);
             return ResponseEntity.status(500).build();
         }
-
-        log.info("[TechnicianPerformanceController] Returning response successfully");
-        return ResponseEntity.ok(performanceList);
     }
 
 
