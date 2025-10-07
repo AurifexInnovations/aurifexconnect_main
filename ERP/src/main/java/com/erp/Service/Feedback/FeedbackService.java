@@ -6,8 +6,11 @@ import com.erp.Dto.Response.FileResponse;
 import com.erp.Mapper.Feedback.FeedbackMapper;
 import com.erp.Model.Feedback;
 import com.erp.Model.GenericUser;
+import com.erp.Model.TechnicianTaskMapper;
+import com.erp.Projection.TechnitianFeedbackDetailProjection;
 import com.erp.Repository.Feedback.FeedbackRepository;
 import com.erp.Security.util.UserIdentity;
+import com.erp.Service.TaskService.TaskService;
 import com.erp.Service.Utility.FileService;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
@@ -30,6 +33,8 @@ public class FeedbackService {
     private final UserIdentity userIdentity;
     private final FileService fileService;
 
+    private final TaskService taskService;
+
 
     @Transactional
     public FeedbackResponse addFeedBack(long taskId ,
@@ -43,26 +48,28 @@ public class FeedbackService {
         Feedback feedback = getFeedback(taskId , currentUser.getId());
 
         if(Objects.nonNull(feedback)){
-//            add error here
+            throw new RuntimeException("Feedback alreday found");
         }
 
         feedback = feedbackMapper.map(feedbackRequest);
+        feedback.setTaskId(taskId);
         feedback.setCreatedAt(LocalDateTime.now());
 
         GenericUser user = userIdentity.getCurrentUser();
         feedback.setCustomerId(user.getId());
         feedback.setActive(true);
 
-        feedbackRepository.save(feedback);
+        feedback = feedbackRepository.save(feedback);
+
+        taskService.updateTechnitianFeedBack(taskId , feedback.getId());
 
         FeedbackResponse feedbackResponse = feedbackMapper.map(feedback);
-
         setDigitalSignatureData(taskId , feedbackResponse);
 
         log.info("Exit [FeedbackService] [addFeedBack] ");
         return feedbackResponse;
     }
-
+    @Transactional
     public FeedbackResponse updateFeedback(long feedbackId ,FeedbackRequest feedbackRequest){
         log.info("Into [FeedbackService] [updateFeedback] ");
 
@@ -77,7 +84,6 @@ public class FeedbackService {
         FeedbackResponse feedbackResponse = feedbackMapper.map(feedback);
 
         setDigitalSignatureData(feedback.getTaskId() , feedbackResponse);
-
         log.info("Exit [FeedbackService] [updateFeedback] ");
 
         return feedbackResponse;
@@ -102,7 +108,7 @@ public class FeedbackService {
                 feedbackRepository.findById(feedbackId);
 
         if(feedbackContainer.isEmpty()){
-//             add error here
+            throw new RuntimeException("Feedback details not found");
         }
 
         log.info("Exit [FeedbackService] [getFeedback] ");
@@ -123,6 +129,8 @@ public class FeedbackService {
 
         feedbackRepository.save(feedback);
 
+        taskService.updateTechnitianFeedBack(feedback.getTaskId(),  0);
+
         log.info("Exit [FeedbackService] [getFeedback] ");
     }
 
@@ -132,13 +140,19 @@ public class FeedbackService {
         Feedback feedback  = getFeedback(feedbackId);
 
         FeedbackResponse feedbackResponse = feedbackMapper.map(feedback);
-
         setDigitalSignatureData(feedback.getTaskId() , feedbackResponse);
+
+        List<TechnitianFeedbackDetailProjection> technitianFeedbackDetailProjections =
+                taskService.getTechnitianFeedbackDetails(feedbackId);
+
+        feedbackResponse.setTechnitianDetails(technitianFeedbackDetailProjections);
 
         log.info("Exit [FeedbackService] [getFeedbackById] ");
         return feedbackResponse;
 
     }
+
+
     private Feedback getFeedback(long taskId , long customerId){
         log.info("Into [FeedbackService] [getFeedback] ");
 

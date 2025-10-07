@@ -23,5 +23,7 @@ public class TechnicianTaskMapper {
     @Column(name = "technician_id", nullable = false)
     private Long technicianId;
 
+    @Column(name = "feedback_id")
+    private Long feedback_id;
 
 }

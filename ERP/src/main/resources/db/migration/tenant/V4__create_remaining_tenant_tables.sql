@@ -136,7 +136,6 @@ CREATE TABLE task_schedule (
     google_location_link VARCHAR(255),
     field_type           VARCHAR(255),
     service_location     VARCHAR(255),
-    feedback_id          BIGINT,
     task_start_time      TIME,
     task_end_time        TIME
 );
@@ -156,14 +155,15 @@ CREATE TABLE feedbacks (
     comment VARCHAR(1000),
     otp INT,
     is_active BOOLEAN NOT NULL DEFAULT TRUE,
-    created_at TIMESTAMP NOT NULL DEFAULT NOW(),
-    updated_at TIMESTAMP NOT NULL DEFAULT NOW()
+    created_at TIMESTAMP ,
+    updated_at TIMESTAMP
 );
 
 CREATE TABLE task_technicians (
     task_technicians_id BIGSERIAL PRIMARY KEY,
     task_id             BIGINT NOT NULL,
-    technician_id       BIGINT NOT NULL
+    technician_id       BIGINT NOT NULL,
+    feedback_id         BIGINT
 );
 
 

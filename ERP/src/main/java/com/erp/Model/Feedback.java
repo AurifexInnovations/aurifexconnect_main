@@ -17,13 +17,20 @@ public class Feedback {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private long id;
+    @Column(name =  "customer_id")
     private long customerId;
+    @Column(name =  "task_id")
     private long taskId;
+    @Column(name =  "rating")
     private float rating;
+    @Column(name =  "comment")
     private String comment;
+    @Column(name =  "otp")
     private int otp;
+    @Column(name =  "is_active")
     private boolean isActive;
+    @Column(name =  "created_at")
     private LocalDateTime createdAt;
+    @Column(name =  "updated_at")
     private LocalDateTime updatedAt;
-    private Long technicianId;
 }

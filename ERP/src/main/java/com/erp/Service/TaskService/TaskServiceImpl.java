@@ -15,6 +15,7 @@ import com.erp.Projection.LeaderboardProjection;
 import com.erp.Projection.TechnicianPerformanceProjection;
 import com.erp.Projection.TechnicianResponse;
 import com.erp.Projection.TechnicianTaskProjection;
+import com.erp.Projection.TechnitianFeedbackDetailProjection;
 import com.erp.Repository.Task.*;
 import com.erp.Service.ServiceType.ServiceType;
 import jakarta.transaction.Transactional;
@@ -33,15 +34,15 @@ import java.util.stream.Collectors;
 @Service
 @RequiredArgsConstructor
 @Slf4j
-public class TaskServiceImpl  implements  TaskService{
+public class TaskServiceImpl implements TaskService {
 
-    private  final TaskRepository   taskRepository;
+    private final TaskRepository taskRepository;
 
-    private  final TaskScheduleRepository taskScheduleRepository;
+    private final TaskScheduleRepository taskScheduleRepository;
 
     private final TaskServiceMapperRepository taskServiceMapperRepository;
 
-    private final TechnicianTaskMapperRepository  technicianTaskMapperRepository;
+    private final TechnicianTaskMapperRepository technicianTaskMapperRepository;
 
     private final TaskMaterialRepository taskMaterialRepository;
 
@@ -54,47 +55,46 @@ public class TaskServiceImpl  implements  TaskService{
     @Override
     @Transactional
     public TaskResponse addTask(TaskRequest taskRequest) {
-     log.info("[TaskServiceImpl]  [addTask] Into add task ");
+        log.info("Into [TaskServiceImpl]  [addTask] Into add task ");
 
-        Task  task ;
+        Task task;
 
         try {
 
-         if(Objects.isNull(taskRequest)){
-             return  null;
-         }
+            if (Objects.isNull(taskRequest)) {
+                return null;
+            }
 
-         if(taskRequest.getTaskId() !=null){
+            if (taskRequest.getTaskId() != null) {
 
-             Task existingTax = taskRepository.findById(taskRequest.getTaskId())
-                     .orElseThrow(() -> new TaxNotFoundException("Tax not found with Id: " + taskRequest.getTaskId()));
+                Task existingTax = taskRepository.findById(taskRequest.getTaskId())
+                        .orElseThrow(() -> new TaxNotFoundException("Tax not found with Id: " + taskRequest.getTaskId()));
 
-             taskMapper.mapToTaxEntity(taskRequest, existingTax);
-         }
-
-
-          task =  taskMapper.mapToTask(taskRequest);
+                taskMapper.mapToTaxEntity(taskRequest, existingTax);
+            }
 
 
-          task =  taskRepository.save(task);
-          taskRequest.setTaskId(task.getTaskId());
-          addTaskSchedule(taskRequest);
-          addServiceToTask(taskRequest);
-          addTechniciansToTask(taskRequest);
-          addMaterialsToTask(taskRequest);
+            task = taskMapper.mapToTask(taskRequest);
 
 
-     } catch (Exception e) {
-         throw new RuntimeException(e);
-     }
+            task = taskRepository.save(task);
+            taskRequest.setTaskId(task.getTaskId());
+            addTaskSchedule(taskRequest);
+            addServiceToTask(taskRequest);
+            addTechniciansToTask(taskRequest);
+            addMaterialsToTask(taskRequest);
 
-       log.info("");
+
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+
+        log.info("Exit [TaskServiceImpl]  [addTask]");
         return taskDetailsMapper.mapToTaskResponse(task.getTaskId());
     }
 
 
-
-    private  void addTaskSchedule(TaskRequest taskRequest){
+    private void addTaskSchedule(TaskRequest taskRequest) {
 
         log.info("Into add  TaskSchedule...");
 
@@ -103,7 +103,7 @@ public class TaskServiceImpl  implements  TaskService{
 
         TaskSchedule taskSchedule = optionalTaskSchedule.orElseGet(TaskSchedule::new);
 
-        taskSchedule =  taskDetailsMapper.mapToTaskSchedule(taskRequest, taskSchedule);
+        taskSchedule = taskDetailsMapper.mapToTaskSchedule(taskRequest, taskSchedule);
 
         taskScheduleRepository.save(taskSchedule);
 
@@ -213,10 +213,9 @@ public class TaskServiceImpl  implements  TaskService{
     }
 
     @Override
-    public boolean getTask(long taskId){
+    public boolean getTask(long taskId) {
         return taskRepository.findById(taskId).isPresent();
     }
-
 
 
     @Override
@@ -301,6 +300,8 @@ public class TaskServiceImpl  implements  TaskService{
 
 
     public TechnicianPerformanceResponse getTechnicianPerformance(LocalDate startDate, LocalDate endDate) {
+    public List<TechnicianPerformanceDTO> getTechniciansReportPerformanceByAssigenDate(LocalDate startDate, LocalDate endDate) {
+        log.info("Starting getTechniciansReportPerformanceByAssigenDate with startDate={} and endDate={}", startDate, endDate);
 
         List<TechnicianPerformanceProjection> performanceList = taskScheduleRepository.getTechnicianPerformance(startDate, endDate);
         List<LeaderboardProjection> leaderboardList = taskScheduleRepository.getLeaderboard();
@@ -360,25 +361,25 @@ public class TaskServiceImpl  implements  TaskService{
     }
 
 
-    private Task validateTaskById(Long taskId){
+    private Task validateTaskById(Long taskId) {
         return taskRepository.findById(taskId)
-                .orElseThrow(() -> new TaskNoFoundException("Task not found with this  task id : " + taskId ));
+                .orElseThrow(() -> new TaskNoFoundException("Task not found with this  task id : " + taskId));
     }
 
     @Override
     public void updateTaskStatusToCompleted(Long taskId) {
 
-            log.info("Updating status of task with ID: {} to COMPLETED", taskId);
+        log.info("Updating status of task with ID: {} to COMPLETED", taskId);
 
-            Task  task=  validateTaskById(taskId);
+        Task task = validateTaskById(taskId);
 
-            int rowsUpdated = taskRepository.updateTaskStatus(taskId, TaskStatus.COMPLETED);
+        int rowsUpdated = taskRepository.updateTaskStatus(taskId, TaskStatus.COMPLETED);
 
-            if (rowsUpdated > 0) {
-                log.info("Successfully updated status of task with ID: {} to COMPLETED", taskId);
-            } else {
-                log.warn("No task found with ID: {}. Status not updated.", taskId);
-            }
+        if (rowsUpdated > 0) {
+            log.info("Successfully updated status of task with ID: {} to COMPLETED", taskId);
+        } else {
+            log.warn("No task found with ID: {}. Status not updated.", taskId);
+        }
 
 
     }
@@ -442,5 +443,35 @@ public class TaskServiceImpl  implements  TaskService{
         }
     }
 
+    @Override
+    public List<TechnicianTaskMapper> getTechnitianByTaskId(long taskId) {
+        List<TechnicianTaskMapper> technicianTaskMappers =
+                technicianTaskMapperRepository.getTechnitiansByTaskId(taskId);
 
+        if (Objects.isNull(technicianTaskMappers) || technicianTaskMappers.isEmpty()) {
+            throw new RuntimeException("Technitian details not found by taskId");
+        }
+
+        return technicianTaskMappers;
+    }
+
+    @Override
+    public void updateTechnitianFeedBack(long taskId, long feedbackId) {
+
+        Integer noOfRecordsUpdated =
+                technicianTaskMapperRepository.updateTechnitianFeedBackDetails(taskId, feedbackId);
+
+        if (noOfRecordsUpdated == 0) {
+            throw new RuntimeException("Error While updating feedback details into technitian please retry");
+        }
+
+    }
+
+    @Override
+    public List<TechnitianFeedbackDetailProjection> getTechnitianFeedbackDetails(long feedbackId) {
+        List<TechnitianFeedbackDetailProjection> technitianFeedbackDetailProjections =
+                technicianTaskMapperRepository.getTechnitianFeedbackDetails(feedbackId);
+
+        return technitianFeedbackDetailProjections;
+    }
 }

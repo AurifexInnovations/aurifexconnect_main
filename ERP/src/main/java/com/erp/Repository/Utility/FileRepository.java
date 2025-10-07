@@ -13,6 +13,6 @@ public interface FileRepository extends JpaRepository<File , Long> {
     Integer findByGenIdAndCategoryMaxSequence(long genId , String category);
 
     @Query(value = "select * from files where gen_id = :genId and " +
-            "   category = :category and active = true and order by sequence" ,nativeQuery = true)
+            "   category = :category and active = true  order by sequence" ,nativeQuery = true)
     List<File> findByGenIdAndCategoryAndOrderBySequence(long genId , String category);
 }
