@@ -214,6 +214,7 @@ public class TaskServiceImpl implements TaskService {
 
     @Override
     public boolean getTask(long taskId) {
+
         return taskRepository.findById(taskId).isPresent();
     }
 
@@ -300,7 +301,6 @@ public class TaskServiceImpl implements TaskService {
 
 
     public TechnicianPerformanceResponse getTechnicianPerformance(LocalDate startDate, LocalDate endDate) {
-    public List<TechnicianPerformanceDTO> getTechniciansReportPerformanceByAssigenDate(LocalDate startDate, LocalDate endDate) {
         log.info("Starting getTechniciansReportPerformanceByAssigenDate with startDate={} and endDate={}", startDate, endDate);
 
         List<TechnicianPerformanceProjection> performanceList = taskScheduleRepository.getTechnicianPerformance(startDate, endDate);
@@ -475,3 +475,5 @@ public class TaskServiceImpl implements TaskService {
         return technitianFeedbackDetailProjections;
     }
 }
+
+
