@@ -1,5 +1,6 @@
 package com.erp.Strategy;
 
+import com.erp.Exception.ResourceNotFoundException;
 import com.erp.Model.GenericUser;
 import com.erp.Security.util.UserIdentity;
 import com.erp.Service.TaskService.TaskService;
@@ -51,7 +52,7 @@ public class TaskImageUploadStrategy implements FileUploadStrategy {
 
         boolean isValideTask = validateId(taskId);
         if (!isValideTask) {
-            throw new RuntimeException("Invalid taskId provided: " + taskId);
+            throw new ResourceNotFoundException("Invalid taskId provided: " + taskId);
         }
 
         List<String> filePaths = new ArrayList<>();
@@ -73,7 +74,7 @@ public class TaskImageUploadStrategy implements FileUploadStrategy {
             // Upload each file
             for (MultipartFile file : files) {
                 if (!imageValidator.isValid(file)) {
-                    throw new RuntimeException("Invalid file type: " + file.getOriginalFilename());
+                    throw new ResourceNotFoundException("Invalid file type: " + file.getOriginalFilename());
                 }
 
                 String extension = getExtension(file.getOriginalFilename());
