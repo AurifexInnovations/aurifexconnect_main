@@ -9,6 +9,7 @@ import com.erp.Model.TechnicianTaskMapper;
 import com.erp.Projection.TechnicianResponse;
 import com.erp.Projection.TechnicianTaskProjection;
 import com.erp.Projection.TechnitianFeedbackDetailProjection;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.multipart.MultipartFile;
@@ -31,7 +32,7 @@ public interface TaskService {
 
     public TechnicianPerformanceResponse getTechnicianPerformance(LocalDate startDate, LocalDate endDate);
 
-     void  updateTaskStatusTOInProgress(Long taskId);
+     void  updateTaskStatusTOInProgress(Long taskId,MultipartFile[] selfie);
 
      void updateTaskStatusToCompleted(Long taskId);
 

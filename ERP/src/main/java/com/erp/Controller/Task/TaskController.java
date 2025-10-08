@@ -175,8 +175,9 @@ public class TaskController {
                     @ApiResponse(responseCode = "400", description = "Invalid task ID")
             }
     )
-    public ResponseEntity<ResponseStructure<String>> updateTaskToInProgress(@PathVariable Long taskId) {
-        taskService.updateTaskStatusTOInProgress(taskId);
+    public ResponseEntity<ResponseStructure<String>> updateTaskStatusTOInProgress(@PathVariable Long taskId,
+                                                                            @RequestParam("files") MultipartFile[] selfie) {
+        taskService.updateTaskStatusTOInProgress(taskId,selfie);
         return ResponseBuilder.success(HttpStatus.OK, "Task status updated to IN_PROGRESS", "Task ID: " + taskId);
     }
 

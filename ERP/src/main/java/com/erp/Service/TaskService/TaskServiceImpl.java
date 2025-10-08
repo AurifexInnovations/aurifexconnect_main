@@ -20,10 +20,13 @@ import com.erp.Repository.Feedback.FeedbackRepository;
 import com.erp.Repository.Task.*;
 import com.erp.Service.ServiceType.ServiceType;
 import com.erp.Service.Utility.FileService;
+import com.erp.constants.FileUploadConstants;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
@@ -59,7 +62,10 @@ public class TaskServiceImpl implements TaskService {
 
     private final FeedbackRepository feedbackRepository;
 
-    private final FileService fileService;
+    @Lazy
+    private FileService fileService;
+
+
 
     @Override
     @Transactional
@@ -359,10 +365,13 @@ public class TaskServiceImpl implements TaskService {
 
 
     @Override
-    public void updateTaskStatusTOInProgress(Long taskId) {
+    public void updateTaskStatusTOInProgress(Long taskId,MultipartFile[] selfie) {
         log.info("Updating status of task with ID: {}", taskId);
 
         validateTaskById(taskId);
+
+
+        fileService.uploadFiles(taskId, FileUploadConstants.SELFIE,selfie);
 
         int rowsUpdated = taskRepository.updateTaskStatus(taskId, TaskStatus.IN_PROGRESS);
 
@@ -385,6 +394,7 @@ public class TaskServiceImpl implements TaskService {
         log.info("Updating status of task with ID: {} to COMPLETED", taskId);
 
         Task task = validateTaskById(taskId);
+
 
         int rowsUpdated = taskRepository.updateTaskStatus(taskId, TaskStatus.COMPLETED);
 
@@ -422,9 +432,9 @@ public class TaskServiceImpl implements TaskService {
             // Save or update task materials
             saveTaskMaterials(completeTaskRequestDTO.getTaskId(), completeTaskRequestDTO.getTaskMaterialList(), existingMaterials);
 
-            fileService.uploadFiles(completeTaskRequestDTO.getTaskId(),"SELFI",beforeImages);
+            fileService.uploadFiles(completeTaskRequestDTO.getTaskId(),FileUploadConstants.BEFORE_SERVICE,beforeImages);
 
-            fileService.uploadFiles(completeTaskRequestDTO.getTaskId(),"SELFI",afterImages);
+            fileService.uploadFiles(completeTaskRequestDTO.getTaskId(),FileUploadConstants.AFTER_SERVICE,afterImages);
 
             // update status
             updateTaskStatusToCompleted(completeTaskRequestDTO.getTaskId());
