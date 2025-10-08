@@ -3,6 +3,8 @@ package com.erp.Service.Feedback;
 import com.erp.Dto.Request.FeedbackRequest;
 import com.erp.Dto.Response.FeedbackResponse;
 import com.erp.Dto.Response.FileResponse;
+import com.erp.Exception.ResourceFoundException;
+import com.erp.Exception.ResourceNotFoundException;
 import com.erp.Mapper.Feedback.FeedbackMapper;
 import com.erp.Model.Feedback;
 import com.erp.Model.GenericUser;
@@ -48,7 +50,7 @@ public class FeedbackService {
         Feedback feedback = getFeedback(taskId , currentUser.getId());
 
         if(Objects.nonNull(feedback)){
-            throw new RuntimeException("Feedback alreday found");
+            throw new ResourceFoundException("Feedback alreday found");
         }
 
         feedback = feedbackMapper.map(feedbackRequest);
@@ -108,7 +110,7 @@ public class FeedbackService {
                 feedbackRepository.findById(feedbackId);
 
         if(feedbackContainer.isEmpty()){
-            throw new RuntimeException("Feedback details not found");
+            throw new ResourceNotFoundException("Feedback details not found");
         }
 
         log.info("Exit [FeedbackService] [getFeedback] ");

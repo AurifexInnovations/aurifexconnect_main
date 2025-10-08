@@ -26,7 +26,7 @@ public class FileService {
 
     public List<FileResponse> uploadFiles(Long genId, String category, MultipartFile[] files) {
         GenericUser user = userIdentity.getCurrentUser();
-        Long uploadedBy = user.getId(); // ✅ using logged in user as technicianId
+        Long uploadedBy = user.getId();
 
         FileUploadStrategy strategy = fileUploadContext.getStrategy(category);
 
