@@ -2,10 +2,7 @@ package com.erp.Controller.Task;
 
 
 import com.erp.Dto.Request.*;
-import com.erp.Dto.Response.GetAllTaskResponse;
-import com.erp.Dto.Response.TaskResponse;
-import com.erp.Dto.Response.TechnicianPerformanceDTO;
-import com.erp.Dto.Response.TechnicianPerformanceResponse;
+import com.erp.Dto.Response.*;
 import com.erp.Projection.TechnicianResponse;
 import com.erp.Projection.TechnicianTaskProjection;
 import com.erp.Service.TaskService.TaskService;
@@ -145,19 +142,20 @@ public class TaskController {
                     @ApiResponse(responseCode = "400", description = "Invalid request parameters")
             }
     )
-    public ResponseEntity<TechnicianPerformanceResponse> getTechnicianPerformanceReport(
-            @RequestParam LocalDate startDate,
-            @RequestParam LocalDate endDate) {
+    public ResponseEntity<List<TechnicianLeaderboardDto>> getTechnicianPerformanceReport(
+            @RequestParam String startDate,
+            @RequestParam String endDate) {
 
         log.info("[TechnicianPerformanceController] Entering getTechnicianPerformanceReport with startDate: {} and endDate: {}", startDate, endDate);
-
+        List<TechnicianLeaderboardDto> technicianLeaderboardDto ;
         try {
 
-            TechnicianPerformanceResponse response = taskService.getTechnicianPerformance(startDate, endDate);
+            technicianLeaderboardDto =  taskService.getTechnicianLeaderboard(startDate, endDate);
+
 
             log.info("[TechnicianPerformanceController] Returning response with {} technicians",
-                    response.getTechnicians().size());
-            return ResponseEntity.ok(response);
+                    technicianLeaderboardDto.size());
+            return ResponseEntity.ok( technicianLeaderboardDto);
 
         } catch (Exception e) {
             log.error("[TechnicianPerformanceController] Error while fetching technician performance report", e);
@@ -217,6 +215,7 @@ public class TaskController {
                 "Task ID: " + completeTaskRequestDTO.getTaskId() + " | Total materials processed: " + (completeTaskRequestDTO.getTaskMaterialList() != null ? completeTaskRequestDTO.getTaskMaterialList().size() : 0)
         );
     }
+
 
 
 

@@ -11,11 +11,7 @@ import com.erp.Mapper.TaskMapper.TaskMapper;
 import com.erp.Model.Task;
 
 import com.erp.Model.*;
-import com.erp.Projection.LeaderboardProjection;
-import com.erp.Projection.TechnicianPerformanceProjection;
-import com.erp.Projection.TechnicianResponse;
-import com.erp.Projection.TechnicianTaskProjection;
-import com.erp.Projection.TechnitianFeedbackDetailProjection;
+import com.erp.Projection.*;
 import com.erp.Repository.Feedback.FeedbackRepository;
 import com.erp.Repository.Task.*;
 import com.erp.Service.ServiceType.ServiceType;
@@ -25,14 +21,14 @@ import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
-import org.springframework.beans.factory.annotation.Autowired;
+
 import org.springframework.context.annotation.Lazy;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestParam;
+
+
 import org.springframework.web.multipart.MultipartFile;
 
 import java.time.LocalDate;
@@ -57,8 +53,6 @@ public class TaskServiceImpl implements TaskService {
     private final TaskMapper taskMapper;
 
     private final TaskDetailsMapper taskDetailsMapper;
-
-    private final ServiceType serviceType;
 
     private final FeedbackRepository feedbackRepository;
 
@@ -234,6 +228,7 @@ public class TaskServiceImpl implements TaskService {
     }
 
 
+
     @Override
     public List<TechnicianResponse> getTechnicians(TechnicianRequest technicianRequest) {
         log.info("[TaskService] [getTechnicians] Entered with request: {}", technicianRequest);
@@ -253,11 +248,7 @@ public class TaskServiceImpl implements TaskService {
                         Sort.by(Sort.Direction.DESC, "task_id")
                 );
 
-//                LocalDate startDate = technicianRequest.getStartDate();
-//                LocalDate endDate = technicianRequest.getEndDate();
-//
-//                if (startDate == null) startDate = LocalDate.of(startDate);
-//                if (endDate == null) endDate = LocalDate.of(endDate);
+
 
                 LocalDate startDate = technicianRequest.getStartDate();
                 LocalDate endDate = technicianRequest.getEndDate();
@@ -318,49 +309,37 @@ public class TaskServiceImpl implements TaskService {
 
 
 
+    public List<TechnicianLeaderboardDto> getTechnicianLeaderboard(String startDate, String endDate) {
 
-    public TechnicianPerformanceResponse getTechnicianPerformance(LocalDate startDate, LocalDate endDate) {
-        log.info("Starting getTechniciansReportPerformanceByAssigenDate with startDate={} and endDate={}", startDate, endDate);
 
-        List<TechnicianPerformanceProjection> performanceList = taskScheduleRepository.getTechnicianPerformance(startDate, endDate);
-        List<LeaderboardProjection> leaderboardList = taskScheduleRepository.getLeaderboard();
+        LocalDate start = LocalDate.parse(startDate);
+        LocalDate end = LocalDate.parse(endDate);
 
-        Map<Long, TechnicianStatsDTO> technicianStatsMap = new HashMap<>();
-        Map<Long, List<ChemicalUsageDTO>> chemicalUsageMap = new HashMap<>();
+        var leaderboardData = taskScheduleRepository.findTechnicianLeaderboard(start, end);
+        var materialData = taskScheduleRepository.findTechnicianMaterialUsage(start, end);
 
-        for (TechnicianPerformanceProjection p : performanceList) {
+        // Group materials by technicianId
+        Map<Long, List<MaterialUsageDto>> materialsByTech = materialData.stream()
+                .collect(Collectors.groupingBy(
+                        TechnicianMaterialProjection::getTechnicianId,
+                        Collectors.mapping(m -> new MaterialUsageDto(
+                                m.getProductName(),
+                                m.getTotalQuantity(),
+                                m.getUnit()
+                        ), Collectors.toList())
+                ));
 
-            technicianStatsMap.computeIfAbsent(p.getTechnicianId(), id -> {
-                TechnicianStatsDTO stats = new TechnicianStatsDTO();
-                stats.setTechnicianId(id);
-                stats.setTasksCompleted(p.getTasksCompleted());
-                stats.setAverageRating(p.getAverageRating());
-                return stats;
-            });
-
-            if (p.getProductName() != null) {
-                chemicalUsageMap.computeIfAbsent(p.getTechnicianId(), id -> new ArrayList<>())
-                        .add(new ChemicalUsageDTO(p.getProductName(), p.getQuantity(), p.getUnit()));
-            }
-        }
-
-        List<TechnicianStatsDTO> technicianStats = technicianStatsMap.values().stream().map(stats -> {
-            stats.setChemicalUsage(chemicalUsageMap.getOrDefault(stats.getTechnicianId(), new ArrayList<>()));
-            return stats;
-        }).collect(Collectors.toList());
-
-        List<LeaderboardDTO> leaderboard = leaderboardList.stream()
-                .map(l -> new LeaderboardDTO(
-                        l.getTechnicianId(),
-                        l.getName(),
-                        l.getRank(),
-                        l.getAverageRating()
+        return leaderboardData.stream()
+                .map(t -> new TechnicianLeaderboardDto(
+                        t.getTechnicianId(),
+                        t.getTechnicianName(),
+                        t.getCompletedTasks(),
+                        t.getAvgRating(),
+                        t.getRank(),
+                        materialsByTech.getOrDefault(t.getTechnicianId(), Collections.emptyList())
                 ))
                 .collect(Collectors.toList());
-
-        return new TechnicianPerformanceResponse(technicianStats, leaderboard);
     }
-
 
 
 
@@ -530,10 +509,8 @@ public class TaskServiceImpl implements TaskService {
 
     @Override
     public List<TechnitianFeedbackDetailProjection> getTechnitianFeedbackDetails(long feedbackId) {
-        List<TechnitianFeedbackDetailProjection> technitianFeedbackDetailProjections =
-                technicianTaskMapperRepository.getTechnitianFeedbackDetails(feedbackId);
 
-        return technitianFeedbackDetailProjections;
+        return technicianTaskMapperRepository.getTechnitianFeedbackDetails(feedbackId);
     }
 }
 
