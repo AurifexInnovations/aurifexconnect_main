@@ -16,8 +16,10 @@ import com.erp.Projection.TechnicianPerformanceProjection;
 import com.erp.Projection.TechnicianResponse;
 import com.erp.Projection.TechnicianTaskProjection;
 import com.erp.Projection.TechnitianFeedbackDetailProjection;
+import com.erp.Repository.Feedback.FeedbackRepository;
 import com.erp.Repository.Task.*;
 import com.erp.Service.ServiceType.ServiceType;
+import com.erp.Service.Utility.FileService;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -26,6 +28,9 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.time.LocalDate;
 import java.util.*;
@@ -51,6 +56,10 @@ public class TaskServiceImpl implements TaskService {
     private final TaskDetailsMapper taskDetailsMapper;
 
     private final ServiceType serviceType;
+
+    private final FeedbackRepository feedbackRepository;
+
+    private final FileService fileService;
 
     @Override
     @Transactional
@@ -390,62 +399,100 @@ public class TaskServiceImpl implements TaskService {
 
 
     @Transactional
-    public void updateTaskMaterialForStatusProgress(Long taskId, List<TaskMaterialDTO> taskMaterialList) {
-        log.info("Starting updateTaskMaterialForStatusProgress for taskId: {}", taskId);
+    public void updateTaskMaterialForStatusProgress(
+            CompleteTaskRequestDTO completeTaskRequestDTO,
+            MultipartFile[] beforeImages,
+            MultipartFile[] afterImages) {
 
-        if (taskMaterialList == null || taskMaterialList.isEmpty()) {
-            log.warn("No task materials provided for taskId: {}", taskId);
+        log.info("Starting updateTaskMaterialForStatusProgress for taskId: {}", completeTaskRequestDTO.getTaskId());
+
+        if (completeTaskRequestDTO.getTaskMaterialList() == null || completeTaskRequestDTO.getTaskMaterialList().isEmpty()) {
+            log.warn("No task materials provided for taskId: {}", completeTaskRequestDTO.getTaskId());
             return;
         }
 
         try {
-            log.info("Fetching existing task materials for taskId: {}", taskId);
-            List<TaskMaterial> existingMaterials = taskMaterialRepository.findByTaskId(taskId);
-            log.info("Found {} existing task materials for taskId: {}", existingMaterials.size(), taskId);
+            log.info("Fetching existing task materials for taskId: {}", completeTaskRequestDTO.getTaskId());
+            List<TaskMaterial> existingMaterials = taskMaterialRepository.findByTaskId(completeTaskRequestDTO.getTaskId());
+            log.info("Found {} existing task materials for taskId: {}", existingMaterials.size(), completeTaskRequestDTO.getTaskId());
 
-            Map<Long, TaskMaterial> existingMap = new HashMap<>();
-            for (TaskMaterial tm : existingMaterials) {
-                existingMap.put(tm.getMaterialId(), tm);
-                log.debug("Existing material mapped: materialId={}, unit={}, quantity={}, isUsed={}",
-                        tm.getMaterialId(), tm.getUnit(), tm.getQuantity(), tm.getIsUsed());
-            }
+            // Save feedback list
+            saveFeedbackList(completeTaskRequestDTO.getFeedbackList());
 
-            List<TaskMaterial> materialsToSave = new ArrayList<>();
+            // Save or update task materials
+            saveTaskMaterials(completeTaskRequestDTO.getTaskId(), completeTaskRequestDTO.getTaskMaterialList(), existingMaterials);
 
-            for (TaskMaterialDTO dto : taskMaterialList) {
-                log.debug("Processing DTO: materialId={}, unit={}, quantity={}, isUsed={}",
-                        dto.getMaterialId(), dto.getUnit(), dto.getQuantity(), dto.getIsUsed());
+            fileService.uploadFiles(completeTaskRequestDTO.getTaskId(),"SELFI",beforeImages);
 
-                TaskMaterial taskMaterial = existingMap.get(dto.getMaterialId());
+            fileService.uploadFiles(completeTaskRequestDTO.getTaskId(),"SELFI",afterImages);
 
-                if (taskMaterial != null) {
-                    log.info("Updating existing material: materialId={}", dto.getMaterialId());
-                    taskMaterial.setUnit(dto.getUnit());
-                    taskMaterial.setIsUsed(dto.getIsUsed());
-                    taskMaterial.setQuantity(dto.getQuantity());
-                    materialsToSave.add(taskMaterial);
-                } else {
-                    log.info("Adding new material: materialId={}", dto.getMaterialId());
-                    TaskMaterial newMaterial = TaskMaterial.builder()
-                            .taskId(taskId)
-                            .materialId(dto.getMaterialId())
-                            .unit(dto.getUnit())
-                            .isUsed(dto.getIsUsed())
-                            .quantity(dto.getQuantity())
-                            .build();
-                    materialsToSave.add(newMaterial);
-                }
-            }
-
-            log.info("Saving {} task materials for taskId: {}", materialsToSave.size(), taskId);
-            taskMaterialRepository.saveAll(materialsToSave);
-            log.info("Task materials successfully updated for taskId: {}", taskId);
+            // update status
+            updateTaskStatusToCompleted(completeTaskRequestDTO.getTaskId());
 
         } catch (Exception e) {
-            log.error("Error updating task materials for taskId: {}", taskId, e);
+            log.error("Error updating task materials for taskId: {}", completeTaskRequestDTO.getTaskId(), e);
             throw e;
         }
     }
+
+    private void saveFeedbackList(List<FeedbackRequest> feedbackRequests) {
+        if (feedbackRequests == null || feedbackRequests.isEmpty())
+            return;
+
+        List<Feedback> feedbackList = new ArrayList<>();
+        for (FeedbackRequest dto : feedbackRequests) {
+            Feedback model = new Feedback();
+            model.setComment(dto.getComment());
+            model.setRating(dto.getRating());
+            model.setOtp(dto.getOtp());
+            feedbackList.add(model);
+        }
+
+        if (!feedbackList.isEmpty()) {
+            feedbackRepository.saveAll(feedbackList);
+            log.info("Saved {} feedback entries", feedbackList.size());
+        }
+    }
+
+    private void saveTaskMaterials(Long taskId, List<TaskMaterialDTO> taskMaterialDTOs, List<TaskMaterial> existingMaterials) {
+        Map<Long, TaskMaterial> existingMap = new HashMap<>();
+        for (TaskMaterial tm : existingMaterials) {
+            existingMap.put(tm.getMaterialId(), tm);
+            log.debug("Existing material mapped: materialId={}, unit={}, quantity={}, isUsed={}",
+                    tm.getMaterialId(), tm.getUnit(), tm.getQuantity(), tm.getIsUsed());
+        }
+
+        List<TaskMaterial> materialsToSave = new ArrayList<>();
+        for (TaskMaterialDTO dto : taskMaterialDTOs) {
+            log.debug("Processing DTO: materialId={}, unit={}, quantity={}, isUsed={}",
+                    dto.getMaterialId(), dto.getUnit(), dto.getQuantity(), dto.getIsUsed());
+
+            TaskMaterial taskMaterial = existingMap.get(dto.getMaterialId());
+
+            if (taskMaterial != null) {
+                log.info("Updating existing material: materialId={}", dto.getMaterialId());
+                taskMaterial.setUnit(dto.getUnit());
+                taskMaterial.setIsUsed(dto.getIsUsed());
+                taskMaterial.setQuantity(dto.getQuantity());
+                materialsToSave.add(taskMaterial);
+            } else {
+                log.info("Adding new material: materialId={}", dto.getMaterialId());
+                TaskMaterial newMaterial = TaskMaterial.builder()
+                        .taskId(taskId)
+                        .materialId(dto.getMaterialId())
+                        .unit(dto.getUnit())
+                        .isUsed(dto.getIsUsed())
+                        .quantity(dto.getQuantity())
+                        .build();
+                materialsToSave.add(newMaterial);
+            }
+        }
+
+        log.info("Saving {} task materials for taskId: {}", materialsToSave.size(), taskId);
+        taskMaterialRepository.saveAll(materialsToSave);
+        log.info("Task materials successfully updated for taskId: {}", taskId);
+    }
+
 
     @Override
     public List<TechnicianTaskMapper> getTechnitianByTaskId(long taskId) {

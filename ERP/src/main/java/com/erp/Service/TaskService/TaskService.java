@@ -1,9 +1,6 @@
 package com.erp.Service.TaskService;
 
-import com.erp.Dto.Request.TaskMaterialDTO;
-import com.erp.Dto.Request.TaskRequest;
-import com.erp.Dto.Request.TechnicianRequest;
-import com.erp.Dto.Request.TechnicianTaskRequest;
+import com.erp.Dto.Request.*;
 import com.erp.Dto.Response.GetAllTaskResponse;
 import com.erp.Dto.Response.TaskResponse;
 import com.erp.Dto.Response.TechnicianPerformanceDTO;
@@ -12,6 +9,9 @@ import com.erp.Model.TechnicianTaskMapper;
 import com.erp.Projection.TechnicianResponse;
 import com.erp.Projection.TechnicianTaskProjection;
 import com.erp.Projection.TechnitianFeedbackDetailProjection;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.time.LocalDate;
 import java.util.List;
@@ -35,7 +35,10 @@ public interface TaskService {
 
      void updateTaskStatusToCompleted(Long taskId);
 
-    void updateTaskMaterialForStatusProgress(Long taskId, List<TaskMaterialDTO> taskMaterialList);
+    void updateTaskMaterialForStatusProgress(
+            CompleteTaskRequestDTO completeTaskRequestDTO,
+            MultipartFile[] beforeImages,
+            MultipartFile[] afterImages);
 
     List<TechnicianTaskMapper> getTechnitianByTaskId(long taskId);
 

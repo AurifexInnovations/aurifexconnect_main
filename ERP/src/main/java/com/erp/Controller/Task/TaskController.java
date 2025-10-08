@@ -22,6 +22,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.time.LocalDate;
 import java.util.List;
@@ -193,7 +194,7 @@ public class TaskController {
         return ResponseBuilder.success(HttpStatus.OK, "Task status updated to COMPLETED", "Task ID: " + taskId);
     }
 
-    @PostMapping("/task/updateMaterials/{taskId}")
+    @PostMapping("/task/completed")
     @Operation(
             summary = "Update Task Materials for a Task",
             description = "Update or add task materials for the given task ID",
@@ -203,15 +204,16 @@ public class TaskController {
             }
     )
     public ResponseEntity<ResponseStructure<String>> updateTaskMaterials(
-            @PathVariable Long taskId,
-            @RequestBody List<TaskMaterialDTO> taskMaterialList) {
+            @RequestBody CompleteTaskRequestDTO completeTaskRequestDTO,
+            @RequestParam("files") MultipartFile[] beforeImages,
+            @RequestParam("files") MultipartFile[] afterImages) {
 
-        taskService.updateTaskMaterialForStatusProgress(taskId, taskMaterialList);
+        taskService.updateTaskMaterialForStatusProgress(completeTaskRequestDTO,beforeImages,afterImages);
 
         return ResponseBuilder.success(
                 HttpStatus.OK,
                 "Task materials updated successfully",
-                "Task ID: " + taskId + " | Total materials processed: " + (taskMaterialList != null ? taskMaterialList.size() : 0)
+                "Task ID: " + completeTaskRequestDTO.getTaskId() + " | Total materials processed: " + (completeTaskRequestDTO.getTaskMaterialList() != null ? completeTaskRequestDTO.getTaskMaterialList().size() : 0)
         );
     }
 
