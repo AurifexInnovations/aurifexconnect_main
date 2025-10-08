@@ -380,8 +380,7 @@ public class TaskServiceImpl implements TaskService {
 
         log.info("Updating status of task with ID: {} to COMPLETED", taskId);
 
-        Task task = validateTaskById(taskId);
-
+        validateTaskById(taskId);
 
         int rowsUpdated = taskRepository.updateTaskStatus(taskId, TaskStatus.COMPLETED);
 

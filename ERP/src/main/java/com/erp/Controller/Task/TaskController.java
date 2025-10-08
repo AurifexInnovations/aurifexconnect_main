@@ -47,6 +47,11 @@ public class TaskController {
 
     }
 
+
+
+
+
+
     @GetMapping("/getAll")
     @Operation(
             summary = "Get All Task Requests",
@@ -77,6 +82,9 @@ public class TaskController {
         );
     }
 
+
+
+
     @PostMapping("/technician/search")
     @Operation(
             summary = "Search Task Technicians",
@@ -105,6 +113,9 @@ public class TaskController {
     }
 
 
+
+
+
     @PostMapping("/searchByDate")
     @Operation(
             summary = "Search Technicians by Date and Assigned Date",
@@ -131,6 +142,9 @@ public class TaskController {
         log.info("[TechnicianController] Returning response successfully");
         return ResponseEntity.ok(technicians);
     }
+
+
+
 
 
     @GetMapping("/task/performance/report")
@@ -164,7 +178,10 @@ public class TaskController {
     }
 
 
-    @PostMapping("/task/inProgress/{taskId}")
+
+
+
+    @PostMapping("/task/start/{taskId}")
     @Operation(
             summary = "Update Task Status to IN_PROGRESS",
             description = "Update the status of a task to IN_PROGRESS by task ID",
@@ -178,6 +195,9 @@ public class TaskController {
         taskService.updateTaskStatusTOInProgress(taskId,selfie);
         return ResponseBuilder.success(HttpStatus.OK, "Task status updated to IN_PROGRESS", "Task ID: " + taskId);
     }
+
+
+
 
     @PostMapping("/task/completed/{taskId}")
     @Operation(
