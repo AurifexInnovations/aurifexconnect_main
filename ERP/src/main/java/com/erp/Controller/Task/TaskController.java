@@ -1,10 +1,7 @@
 package com.erp.Controller.Task;
 
 
-import com.erp.Dto.Request.TaskMaterialDTO;
-import com.erp.Dto.Request.TaskRequest;
-import com.erp.Dto.Request.TechnicianRequest;
-import com.erp.Dto.Request.TechnicianTaskRequest;
+import com.erp.Dto.Request.*;
 import com.erp.Dto.Response.GetAllTaskResponse;
 import com.erp.Dto.Response.TaskResponse;
 import com.erp.Dto.Response.TechnicianPerformanceDTO;

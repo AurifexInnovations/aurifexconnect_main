@@ -246,12 +246,16 @@ public class TaskServiceImpl implements TaskService {
 
                 LocalDate startDate = technicianRequest.getStartDate();
                 LocalDate endDate = technicianRequest.getEndDate();
+                String  status = technicianRequest.getStatus();
+                Boolean isActive = Boolean.FALSE;
+                if(Objects.nonNull(status) && status.equals("active")){
+                    isActive= Boolean.TRUE;
+                }
 
-
-                return taskRepository.searchTasksWithScheduleAndTechnicians(
+                  technicianList =  taskRepository.searchTasksWithScheduleAndTechnicians(
                         startDate,
                         endDate,
-                        technicianRequest.getStatus(),
+                        isActive,
                         technicianRequest.getCategory()
                 );
 

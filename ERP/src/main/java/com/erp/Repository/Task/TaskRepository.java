@@ -122,9 +122,10 @@ public interface TaskRepository extends JpaRepository<Task,Long> {
     List<TechnicianResponse> searchTasksWithScheduleAndTechnicians(
             @Param("startDate") LocalDate startDate,
             @Param("endDate") LocalDate endDate,
-            @Param("status") String status,
+            @Param("status") Boolean status,
             @Param("category") String category
     );
+
 
 
 
