@@ -141,11 +141,15 @@ CREATE TABLE task_schedule (
 );
 
 
+
+
 CREATE TABLE leaderboard (
     id BIGSERIAL PRIMARY KEY,
     technician_id BIGINT NOT NULL,
-    rank INT NOT NULL
+    average_rating DOUBLE PRECISION NOT NULL,
+    tasks_completed BIGINT NOT NULL
 );
+
 
 CREATE TABLE feedbacks (
     id BIGSERIAL PRIMARY KEY,
@@ -180,3 +184,4 @@ CREATE TABLE files (
     modified_at   TIMESTAMP,
     deleted_at    TIMESTAMP
 );
+
