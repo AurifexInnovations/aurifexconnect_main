@@ -10,8 +10,9 @@ import lombok.NoArgsConstructor;
 public class MaterialDto {
 
 
-    private Long productId;
+    private Long materialId;
     private Double unit;
-    private Double quantity;
+    private Long quantity;
+    private  Boolean isUsed;
 
 }

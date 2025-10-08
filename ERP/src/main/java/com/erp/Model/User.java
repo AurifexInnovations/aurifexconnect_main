@@ -1,5 +1,6 @@
 package com.erp.Model;
 
+import com.erp.Enum.Designation;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
@@ -52,6 +53,10 @@ public class User implements GenericUser {
     @CreatedDate
     @Column(name = "created_at")
     private LocalDate createdAt;
+
+    @Enumerated(EnumType.STRING)
+    @Column(name = "designation")
+    private Designation designation = Designation.TECHNICIAN;
 
     @LastModifiedDate
     @Column(name = "last_modified_at")

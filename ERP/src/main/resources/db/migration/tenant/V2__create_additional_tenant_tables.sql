@@ -10,6 +10,7 @@ CREATE TABLE IF NOT EXISTS users (
     last_name VARCHAR(255),
     email VARCHAR(255) NOT NULL UNIQUE,
     phone_no BIGINT,
+    designation VARCHAR(255),
     password VARCHAR(255) NOT NULL,
     is_active BOOLEAN DEFAULT TRUE,
     schema_name VARCHAR(255) NOT NULL,

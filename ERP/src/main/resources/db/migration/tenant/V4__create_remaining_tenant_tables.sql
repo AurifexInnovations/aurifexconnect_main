@@ -99,3 +99,89 @@ CREATE TABLE IF NOT EXISTS stock_transfer (
     FOREIGN KEY (to_branch_branch_id) REFERENCES branch(branch_id),
     FOREIGN KEY (inventory_item_id) REFERENCES inventory(item_id)
 );
+
+CREATE TABLE task_material (
+    task_material_id BIGSERIAL PRIMARY KEY,
+    task_id          BIGINT NOT NULL,
+    material_id      BIGINT NOT NULL,
+    unit             DOUBLE PRECISION,
+    is_used          BOOLEAN,
+    quantity         BIGINT NOT NULL
+);
+
+CREATE TABLE task (
+    task_id BIGSERIAL PRIMARY KEY,
+    task_name VARCHAR(255) NOT NULL,
+    customer_id BIGINT NOT NULL,
+    task_category VARCHAR(255),
+    task_details TEXT,
+    status VARCHAR(50) NOT NULL,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    created_by BIGINT,
+    updated_by BIGINT
+);
+
+CREATE TABLE task_services (
+    task_service_id BIGSERIAL PRIMARY KEY,
+    task_id         BIGINT NOT NULL,
+    service_id      BIGINT NOT NULL
+);
+
+CREATE TABLE task_schedule (
+    task_schedule_id     BIGSERIAL PRIMARY KEY,
+    task_id              BIGINT NOT NULL,
+    assigned_date        DATE,
+    assigned_time        TIME,
+    google_location_link VARCHAR(255),
+    field_type           VARCHAR(255),
+    service_location     VARCHAR(255),
+    task_start_time      TIME,
+    task_end_time        TIME
+);
+
+
+
+
+CREATE TABLE leaderboard (
+    id BIGSERIAL PRIMARY KEY,
+    technician_id BIGINT NOT NULL,
+    average_rating DOUBLE PRECISION NOT NULL,
+    tasks_completed BIGINT NOT NULL
+);
+
+
+CREATE TABLE feedbacks (
+    id BIGSERIAL PRIMARY KEY,
+    customer_id BIGINT NOT NULL,
+    task_id BIGINT NOT NULL,
+    rating REAL NOT NULL,
+    comment VARCHAR(1000),
+    otp INT,
+    is_active BOOLEAN NOT NULL DEFAULT TRUE,
+    created_at TIMESTAMP ,
+    updated_at TIMESTAMP
+);
+
+CREATE TABLE task_technicians (
+    task_technicians_id BIGSERIAL PRIMARY KEY,
+    task_id             BIGINT NOT NULL,
+    technician_id       BIGINT NOT NULL,
+    feedback_id         BIGINT
+);
+
+
+CREATE TABLE files (
+    file_id       BIGSERIAL PRIMARY KEY,
+    file_url      VARCHAR(255),
+    sequence      INT,
+    category      VARCHAR(255),
+    uploaded_by   BIGINT,
+    gen_id        BIGINT,
+    extension     VARCHAR(50),
+    active        BOOLEAN,
+    uploaded_at   TIMESTAMP,
+    modified_at   TIMESTAMP,
+    deleted_at    TIMESTAMP
+);
+

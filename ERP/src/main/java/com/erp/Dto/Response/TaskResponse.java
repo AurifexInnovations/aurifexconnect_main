@@ -4,6 +4,6 @@ import lombok.Data;
 
 @Data
 public class TaskResponse {
-    private String taskId;
+    private Long taskId;
     private String message;
 }

@@ -20,8 +20,7 @@ import java.util.List;
 @Builder
 public class TaskRequest {
 
-    @NotBlank(message = "Name is required")
-    @NotEmpty
+
     private Long taskId;
     private String taskName;
     private Long customerId;
