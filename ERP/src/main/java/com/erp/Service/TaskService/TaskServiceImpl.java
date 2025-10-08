@@ -3,6 +3,7 @@ package com.erp.Service.TaskService;
 import com.erp.Dto.Request.*;
 import com.erp.Dto.Response.*;
 import com.erp.Enum.TaskStatus;
+import com.erp.Exception.DBReltedException;
 import com.erp.Exception.Task.TaskNoFoundException;
 import com.erp.Exception.Tax.TaxNotFoundException;
 import com.erp.Mapper.TaskMapper.TaskDetailsMapper;
@@ -509,7 +510,7 @@ public class TaskServiceImpl implements TaskService {
                 technicianTaskMapperRepository.updateTechnitianFeedBackDetails(taskId, feedbackId);
 
         if (noOfRecordsUpdated == 0) {
-            throw new RuntimeException("Error While updating feedback details into technitian please retry");
+            throw new DBReltedException("Error While updating feedback details into technitian please retry");
         }
 
     }
