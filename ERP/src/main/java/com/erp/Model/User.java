@@ -54,6 +54,7 @@ public class User implements GenericUser {
     @Column(name = "created_at")
     private LocalDate createdAt;
 
+    @Enumerated(EnumType.STRING)
     @Column(name = "designation")
     private Designation designation = Designation.TECHNICIAN;
 
