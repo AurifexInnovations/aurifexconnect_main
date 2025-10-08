@@ -309,16 +309,20 @@ public class TaskServiceImpl implements TaskService {
 
 
 
-    public List<TechnicianLeaderboardDto> getTechnicianLeaderboard(String startDate, String endDate) {
 
+
+    public List<TechnicianLeaderboardDto> getTechnicianLeaderboard(String startDate, String endDate) {
+        log.info("Fetching Technician Leaderboard from {} to {}", startDate, endDate);
 
         LocalDate start = LocalDate.parse(startDate);
         LocalDate end = LocalDate.parse(endDate);
 
         var leaderboardData = taskScheduleRepository.findTechnicianLeaderboard(start, end);
-        var materialData = taskScheduleRepository.findTechnicianMaterialUsage(start, end);
+        log.info("Fetched {} technicians for leaderboard", leaderboardData.size());
 
-        // Group materials by technicianId
+        var materialData = taskScheduleRepository.findTechnicianMaterialUsage(start, end);
+        log.info("Fetched {} material usage records", materialData.size());
+
         Map<Long, List<MaterialUsageDto>> materialsByTech = materialData.stream()
                 .collect(Collectors.groupingBy(
                         TechnicianMaterialProjection::getTechnicianId,
@@ -328,8 +332,9 @@ public class TaskServiceImpl implements TaskService {
                                 m.getUnit()
                         ), Collectors.toList())
                 ));
+        log.info("Grouped materials by technician: {}", materialsByTech.keySet());
 
-        return leaderboardData.stream()
+        List<TechnicianLeaderboardDto> technicianLeaderboardDtoList = leaderboardData.stream()
                 .map(t -> new TechnicianLeaderboardDto(
                         t.getTechnicianId(),
                         t.getTechnicianName(),
@@ -339,6 +344,9 @@ public class TaskServiceImpl implements TaskService {
                         materialsByTech.getOrDefault(t.getTechnicianId(), Collections.emptyList())
                 ))
                 .collect(Collectors.toList());
+
+        log.info("Final leaderboard DTO list size: {}", technicianLeaderboardDtoList.size());
+        return technicianLeaderboardDtoList;
     }
 
 
