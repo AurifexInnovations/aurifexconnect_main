@@ -2,10 +2,7 @@ package com.erp.Repository.Task;
 
 import com.erp.Dto.Response.TechnicianPerformanceDTO;
 import com.erp.Model.TaskSchedule;
-import com.erp.Projection.LeaderboardProjection;
-import com.erp.Projection.TechnicianPerformanceProjection;
-import com.erp.Projection.TechnicianResponse;
-import com.erp.Projection.TechnicianTaskProjection;
+import com.erp.Projection.*;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
@@ -38,62 +35,69 @@ public interface TaskScheduleRepository extends JpaRepository<TaskSchedule,Long>
 
 
 
-//    @Query(value = """
-//    SELECT u.id as technicianId,
-//           CONCAT(u.first_name, ' ', u.last_name) as name,
-//           lb.tasks_completed as tasksCompleted,
-//           lb.average_rating as averageRating,
-//           0 as rank,
-//           m.item_name as productName,
-//           tm.unit as unit
-//    FROM task_schedule ts
-//    JOIN technician_task_mapper tt ON ts.task_id = tt.task_id
-//    JOIN user u ON tt.technician_id = u.id
-//    LEFT JOIN leaderboard lb ON u.id = lb.technician_id
-//    LEFT JOIN task_material tm ON ts.task_id = tm.task_id
-//    LEFT JOIN inventory m ON tm.material_id = m.id
-//    WHERE ts.assigned_date BETWEEN :startDate AND :endDate
-//""", nativeQuery = true)
-//    List<TechnicianPerformanceDTO> getTechnicianPerformance(
-//            @Param("startDate") LocalDate startDate,
-//            @Param("endDate") LocalDate endDate
-//    );
+    @Query(value = """
+        SELECT 
+            RANK() OVER (ORDER BY ROUND(AVG(sub.rating)::numeric, 2) DESC) AS rank,
+            tt.technician_id AS technicianId,
+            CONCAT(u.first_name, ' ', u.last_name) AS technicianName,
+            COUNT(DISTINCT t.task_id) AS completedTasks,
+            ROUND(AVG(sub.rating)::numeric, 2) AS avgRating
+        FROM task_schedule AS ts
+        INNER JOIN task AS t 
+            ON t.task_id = ts.task_id
+        INNER JOIN task_technicians AS tt 
+            ON tt.task_id = ts.task_id
+        INNER JOIN users AS u 
+            ON u.id = tt.technician_id
+        LEFT JOIN (
+            SELECT DISTINCT
+                tt_inner.technician_id,
+                f.rating,
+                f.id AS feedback_id
+            FROM task_technicians AS tt_inner
+            LEFT JOIN feedbacks AS f
+                ON f.id = tt_inner.feedback_id AND f.is_active = TRUE
+        ) AS sub
+            ON sub.technician_id = tt.technician_id
+        WHERE 
+            t.status = 'COMPLETED'
+            AND ts.assigned_date BETWEEN :startDate AND :endDate
+        GROUP BY 
+            tt.technician_id, technicianName
+        ORDER BY rank
+        """, nativeQuery = true)
+    List<TechnicianLeaderboardProjection> findTechnicianLeaderboard(
+            @Param("startDate") LocalDate startDate,
+            @Param("endDate") LocalDate endDate
+    );
+
 
 
     @Query(value = """
         SELECT 
-            u.id AS technicianId,
-            CONCAT(u.first_name, ' ', u.last_name) AS name,
-            COUNT(ts.id) AS tasksCompleted,
-            SUM(CASE WHEN ts.completed_time > ts.assigned_time THEN 1 ELSE 0 END) AS lateMarks,
-            COALESCE(AVG(lb.average_rating),0) AS averageRating,
-            m.item_name AS productName,
-            tm.quantity AS quantity,
+            tt.technician_id AS technicianId,
+            i.item_id AS productId,
+            i.item_name AS productName,
+            SUM(tm.quantity) AS totalQuantity,
             tm.unit AS unit
-        FROM task_schedule ts
-        JOIN technician_task_mapper tt ON ts.task_id = tt.task_id
-        JOIN user u ON tt.technician_id = u.id
-        LEFT JOIN leaderboard lb ON u.id = lb.technician_id
-        LEFT JOIN task_material tm ON ts.task_id = tm.task_id
-        LEFT JOIN inventory m ON tm.material_id = m.id
-        WHERE ts.assigned_date BETWEEN :startDate AND :endDate
-        GROUP BY u.id, m.item_name, tm.quantity, tm.unit, lb.average_rating
-    """, nativeQuery = true)
-    List<TechnicianPerformanceProjection> getTechnicianPerformance(@Param("startDate") LocalDate startDate,
-                                                                   @Param("endDate") LocalDate endDate);
-
-    @Query(value = """
-        SELECT 
-            RANK() OVER (ORDER BY lb.average_rating DESC) AS rank,
-            u.id AS technicianId,
-            CONCAT(u.first_name, ' ', u.last_name) AS name,
-            lb.average_rating AS averageRating
-        FROM leaderboard lb
-        JOIN user u ON lb.technician_id = u.id
-    """, nativeQuery = true)
-    List<LeaderboardProjection> getLeaderboard();
-
-
+        FROM task_material AS tm
+        INNER JOIN inventory AS i 
+            ON i.item_id = tm.material_id
+        INNER JOIN task_technicians AS tt 
+            ON tt.task_id = tm.task_id
+        INNER JOIN task_schedule AS ts
+            ON ts.task_id = tm.task_id
+        WHERE 
+            tm.is_used = TRUE
+            AND ts.assigned_date BETWEEN :startDate AND :endDate
+        GROUP BY 
+            tt.technician_id, i.item_id, i.item_name, tm.unit
+        ORDER BY tt.technician_id, i.item_name
+        """, nativeQuery = true)
+    List<TechnicianMaterialProjection> findTechnicianMaterialUsage(
+            @Param("startDate") LocalDate startDate,
+            @Param("endDate") LocalDate endDate
+    );
 
 
 }

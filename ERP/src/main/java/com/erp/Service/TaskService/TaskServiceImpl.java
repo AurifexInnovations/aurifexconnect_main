@@ -3,6 +3,9 @@ package com.erp.Service.TaskService;
 import com.erp.Dto.Request.*;
 import com.erp.Dto.Response.*;
 import com.erp.Enum.TaskStatus;
+import com.erp.Exception.RequestNotFoundException;
+import com.erp.Exception.DBReltedException;
+import com.erp.Exception.GlobalMessageExceptionHandler;
 import com.erp.Exception.Task.TaskNoFoundException;
 import com.erp.Exception.Tax.TaxNotFoundException;
 import com.erp.Mapper.TaskMapper.TaskDetailsMapper;
@@ -11,11 +14,7 @@ import com.erp.Mapper.TaskMapper.TaskMapper;
 import com.erp.Model.Task;
 
 import com.erp.Model.*;
-import com.erp.Projection.LeaderboardProjection;
-import com.erp.Projection.TechnicianPerformanceProjection;
-import com.erp.Projection.TechnicianResponse;
-import com.erp.Projection.TechnicianTaskProjection;
-import com.erp.Projection.TechnitianFeedbackDetailProjection;
+import com.erp.Projection.*;
 import com.erp.Repository.Feedback.FeedbackRepository;
 import com.erp.Repository.Task.*;
 import com.erp.Service.ServiceType.ServiceType;
@@ -25,17 +24,22 @@ import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.HttpStatusCode;
 import org.springframework.stereotype.Service;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestParam;
+
+
 import org.springframework.web.multipart.MultipartFile;
 
 import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeParseException;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -58,11 +62,10 @@ public class TaskServiceImpl implements TaskService {
 
     private final TaskDetailsMapper taskDetailsMapper;
 
-    private final ServiceType serviceType;
-
     private final FeedbackRepository feedbackRepository;
 
     @Lazy
+    @Autowired
     private FileService fileService;
 
 
@@ -234,6 +237,7 @@ public class TaskServiceImpl implements TaskService {
     }
 
 
+
     @Override
     public List<TechnicianResponse> getTechnicians(TechnicianRequest technicianRequest) {
         log.info("[TaskService] [getTechnicians] Entered with request: {}", technicianRequest);
@@ -253,11 +257,7 @@ public class TaskServiceImpl implements TaskService {
                         Sort.by(Sort.Direction.DESC, "task_id")
                 );
 
-//                LocalDate startDate = technicianRequest.getStartDate();
-//                LocalDate endDate = technicianRequest.getEndDate();
-//
-//                if (startDate == null) startDate = LocalDate.of(startDate);
-//                if (endDate == null) endDate = LocalDate.of(endDate);
+
 
                 LocalDate startDate = technicianRequest.getStartDate();
                 LocalDate endDate = technicianRequest.getEndDate();
@@ -319,46 +319,56 @@ public class TaskServiceImpl implements TaskService {
 
 
 
-    public TechnicianPerformanceResponse getTechnicianPerformance(LocalDate startDate, LocalDate endDate) {
-        log.info("Starting getTechniciansReportPerformanceByAssigenDate with startDate={} and endDate={}", startDate, endDate);
 
-        List<TechnicianPerformanceProjection> performanceList = taskScheduleRepository.getTechnicianPerformance(startDate, endDate);
-        List<LeaderboardProjection> leaderboardList = taskScheduleRepository.getLeaderboard();
+    public List<TechnicianLeaderboardDto> getTechnicianLeaderboard(String startDate, String endDate) {
+        try {
+            log.info("Fetching Technician Leaderboard from {} to {}", startDate, endDate);
 
-        Map<Long, TechnicianStatsDTO> technicianStatsMap = new HashMap<>();
-        Map<Long, List<ChemicalUsageDTO>> chemicalUsageMap = new HashMap<>();
+            LocalDate start = LocalDate.parse(startDate);
+            LocalDate end = LocalDate.parse(endDate);
 
-        for (TechnicianPerformanceProjection p : performanceList) {
+            var leaderboardData = taskScheduleRepository.findTechnicianLeaderboard(start, end);
+            log.info("Fetched {} technicians for leaderboard", leaderboardData.size());
 
-            technicianStatsMap.computeIfAbsent(p.getTechnicianId(), id -> {
-                TechnicianStatsDTO stats = new TechnicianStatsDTO();
-                stats.setTechnicianId(id);
-                stats.setTasksCompleted(p.getTasksCompleted());
-                stats.setAverageRating(p.getAverageRating());
-                return stats;
-            });
+            var materialData = taskScheduleRepository.findTechnicianMaterialUsage(start, end);
+            log.info("Fetched {} material usage records", materialData.size());
 
-            if (p.getProductName() != null) {
-                chemicalUsageMap.computeIfAbsent(p.getTechnicianId(), id -> new ArrayList<>())
-                        .add(new ChemicalUsageDTO(p.getProductName(), p.getQuantity(), p.getUnit()));
-            }
+            Map<Long, List<MaterialUsageDto>> materialsByTech = materialData.stream()
+                    .collect(Collectors.groupingBy(
+                            TechnicianMaterialProjection::getTechnicianId,
+                            Collectors.mapping(m -> new MaterialUsageDto(
+                                    m.getProductName(),
+                                    m.getTotalQuantity(),
+                                    m.getUnit()
+                            ), Collectors.toList())
+                    ));
+            log.debug("Grouped materials by technician: {}", materialsByTech);
+
+            List<TechnicianLeaderboardDto> result = leaderboardData.stream()
+                    .map(t -> {
+                        List<MaterialUsageDto> materials = materialsByTech.getOrDefault(t.getTechnicianId(), Collections.emptyList());
+                        log.debug("Mapping technicianId={} with {} materials", t.getTechnicianId(), materials.size());
+                        return new TechnicianLeaderboardDto(
+                                t.getTechnicianId(),
+                                t.getTechnicianName(),
+                                t.getCompletedTasks(),
+                                t.getAvgRating(),
+                                t.getRank(),
+                                materials
+                        );
+                    })
+                    .collect(Collectors.toList());
+
+            log.info("Final leaderboard DTO list size: {}", result.size());
+            return result;
+
+        } catch (DateTimeParseException e) {
+            log.error("Invalid date format: startDate={} endDate={}", startDate, endDate, e);
+            throw new IllegalArgumentException("Invalid date format. Expected format: yyyy-MM-dd", e);
+        } catch (Exception e) {
+            log.error("Error fetching technician leaderboard", e);
+            throw new GlobalMessageExceptionHandler(e.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR);
         }
-
-        List<TechnicianStatsDTO> technicianStats = technicianStatsMap.values().stream().map(stats -> {
-            stats.setChemicalUsage(chemicalUsageMap.getOrDefault(stats.getTechnicianId(), new ArrayList<>()));
-            return stats;
-        }).collect(Collectors.toList());
-
-        List<LeaderboardDTO> leaderboard = leaderboardList.stream()
-                .map(l -> new LeaderboardDTO(
-                        l.getTechnicianId(),
-                        l.getName(),
-                        l.getRank(),
-                        l.getAverageRating()
-                ))
-                .collect(Collectors.toList());
-
-        return new TechnicianPerformanceResponse(technicianStats, leaderboard);
     }
 
 
@@ -370,8 +380,13 @@ public class TaskServiceImpl implements TaskService {
 
         validateTaskById(taskId);
 
+        if (selfie == null || selfie.length == 0) {
+            throw new RequestNotFoundException("Selfie file is required to update task status.");
+        }
 
         fileService.uploadFiles(taskId, FileUploadConstants.SELFIE,selfie);
+
+
 
         int rowsUpdated = taskRepository.updateTaskStatus(taskId, TaskStatus.IN_PROGRESS);
 
@@ -393,8 +408,7 @@ public class TaskServiceImpl implements TaskService {
 
         log.info("Updating status of task with ID: {} to COMPLETED", taskId);
 
-        Task task = validateTaskById(taskId);
-
+        validateTaskById(taskId);
 
         int rowsUpdated = taskRepository.updateTaskStatus(taskId, TaskStatus.COMPLETED);
 
@@ -416,9 +430,16 @@ public class TaskServiceImpl implements TaskService {
 
         log.info("Starting updateTaskMaterialForStatusProgress for taskId: {}", completeTaskRequestDTO.getTaskId());
 
-        if (completeTaskRequestDTO.getTaskMaterialList() == null || completeTaskRequestDTO.getTaskMaterialList().isEmpty()) {
-            log.warn("No task materials provided for taskId: {}", completeTaskRequestDTO.getTaskId());
-            return;
+        if (completeTaskRequestDTO.getTaskMaterialList() == null
+                || completeTaskRequestDTO.getTaskMaterialList().isEmpty()) {
+            throw new RequestNotFoundException(
+                    "No task materials provided for taskId: " + completeTaskRequestDTO.getTaskId()
+            );
+        }
+
+        if ((beforeImages == null || beforeImages.length == 0)
+                && (afterImages == null || afterImages.length == 0)) {
+            throw new RequestNotFoundException("Both before and after images are required to update task status.");
         }
 
         try {
@@ -427,7 +448,7 @@ public class TaskServiceImpl implements TaskService {
             log.info("Found {} existing task materials for taskId: {}", existingMaterials.size(), completeTaskRequestDTO.getTaskId());
 
             // Save feedback list
-            saveFeedbackList(completeTaskRequestDTO.getFeedbackList());
+            saveFeedbackList(completeTaskRequestDTO.getFeedbackList(),completeTaskRequestDTO.getTaskId());
 
             // Save or update task materials
             saveTaskMaterials(completeTaskRequestDTO.getTaskId(), completeTaskRequestDTO.getTaskMaterialList(), existingMaterials);
@@ -445,7 +466,7 @@ public class TaskServiceImpl implements TaskService {
         }
     }
 
-    private void saveFeedbackList(List<FeedbackRequest> feedbackRequests) {
+    private void saveFeedbackList(List<FeedbackRequest> feedbackRequests,Long taskId) {
         if (feedbackRequests == null || feedbackRequests.isEmpty())
             return;
 
@@ -455,6 +476,9 @@ public class TaskServiceImpl implements TaskService {
             model.setComment(dto.getComment());
             model.setRating(dto.getRating());
             model.setOtp(dto.getOtp());
+            model.setActive(Boolean.TRUE);
+            model.setTaskId(taskId);
+            model.setCreatedAt(LocalDateTime.now());
             feedbackList.add(model);
         }
 
@@ -476,8 +500,10 @@ public class TaskServiceImpl implements TaskService {
         for (TaskMaterialDTO dto : taskMaterialDTOs) {
             log.debug("Processing DTO: materialId={}, unit={}, quantity={}, isUsed={}",
                     dto.getMaterialId(), dto.getUnit(), dto.getQuantity(), dto.getIsUsed());
-
-            TaskMaterial taskMaterial = existingMap.get(dto.getMaterialId());
+            TaskMaterial taskMaterial=null;
+            if(dto.getMaterialId()!=null) {
+                 taskMaterial = existingMap.get(dto.getMaterialId());
+            }
 
             if (taskMaterial != null) {
                 log.info("Updating existing material: materialId={}", dto.getMaterialId());
@@ -523,17 +549,15 @@ public class TaskServiceImpl implements TaskService {
                 technicianTaskMapperRepository.updateTechnitianFeedBackDetails(taskId, feedbackId);
 
         if (noOfRecordsUpdated == 0) {
-            throw new RuntimeException("Error While updating feedback details into technitian please retry");
+            throw new DBReltedException("Error While updating feedback details into technitian please retry");
         }
 
     }
 
     @Override
     public List<TechnitianFeedbackDetailProjection> getTechnitianFeedbackDetails(long feedbackId) {
-        List<TechnitianFeedbackDetailProjection> technitianFeedbackDetailProjections =
-                technicianTaskMapperRepository.getTechnitianFeedbackDetails(feedbackId);
 
-        return technitianFeedbackDetailProjections;
+        return technicianTaskMapperRepository.getTechnitianFeedbackDetails(feedbackId);
     }
 }
 

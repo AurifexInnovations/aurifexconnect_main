@@ -1,10 +1,7 @@
 package com.erp.Service.TaskService;
 
 import com.erp.Dto.Request.*;
-import com.erp.Dto.Response.GetAllTaskResponse;
-import com.erp.Dto.Response.TaskResponse;
-import com.erp.Dto.Response.TechnicianPerformanceDTO;
-import com.erp.Dto.Response.TechnicianPerformanceResponse;
+import com.erp.Dto.Response.*;
 import com.erp.Model.TechnicianTaskMapper;
 import com.erp.Projection.TechnicianResponse;
 import com.erp.Projection.TechnicianTaskProjection;
@@ -30,9 +27,9 @@ public interface TaskService {
     boolean getTask(long taskId);
 
 
-    public TechnicianPerformanceResponse getTechnicianPerformance(LocalDate startDate, LocalDate endDate);
+    public List<TechnicianLeaderboardDto> getTechnicianLeaderboard(String startDate, String endDate);
 
-     void  updateTaskStatusTOInProgress(Long taskId,MultipartFile[] selfie);
+     void   updateTaskStatusTOInProgress(Long taskId,MultipartFile[] selfie);
 
      void updateTaskStatusToCompleted(Long taskId);
 

@@ -2,13 +2,11 @@ package com.erp.Controller.Task;
 
 
 import com.erp.Dto.Request.*;
-import com.erp.Dto.Response.GetAllTaskResponse;
-import com.erp.Dto.Response.TaskResponse;
-import com.erp.Dto.Response.TechnicianPerformanceDTO;
-import com.erp.Dto.Response.TechnicianPerformanceResponse;
+import com.erp.Dto.Response.*;
 import com.erp.Projection.TechnicianResponse;
 import com.erp.Projection.TechnicianTaskProjection;
 import com.erp.Service.TaskService.TaskService;
+import com.erp.Utility.ListResponseStructure;
 import com.erp.Utility.ResponseBuilder;
 import com.erp.Utility.ResponseStructure;
 import io.swagger.v3.oas.annotations.Operation;
@@ -24,7 +22,6 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
-import java.time.LocalDate;
 import java.util.List;
 
 @RestController
@@ -49,6 +46,11 @@ public class TaskController {
         return ResponseBuilder.success(HttpStatus.CREATED, "Task Created", response);
 
     }
+
+
+
+
+
 
     @GetMapping("/getAll")
     @Operation(
@@ -80,6 +82,9 @@ public class TaskController {
         );
     }
 
+
+
+
     @PostMapping("/technician/search")
     @Operation(
             summary = "Search Task Technicians",
@@ -106,6 +111,9 @@ public class TaskController {
         log.info("[TechnicianController] Returning response successfully");
         return ResponseEntity.ok(technicians);
     }
+
+
+
 
 
     @PostMapping("/searchByDate")
@@ -136,37 +144,30 @@ public class TaskController {
     }
 
 
+
     @GetMapping("/task/performance/report")
-    @Operation(
-            summary = "Get Technician Performance Report",
-            description = "Retrieve performance report of technicians between a start date and end date",
-            responses = {
-                    @ApiResponse(responseCode = "200", description = "Performance report retrieved successfully"),
-                    @ApiResponse(responseCode = "400", description = "Invalid request parameters")
-            }
-    )
-    public ResponseEntity<TechnicianPerformanceResponse> getTechnicianPerformanceReport(
-            @RequestParam LocalDate startDate,
-            @RequestParam LocalDate endDate) {
+    public ResponseEntity<ListResponseStructure<TechnicianLeaderboardDto>> getTechnicianPerformanceReport(
+            @RequestParam String startDate,
+            @RequestParam String endDate) {
 
         log.info("[TechnicianPerformanceController] Entering getTechnicianPerformanceReport with startDate: {} and endDate: {}", startDate, endDate);
 
-        try {
+        List<TechnicianLeaderboardDto> technicianLeaderboardDto = taskService.getTechnicianLeaderboard(startDate, endDate);
 
-            TechnicianPerformanceResponse response = taskService.getTechnicianPerformance(startDate, endDate);
+        log.info("[TechnicianPerformanceController] Returning response with {} technicians", technicianLeaderboardDto.size());
 
-            log.info("[TechnicianPerformanceController] Returning response with {} technicians",
-                    response.getTechnicians().size());
-            return ResponseEntity.ok(response);
-
-        } catch (Exception e) {
-            log.error("[TechnicianPerformanceController] Error while fetching technician performance report", e);
-            return ResponseEntity.status(500).build();
-        }
+        return ResponseBuilder.success(
+                HttpStatus.OK,
+                "Technician performance report retrieved successfully",
+                technicianLeaderboardDto
+        );
     }
 
 
-    @PostMapping("/task/inProgress/{taskId}")
+
+
+
+    @PostMapping("/task/start/{taskId}")
     @Operation(
             summary = "Update Task Status to IN_PROGRESS",
             description = "Update the status of a task to IN_PROGRESS by task ID",
@@ -180,6 +181,9 @@ public class TaskController {
         taskService.updateTaskStatusTOInProgress(taskId,selfie);
         return ResponseBuilder.success(HttpStatus.OK, "Task status updated to IN_PROGRESS", "Task ID: " + taskId);
     }
+
+
+
 
     @PostMapping("/task/completed/{taskId}")
     @Operation(
@@ -205,9 +209,9 @@ public class TaskController {
             }
     )
     public ResponseEntity<ResponseStructure<String>> updateTaskMaterials(
-            @RequestBody CompleteTaskRequestDTO completeTaskRequestDTO,
-            @RequestParam("files") MultipartFile[] beforeImages,
-            @RequestParam("files") MultipartFile[] afterImages) {
+            @RequestPart("completeTaskRequestDTO") CompleteTaskRequestDTO completeTaskRequestDTO,
+            @RequestParam("beforeImages") MultipartFile[] beforeImages,
+            @RequestParam("afterImages") MultipartFile[] afterImages) {
 
         taskService.updateTaskMaterialForStatusProgress(completeTaskRequestDTO,beforeImages,afterImages);
 
@@ -217,6 +221,7 @@ public class TaskController {
                 "Task ID: " + completeTaskRequestDTO.getTaskId() + " | Total materials processed: " + (completeTaskRequestDTO.getTaskMaterialList() != null ? completeTaskRequestDTO.getTaskMaterialList().size() : 0)
         );
     }
+
 
 
 
