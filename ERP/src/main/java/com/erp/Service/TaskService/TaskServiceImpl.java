@@ -4,6 +4,8 @@ import com.erp.Dto.Request.*;
 import com.erp.Dto.Response.*;
 import com.erp.Enum.TaskStatus;
 import com.erp.Exception.RequestNotFoundException;
+import com.erp.Exception.DBReltedException;
+import com.erp.Exception.GlobalMessageExceptionHandler;
 import com.erp.Exception.Task.TaskNoFoundException;
 import com.erp.Exception.Tax.TaxNotFoundException;
 import com.erp.Mapper.TaskMapper.TaskDetailsMapper;
@@ -28,6 +30,8 @@ import org.springframework.context.annotation.Lazy;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.HttpStatusCode;
 import org.springframework.stereotype.Service;
 
 
@@ -35,6 +39,7 @@ import org.springframework.web.multipart.MultipartFile;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.time.format.DateTimeParseException;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -316,42 +321,56 @@ public class TaskServiceImpl implements TaskService {
 
 
     public List<TechnicianLeaderboardDto> getTechnicianLeaderboard(String startDate, String endDate) {
-        log.info("Fetching Technician Leaderboard from {} to {}", startDate, endDate);
+        try {
+            log.info("Fetching Technician Leaderboard from {} to {}", startDate, endDate);
 
-        LocalDate start = LocalDate.parse(startDate);
-        LocalDate end = LocalDate.parse(endDate);
+            LocalDate start = LocalDate.parse(startDate);
+            LocalDate end = LocalDate.parse(endDate);
 
-        var leaderboardData = taskScheduleRepository.findTechnicianLeaderboard(start, end);
-        log.info("Fetched {} technicians for leaderboard", leaderboardData.size());
+            var leaderboardData = taskScheduleRepository.findTechnicianLeaderboard(start, end);
+            log.info("Fetched {} technicians for leaderboard", leaderboardData.size());
 
-        var materialData = taskScheduleRepository.findTechnicianMaterialUsage(start, end);
-        log.info("Fetched {} material usage records", materialData.size());
+            var materialData = taskScheduleRepository.findTechnicianMaterialUsage(start, end);
+            log.info("Fetched {} material usage records", materialData.size());
 
-        Map<Long, List<MaterialUsageDto>> materialsByTech = materialData.stream()
-                .collect(Collectors.groupingBy(
-                        TechnicianMaterialProjection::getTechnicianId,
-                        Collectors.mapping(m -> new MaterialUsageDto(
-                                m.getProductName(),
-                                m.getTotalQuantity(),
-                                m.getUnit()
-                        ), Collectors.toList())
-                ));
-        log.info("Grouped materials by technician: {}", materialsByTech.keySet());
+            Map<Long, List<MaterialUsageDto>> materialsByTech = materialData.stream()
+                    .collect(Collectors.groupingBy(
+                            TechnicianMaterialProjection::getTechnicianId,
+                            Collectors.mapping(m -> new MaterialUsageDto(
+                                    m.getProductName(),
+                                    m.getTotalQuantity(),
+                                    m.getUnit()
+                            ), Collectors.toList())
+                    ));
+            log.debug("Grouped materials by technician: {}", materialsByTech);
 
-        List<TechnicianLeaderboardDto> technicianLeaderboardDtoList = leaderboardData.stream()
-                .map(t -> new TechnicianLeaderboardDto(
-                        t.getTechnicianId(),
-                        t.getTechnicianName(),
-                        t.getCompletedTasks(),
-                        t.getAvgRating(),
-                        t.getRank(),
-                        materialsByTech.getOrDefault(t.getTechnicianId(), Collections.emptyList())
-                ))
-                .collect(Collectors.toList());
+            List<TechnicianLeaderboardDto> result = leaderboardData.stream()
+                    .map(t -> {
+                        List<MaterialUsageDto> materials = materialsByTech.getOrDefault(t.getTechnicianId(), Collections.emptyList());
+                        log.debug("Mapping technicianId={} with {} materials", t.getTechnicianId(), materials.size());
+                        return new TechnicianLeaderboardDto(
+                                t.getTechnicianId(),
+                                t.getTechnicianName(),
+                                t.getCompletedTasks(),
+                                t.getAvgRating(),
+                                t.getRank(),
+                                materials
+                        );
+                    })
+                    .collect(Collectors.toList());
 
-        log.info("Final leaderboard DTO list size: {}", technicianLeaderboardDtoList.size());
-        return technicianLeaderboardDtoList;
+            log.info("Final leaderboard DTO list size: {}", result.size());
+            return result;
+
+        } catch (DateTimeParseException e) {
+            log.error("Invalid date format: startDate={} endDate={}", startDate, endDate, e);
+            throw new IllegalArgumentException("Invalid date format. Expected format: yyyy-MM-dd", e);
+        } catch (Exception e) {
+            log.error("Error fetching technician leaderboard", e);
+            throw new GlobalMessageExceptionHandler(e.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR);
+        }
     }
+
 
 
 
@@ -530,7 +549,7 @@ public class TaskServiceImpl implements TaskService {
                 technicianTaskMapperRepository.updateTechnitianFeedBackDetails(taskId, feedbackId);
 
         if (noOfRecordsUpdated == 0) {
-            throw new RuntimeException("Error While updating feedback details into technitian please retry");
+            throw new DBReltedException("Error While updating feedback details into technitian please retry");
         }
 
     }

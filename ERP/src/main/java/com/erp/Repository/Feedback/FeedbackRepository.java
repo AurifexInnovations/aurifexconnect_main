@@ -14,7 +14,7 @@ public interface FeedbackRepository extends JpaRepository<Feedback , Long> {
     Feedback findByTaskIdAndCustomerId(long taskId , long customerId);
 
     @Query(value = "SELECT f.technician_id as technicianId, COUNT(t.task_id) as tasksCompleted, AVG(f.rating) as avgRating " +
-            "FROM feedback f " +
+            "FROM feedbacks f " +
             "JOIN task t ON f.task_id = t.task_id " +
             "WHERE t.task_status = 'COMPLETED' and f.is_active = true" +
             "GROUP BY f.technician_id", nativeQuery = true)

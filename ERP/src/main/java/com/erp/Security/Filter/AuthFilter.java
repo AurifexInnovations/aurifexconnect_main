@@ -1,11 +1,13 @@
 package com.erp.Security.Filter;
 
+import com.erp.Exception.ErrorResponse;
 import com.erp.Exception.User.UserNotFoundException;
 import com.erp.Model.GenericUser;
 import com.erp.Multitenancy.TenantContext;
 import com.erp.Security.JWT.ClaimName;
 import com.erp.Security.JWT.JWTService;
 import com.erp.Security.util.UserRepositoryRegistry;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import io.jsonwebtoken.Claims;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
@@ -18,8 +20,8 @@ import org.springframework.security.authentication.UsernamePasswordAuthenticatio
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.filter.OncePerRequestFilter;
+
 import java.io.IOException;
-import java.util.Collections;
 import java.util.List;
 
 @AllArgsConstructor
@@ -30,6 +32,8 @@ public class AuthFilter extends OncePerRequestFilter {
     private final TokenBlackListService tokenBlackListService;
     private final UserRepositoryRegistry userRepositoryRegistry;
 
+    private final ObjectMapper objectMapper = new ObjectMapper();
+
     @Override
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain)
             throws ServletException, IOException {
@@ -37,7 +41,7 @@ public class AuthFilter extends OncePerRequestFilter {
         String path = request.getRequestURI();
         log.debug("Processing request in AuthFilter: {}", path);
 
-        // Allow unauthenticated public endpoints
+        // Allow unauthenticated endpoints
         if (path.startsWith("/api/v1/login") || path.startsWith("/api/v1/auth/") || path.equals("/error")) {
             log.debug("Skipping AuthFilter for path: {}", path);
             filterChain.doFilter(request, response);
@@ -51,25 +55,20 @@ public class AuthFilter extends OncePerRequestFilter {
                 Claims claims = jwtService.parseToken(token);
                 String email = claims.get(ClaimName.USER_EMAIL, String.class);
                 String schemaName = claims.get(ClaimName.SCHEMA_NAME, String.class);
-                List<String> roles = claims.get(ClaimName.ROLE, List.class); // ✅ CORRECT
+                List<String> roles = claims.get(ClaimName.ROLE, List.class);
 
                 if (schemaName == null || schemaName.isBlank()) {
-                    log.error("Missing schema name in token for email: {}", email);
-                    response.sendError(HttpServletResponse.SC_FORBIDDEN, "Invalid token: missing schema");
+                    sendJsonError(response, HttpServletResponse.SC_FORBIDDEN, "Invalid token: missing schema");
                     return;
                 }
 
-                // Set schema BEFORE accessing DB
                 TenantContext.setCurrentTenant(schemaName);
-                log.debug("Tenant set to: {}", schemaName);
-
                 GenericUser user = userRepositoryRegistry.findUserByEmail(email)
                         .orElseThrow(() -> new UserNotFoundException("User not found: " + email));
 
-                // Build authorities list from JWT role
                 List<SimpleGrantedAuthority> authorities = roles.stream()
                         .map(SimpleGrantedAuthority::new)
-                        .toList(); // ✅ correct mapping
+                        .toList();
 
                 UsernamePasswordAuthenticationToken authToken =
                         new UsernamePasswordAuthenticationToken(user, null, authorities);
@@ -77,13 +76,16 @@ public class AuthFilter extends OncePerRequestFilter {
                 SecurityContextHolder.getContext().setAuthentication(authToken);
                 log.info("Authenticated user: {} with role: {} on schema: {}", email, roles, schemaName);
 
+            } catch (UserNotFoundException e) {
+                sendJsonError(response, HttpServletResponse.SC_UNAUTHORIZED, e.getMessage());
+                return;
             } catch (Exception e) {
-                log.error("AuthFilter failed: {}", e.getMessage());
-                response.sendError(HttpServletResponse.SC_FORBIDDEN, "Unauthorized");
+                sendJsonError(response, HttpServletResponse.SC_FORBIDDEN, "Unauthorized or invalid token");
                 return;
             }
         } else {
-            log.debug("No valid token found or token is blacklisted for path: {}", path);
+            sendJsonError(response, HttpServletResponse.SC_UNAUTHORIZED, "Missing or blacklisted token");
+            return;
         }
 
         try {
@@ -117,4 +119,15 @@ public class AuthFilter extends OncePerRequestFilter {
         return null;
     }
 
+    private void sendJsonError(HttpServletResponse response, int status, String message) throws IOException {
+        response.setStatus(status);
+        response.setContentType("application/json");
+
+        ErrorResponse errorResponse = new ErrorResponse();
+        errorResponse.setMessage(message);
+
+        String json = objectMapper.writeValueAsString(errorResponse);
+        response.getWriter().write(json);
+        response.getWriter().flush();
+    }
 }
