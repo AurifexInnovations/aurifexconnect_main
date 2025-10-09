@@ -51,6 +51,18 @@ public class GlobalExceptionHandler  {
         return new ResponseEntity<>(errorResponse , HttpStatus.INTERNAL_SERVER_ERROR);
     }
 
+    @ExceptionHandler(GlobalMessageExceptionHandler.class)
+    public ResponseEntity<ErrorResponse> handleGlobalException(GlobalMessageExceptionHandler ex) {
+        log.info("Into [GlobalMessageExceptionHandler] [handleGlobalException] ");
+
+        ErrorResponse errorResponse = new ErrorResponse(ex.getMessage());
+
+        log.error("Error [GlobalMessageExceptionHandler] [handleGlobalException]  :: {} " , ex.getStackTrace());
+
+        log.info("Exit [GlobalMessageExceptionHandler] [handleGlobalException] ");
+        return new ResponseEntity<>(errorResponse , HttpStatus.INTERNAL_SERVER_ERROR);
+    }
+
     @ExceptionHandler(RuntimeException.class)
     public ResponseEntity<ErrorResponse> handleGlobalException(RuntimeException ex) {
         log.info("Into [GlobalExceptionHandler] [handleGlobalException] ");

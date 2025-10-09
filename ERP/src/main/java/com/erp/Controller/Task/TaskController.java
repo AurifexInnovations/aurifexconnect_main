@@ -6,6 +6,7 @@ import com.erp.Dto.Response.*;
 import com.erp.Projection.TechnicianResponse;
 import com.erp.Projection.TechnicianTaskProjection;
 import com.erp.Service.TaskService.TaskService;
+import com.erp.Utility.ListResponseStructure;
 import com.erp.Utility.ResponseBuilder;
 import com.erp.Utility.ResponseStructure;
 import io.swagger.v3.oas.annotations.Operation;
@@ -21,7 +22,6 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
-import java.time.LocalDate;
 import java.util.List;
 
 @RestController
@@ -145,36 +145,22 @@ public class TaskController {
 
 
 
-
-
     @GetMapping("/task/performance/report")
-    @Operation(
-            summary = "Get Technician Performance Report",
-            description = "Retrieve performance report of technicians between a start date and end date",
-            responses = {
-                    @ApiResponse(responseCode = "200", description = "Performance report retrieved successfully"),
-                    @ApiResponse(responseCode = "400", description = "Invalid request parameters")
-            }
-    )
-    public ResponseEntity<List<TechnicianLeaderboardDto>> getTechnicianPerformanceReport(
+    public ResponseEntity<ListResponseStructure<TechnicianLeaderboardDto>> getTechnicianPerformanceReport(
             @RequestParam String startDate,
             @RequestParam String endDate) {
 
         log.info("[TechnicianPerformanceController] Entering getTechnicianPerformanceReport with startDate: {} and endDate: {}", startDate, endDate);
-        List<TechnicianLeaderboardDto> technicianLeaderboardDto ;
-        try {
 
-            technicianLeaderboardDto =  taskService.getTechnicianLeaderboard(startDate, endDate);
+        List<TechnicianLeaderboardDto> technicianLeaderboardDto = taskService.getTechnicianLeaderboard(startDate, endDate);
 
+        log.info("[TechnicianPerformanceController] Returning response with {} technicians", technicianLeaderboardDto.size());
 
-            log.info("[TechnicianPerformanceController] Returning response with {} technicians",
-                    technicianLeaderboardDto.size());
-            return ResponseEntity.ok( technicianLeaderboardDto);
-
-        } catch (Exception e) {
-            log.error("[TechnicianPerformanceController] Error while fetching technician performance report", e);
-            return ResponseEntity.status(500).build();
-        }
+        return ResponseBuilder.success(
+                HttpStatus.OK,
+                "Technician performance report retrieved successfully",
+                technicianLeaderboardDto
+        );
     }
 
 

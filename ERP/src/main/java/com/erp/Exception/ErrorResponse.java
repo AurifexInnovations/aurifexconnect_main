@@ -3,6 +3,7 @@ package com.erp.Exception;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import org.springframework.http.HttpStatus;
 
 @Data
 @NoArgsConstructor
@@ -10,7 +11,7 @@ import lombok.NoArgsConstructor;
 public class ErrorResponse {
 
     private String message;
-    private int code = 1 ;
+    private int code = 500 ;
     private String status = "Failed";
 
 
