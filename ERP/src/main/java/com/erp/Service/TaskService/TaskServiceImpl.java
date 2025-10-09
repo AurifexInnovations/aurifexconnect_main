@@ -57,6 +57,7 @@ public class TaskServiceImpl implements TaskService {
     private final FeedbackRepository feedbackRepository;
 
     @Lazy
+    @Autowired
     private FileService fileService;
 
 
