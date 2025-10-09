@@ -3,6 +3,7 @@ package com.erp.Service.TaskService;
 import com.erp.Dto.Request.*;
 import com.erp.Dto.Response.*;
 import com.erp.Enum.TaskStatus;
+import com.erp.Exception.RequestNotFoundException;
 import com.erp.Exception.Task.TaskNoFoundException;
 import com.erp.Exception.Tax.TaxNotFoundException;
 import com.erp.Mapper.TaskMapper.TaskDetailsMapper;
@@ -360,8 +361,13 @@ public class TaskServiceImpl implements TaskService {
 
         validateTaskById(taskId);
 
+        if (selfie == null || selfie.length == 0) {
+            throw new RequestNotFoundException("Selfie file is required to update task status.");
+        }
 
         fileService.uploadFiles(taskId, FileUploadConstants.SELFIE,selfie);
+
+
 
         int rowsUpdated = taskRepository.updateTaskStatus(taskId, TaskStatus.IN_PROGRESS);
 
@@ -405,9 +411,16 @@ public class TaskServiceImpl implements TaskService {
 
         log.info("Starting updateTaskMaterialForStatusProgress for taskId: {}", completeTaskRequestDTO.getTaskId());
 
-        if (completeTaskRequestDTO.getTaskMaterialList() == null || completeTaskRequestDTO.getTaskMaterialList().isEmpty()) {
-            log.warn("No task materials provided for taskId: {}", completeTaskRequestDTO.getTaskId());
-            return;
+        if (completeTaskRequestDTO.getTaskMaterialList() == null
+                || completeTaskRequestDTO.getTaskMaterialList().isEmpty()) {
+            throw new RequestNotFoundException(
+                    "No task materials provided for taskId: " + completeTaskRequestDTO.getTaskId()
+            );
+        }
+
+        if ((beforeImages == null || beforeImages.length == 0)
+                && (afterImages == null || afterImages.length == 0)) {
+            throw new RequestNotFoundException("Both before and after images are required to update task status.");
         }
 
         try {
