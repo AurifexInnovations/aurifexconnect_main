@@ -12,6 +12,6 @@ import lombok.ToString;
 public class FeedbackRequest {
 
     private String comment;
-    private int otp;
+
     private float rating;
 }

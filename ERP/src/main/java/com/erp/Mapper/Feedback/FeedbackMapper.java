@@ -21,7 +21,6 @@ public class FeedbackMapper {
 
         if(Objects.nonNull(feedbackRequest)){
             feedback.setComment(feedbackRequest.getComment());
-            feedback.setOtp(feedbackRequest.getOtp());
             feedback.setRating(feedbackRequest.getRating());
         }
 

@@ -157,7 +157,6 @@ CREATE TABLE feedbacks (
     task_id BIGINT NOT NULL,
     rating REAL NOT NULL,
     comment VARCHAR(1000),
-    otp INT,
     is_active BOOLEAN NOT NULL DEFAULT TRUE,
     created_at TIMESTAMP ,
     updated_at TIMESTAMP

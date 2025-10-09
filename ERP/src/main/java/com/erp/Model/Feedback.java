@@ -25,8 +25,6 @@ public class Feedback {
     private float rating;
     @Column(name =  "comment")
     private String comment;
-    @Column(name =  "otp")
-    private int otp;
     @Column(name =  "is_active")
     private boolean isActive;
     @Column(name =  "created_at")
