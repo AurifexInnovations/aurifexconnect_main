@@ -184,7 +184,7 @@ CREATE TABLE files (
     deleted_at    TIMESTAMP
 );
 
-CREATE TABLE tenant_1_palak_gmail_com.user_otp (
+CREATE TABLE user_otp (
 	id bigint NOT NULL,
 	mobile_no varchar NULL,
 	otp varchar(10) NULL,
