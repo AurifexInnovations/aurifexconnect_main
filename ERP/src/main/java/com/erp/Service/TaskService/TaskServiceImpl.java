@@ -22,6 +22,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
 
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -32,6 +33,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -414,7 +416,7 @@ public class TaskServiceImpl implements TaskService {
             log.info("Found {} existing task materials for taskId: {}", existingMaterials.size(), completeTaskRequestDTO.getTaskId());
 
             // Save feedback list
-            saveFeedbackList(completeTaskRequestDTO.getFeedbackList());
+            saveFeedbackList(completeTaskRequestDTO.getFeedbackList(),completeTaskRequestDTO.getTaskId());
 
             // Save or update task materials
             saveTaskMaterials(completeTaskRequestDTO.getTaskId(), completeTaskRequestDTO.getTaskMaterialList(), existingMaterials);
@@ -432,7 +434,7 @@ public class TaskServiceImpl implements TaskService {
         }
     }
 
-    private void saveFeedbackList(List<FeedbackRequest> feedbackRequests) {
+    private void saveFeedbackList(List<FeedbackRequest> feedbackRequests,Long taskId) {
         if (feedbackRequests == null || feedbackRequests.isEmpty())
             return;
 
@@ -442,6 +444,9 @@ public class TaskServiceImpl implements TaskService {
             model.setComment(dto.getComment());
             model.setRating(dto.getRating());
             model.setOtp(dto.getOtp());
+            model.setActive(Boolean.TRUE);
+            model.setTaskId(taskId);
+            model.setCreatedAt(LocalDateTime.now());
             feedbackList.add(model);
         }
 
@@ -463,8 +468,10 @@ public class TaskServiceImpl implements TaskService {
         for (TaskMaterialDTO dto : taskMaterialDTOs) {
             log.debug("Processing DTO: materialId={}, unit={}, quantity={}, isUsed={}",
                     dto.getMaterialId(), dto.getUnit(), dto.getQuantity(), dto.getIsUsed());
-
-            TaskMaterial taskMaterial = existingMap.get(dto.getMaterialId());
+            TaskMaterial taskMaterial=null;
+            if(dto.getMaterialId()!=null) {
+                 taskMaterial = existingMap.get(dto.getMaterialId());
+            }
 
             if (taskMaterial != null) {
                 log.info("Updating existing material: materialId={}", dto.getMaterialId());
