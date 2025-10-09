@@ -185,3 +185,14 @@ CREATE TABLE files (
     deleted_at    TIMESTAMP
 );
 
+CREATE TABLE tenant_1_palak_gmail_com.user_otp (
+	id bigint NOT NULL,
+	mobile_no varchar NULL,
+	otp varchar(10) NULL,
+	otp_generated_date_time timestamp NULL,
+	otp_expiry_date_time timestamp NULL,
+	lock_till_date_time timestamp NULL,
+	max_attemp int NULL,
+	is_verified boolean NULL,
+	CONSTRAINT user_otp_pk PRIMARY KEY (id)
+);
