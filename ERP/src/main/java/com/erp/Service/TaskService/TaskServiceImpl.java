@@ -475,7 +475,7 @@ public class TaskServiceImpl implements TaskService {
             Feedback model = new Feedback();
             model.setComment(dto.getComment());
             model.setRating(dto.getRating());
-            model.setOtp(dto.getOtp());
+//            model.setOtp(dto.getOtp());
             model.setActive(Boolean.TRUE);
             model.setTaskId(taskId);
             model.setCreatedAt(LocalDateTime.now());
