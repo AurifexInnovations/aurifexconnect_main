@@ -223,9 +223,9 @@ public class TaskController {
             }
     )
     public ResponseEntity<ResponseStructure<String>> updateTaskMaterials(
-            @RequestBody CompleteTaskRequestDTO completeTaskRequestDTO,
-            @RequestParam("files") MultipartFile[] beforeImages,
-            @RequestParam("files") MultipartFile[] afterImages) {
+            @RequestPart("completeTaskRequestDTO") CompleteTaskRequestDTO completeTaskRequestDTO,
+            @RequestParam("beforeImages") MultipartFile[] beforeImages,
+            @RequestParam("afterImages") MultipartFile[] afterImages) {
 
         taskService.updateTaskMaterialForStatusProgress(completeTaskRequestDTO,beforeImages,afterImages);
 

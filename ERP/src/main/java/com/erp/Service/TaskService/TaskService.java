@@ -29,7 +29,7 @@ public interface TaskService {
 
     public List<TechnicianLeaderboardDto> getTechnicianLeaderboard(String startDate, String endDate);
 
-     void  updateTaskStatusTOInProgress(Long taskId,MultipartFile[] selfie);
+     void   updateTaskStatusTOInProgress(Long taskId,MultipartFile[] selfie);
 
      void updateTaskStatusToCompleted(Long taskId);
 
