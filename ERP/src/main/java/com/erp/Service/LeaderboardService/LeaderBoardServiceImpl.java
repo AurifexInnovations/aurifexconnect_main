@@ -27,30 +27,6 @@ public class LeaderBoardServiceImpl implements LeaderBoardService {
 
     private final FeedbackRepository feedbackRepository;
 
-
-//    @Override
-//    public void addLeadBoard() {
-//
-//
-//        try{
-//
-////            List<TechnicianStatsDTO> list= feedbackRepository.getTechnicianStats();
-////
-////            for(TechnicianStatsDTO technicianStatsDTO:list){
-////
-////                Leaderboard model=new Leaderboard();
-////                model.setRank(technicianStatsDTO.getAverageRating());
-////                model.setTechnicianId(technicianStatsDTO.getTechnicianId());
-////                leaderBoardRepository.save(model);
-////            }
-//
-//        } catch (Exception e) {
-//            throw new RuntimeException(e);
-//        }
-//
-//    }
-
-
     @Transactional
     public void addLeadBoard() {
         log.info("Starting to update leaderboard...");
