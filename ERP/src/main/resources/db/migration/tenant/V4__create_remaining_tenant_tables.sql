@@ -104,7 +104,7 @@ CREATE TABLE task_material (
     task_material_id BIGSERIAL PRIMARY KEY,
     task_id          BIGINT NOT NULL,
     material_id      BIGINT NOT NULL,
-    unit             DOUBLE PRECISION,
+    unit             VARCHAR(255),
     is_used          BOOLEAN,
     quantity         BIGINT NOT NULL
 );
@@ -114,7 +114,7 @@ CREATE TABLE task (
     task_name VARCHAR(255) NOT NULL,
     customer_id BIGINT NOT NULL,
     task_category VARCHAR(255),
-    task_details TEXT,
+    task_details VARCHAR(255),
     status VARCHAR(50) NOT NULL,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,

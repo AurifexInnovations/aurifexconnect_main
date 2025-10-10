@@ -12,7 +12,7 @@ public class TaskMaterialDTO {
 
     private Long materialId;
 
-    private Double unit;
+    private String unit;
 
     private  Boolean isUsed;
 

@@ -24,7 +24,7 @@ public class TaskMaterial {
     private Long materialId;
 
     @Column(name = "unit", length = 50)
-    private Double unit;
+    private String unit;
 
 
     @Column(name ="is_used" )

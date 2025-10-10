@@ -442,7 +442,7 @@ public class TaskServiceImpl implements TaskService {
         if (completeTaskRequestDTO.getTaskMaterialList() == null
                 || completeTaskRequestDTO.getTaskMaterialList().isEmpty()) {
             throw new RequestNotFoundException(
-                    "No task materials provided for taskId: " + completeTaskRequestDTO.getTaskId()
+                    "No task materials provided for taskId: " + taskId
             );
         }
 
@@ -509,7 +509,6 @@ public class TaskServiceImpl implements TaskService {
 
             feedback.setComment(feedbackRequest.getComment());
             feedback.setRating(feedbackRequest.getRating());
-            feedback.setOtp(feedbackRequest.getOtp());
             feedback.setActive(Boolean.TRUE);
             feedback.setUpdatedAt(LocalDateTime.now());
 
