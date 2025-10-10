@@ -189,17 +189,17 @@ public class TaskController {
                     @ApiResponse(responseCode = "400", description = "Invalid task ID or task material list")
             }
     )
-    public ResponseEntity<ResponseStructure<String>> updateTaskMaterials(@PathVariable ("taskId") Long taskId,
+    public ResponseEntity<ResponseStructure<OtpResponseDTO>> updateTaskMaterials(@PathVariable ("taskId") Long taskId,
             @RequestPart("completeTaskRequestDTO") CompleteTaskRequestDTO completeTaskRequestDTO,
             @RequestParam("beforeImages") MultipartFile[] beforeImages,
             @RequestParam("afterImages") MultipartFile[] afterImages) {
 
-        taskService.updateTaskMaterialForStatusProgress(taskId,completeTaskRequestDTO,beforeImages,afterImages);
+        OtpResponseDTO otpResponseDTO = taskService.updateTaskMaterialForStatusProgress(taskId,completeTaskRequestDTO,beforeImages,afterImages);
 
         return ResponseBuilder.success(
                 HttpStatus.OK,
-                "Task materials updated successfully",
-                "Task ID: " + taskId + " | Total materials processed: " + (completeTaskRequestDTO.getTaskMaterialList() != null ? completeTaskRequestDTO.getTaskMaterialList().size() : 0)
+                "Task Completed  successfully",
+                otpResponseDTO
         );
     }
 

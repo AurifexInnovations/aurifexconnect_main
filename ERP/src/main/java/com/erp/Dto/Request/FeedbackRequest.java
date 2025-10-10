@@ -17,7 +17,7 @@ public class FeedbackRequest {
 
     private  String otp;
 
-    private  String verificationId;
+    private  String mobileNo;
 
 
 }

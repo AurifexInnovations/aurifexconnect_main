@@ -19,6 +19,7 @@ import com.erp.Repository.Feedback.FeedbackRepository;
 import com.erp.Repository.Task.*;
 import com.erp.Security.util.UserIdentity;
 
+import com.erp.Service.Otp.OtpService;
 import com.erp.Service.Utility.FileService;
 import com.erp.constants.FileUploadConstants;
 import jakarta.transaction.Transactional;
@@ -71,6 +72,8 @@ public class TaskServiceImpl implements TaskService {
     private FileService fileService;
 
     private final UserIdentity userIdentity;
+
+    private final OtpService otpService;
 
     @Override
     @Transactional
@@ -432,7 +435,7 @@ public class TaskServiceImpl implements TaskService {
 
 
     @Transactional
-    public void updateTaskMaterialForStatusProgress(Long taskId,
+    public OtpResponseDTO updateTaskMaterialForStatusProgress(Long taskId,
             CompleteTaskRequestDTO completeTaskRequestDTO,
             MultipartFile[] beforeImages,
             MultipartFile[] afterImages) {
@@ -450,8 +453,12 @@ public class TaskServiceImpl implements TaskService {
                 && (afterImages == null || afterImages.length == 0)) {
             throw new BadRequestException("Both before and after images are required to update task status.");
         }
-
+        OtpResponseDTO otpResponseDTO = new OtpResponseDTO();
         try {
+
+             otpResponseDTO =
+                    otpService.validateOtp(completeTaskRequestDTO.getFeedbackList().getMobileNo(),completeTaskRequestDTO.getFeedbackList().getOtp());
+
             log.info("Fetching existing task materials for taskId: {}", taskId);
             List<TaskMaterial> existingMaterials = taskMaterialRepository.findByTaskId(taskId);
             log.info("Found {} existing task materials for taskId: {}", existingMaterials.size(), taskId);
@@ -473,6 +480,7 @@ public class TaskServiceImpl implements TaskService {
             log.error("Error updating task materials for taskId: {}", taskId, e);
             throw e;
         }
+        return otpResponseDTO;
     }
 
     private  void updateTaskScheduleForCompletion(Long taskId){
