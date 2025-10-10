@@ -34,4 +34,7 @@ public class UserOtp {
 
     @Column(name = "is_verified")
     private Boolean isVerified;
+
+    @Column(name="verification_id")
+    private String verificationId;
 }
