@@ -62,16 +62,6 @@ public interface TaskRepository extends JpaRepository<Task,Long> {
 
 
 
-
-
-
-
-
-
-
-
-
-
     @Transactional
     @Modifying
     @Query("UPDATE Task t SET t.taskStatus = :status WHERE t.taskId = :taskId")
