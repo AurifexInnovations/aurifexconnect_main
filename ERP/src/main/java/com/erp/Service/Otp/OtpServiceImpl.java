@@ -1,7 +1,7 @@
 package com.erp.Service.Otp;
 
 import com.erp.Dto.Response.OtpResponseDTO;
-import com.erp.FeignClient.Otp.OtpFeignClient;
+import com.erp.Thirdparty.Otp.OtpCpassThirdpartyCallerService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
@@ -14,7 +14,7 @@ import org.springframework.stereotype.Service;
 public class OtpServiceImpl  implements  OtpService{
 
 
-    private final OtpFeignClient authClient;
+    private final OtpCpassThirdpartyCallerService authClient;
 
 
     @Value("${otp.customer-id}")
