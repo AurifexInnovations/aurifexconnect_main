@@ -8,4 +8,6 @@ public interface OtpService {
 
     public OtpResponseDTO sendOtp(String mobileNumber);
 
+    public OtpResponseDTO validateOtp(String verificationId,String code);
+
 }

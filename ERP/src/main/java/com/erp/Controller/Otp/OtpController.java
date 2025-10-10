@@ -41,10 +41,10 @@ public class OtpController {
 
     @PostMapping("/validate")
     public ResponseEntity<ResponseStructure<OtpResponseDTO>> validateOtp(
-            @RequestParam String code) {
+            @RequestParam String verificationId,@RequestParam String code) {
         log.info("Into [OtpController] [validateOtp] :: code={}", code);
 
-        OtpResponseDTO response = otpService.validateOtp(code);
+        OtpResponseDTO response = otpService.validateOtp(verificationId,code);
 
         log.info("Exit [OtpController] [validateOtp] :: code={}", code);
         return ResponseBuilder.success(HttpStatus.OK, "OTP validated successfully", response);

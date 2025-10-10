@@ -3,6 +3,7 @@ package com.erp.Service.Otp;
 import com.erp.Dto.Response.OtpResponseDTO;
 
 import com.erp.Dto.Response.UserOtpDTO;
+import com.erp.Exception.RequestNotFoundException;
 import com.erp.Model.UserOtp;
 import com.erp.Repository.Otp.UserOtpRepository;
 import com.erp.Thirdparty.Otp.OtpCpassThirdpartyCallerService;
@@ -72,6 +73,10 @@ public class OtpServiceImpl  implements  OtpService{
     public OtpResponseDTO sendOtp(String mobileNumber) {
         log.info("Sending OTP to mobile number={}", mobileNumber);
 
+        if (mobileNumber == null || mobileNumber.isEmpty()) {
+            throw new RequestNotFoundException("Mobile number is required to validate OTP.");
+        }
+
         try {
             String authToken = getAuthToken();
 
@@ -114,20 +119,21 @@ public class OtpServiceImpl  implements  OtpService{
         }
     }
 
-    public OtpResponseDTO validateOtp(String code) {
+    public OtpResponseDTO validateOtp(String verificationId,String code) {
         log.info("Validating OTP for code={}", code);
         try {
-            String currentVerificationId=null;
-            if (currentVerificationId == null) {
-                throw new RuntimeException("No OTP request found. Please request OTP first.");
+
+
+            if (verificationId == null || verificationId.isEmpty()) {
+                throw new RequestNotFoundException("No OTP request found. Please request OTP first.");
             }
 
             String authToken = getAuthToken();
 
-            ResponseEntity<OtpResponseDTO> response = authClient.validateOtp(authToken, currentVerificationId, code, flowType);
+            ResponseEntity<OtpResponseDTO> response = authClient.validateOtp(authToken, verificationId, code, flowType);
 
             if (response.getStatusCode().is2xxSuccessful() && response.getBody() != null) {
-                log.info("OTP validated successfully for verificationId={}", currentVerificationId);
+                log.info("OTP validated successfully for verificationId={}", verificationId);
                 return response.getBody();
             } else {
                 log.error("Failed to validate OTP :: Status={}, Body={}", response.getStatusCode(), response.getBody());
