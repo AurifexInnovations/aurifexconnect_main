@@ -6,7 +6,7 @@ import com.erp.Enum.TaskStatus;
 import com.erp.Exception.DBReltedException;
 import com.erp.Exception.GlobalMessageExceptionHandler;
 import com.erp.Exception.Task.TaskNoFoundException;
-import com.erp.Exception.Tax.TaxNotFoundException;
+
 import com.erp.Mapper.TaskMapper.TaskDetailsMapper;
 import com.erp.Mapper.TaskMapper.TaskMapper;
 
@@ -16,7 +16,8 @@ import com.erp.Model.*;
 import com.erp.Projection.*;
 import com.erp.Repository.Feedback.FeedbackRepository;
 import com.erp.Repository.Task.*;
-import com.erp.Service.ServiceType.ServiceType;
+import com.erp.Security.util.UserIdentity;
+
 import com.erp.Service.Utility.FileService;
 import com.erp.constants.FileUploadConstants;
 import jakarta.transaction.Transactional;
@@ -30,7 +31,7 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.http.HttpStatus;
-import org.springframework.http.HttpStatusCode;
+
 import org.springframework.stereotype.Service;
 
 
@@ -38,6 +39,7 @@ import org.springframework.web.multipart.MultipartFile;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.time.LocalTime;
 import java.time.format.DateTimeParseException;
 import java.util.*;
 import java.util.stream.Collectors;
@@ -67,7 +69,7 @@ public class TaskServiceImpl implements TaskService {
     @Autowired
     private FileService fileService;
 
-
+    private final UserIdentity userIdentity;
 
     @Override
     @Transactional
@@ -79,21 +81,28 @@ public class TaskServiceImpl implements TaskService {
         try {
 
             if (Objects.isNull(taskRequest)) {
-                return null;
+                throw new GlobalMessageExceptionHandler("Add Task  request can not be empty",HttpStatus.BAD_REQUEST);
             }
+
+            GenericUser currentUser =  userIdentity.getCurrentUser();
 
             if (taskRequest.getTaskId() != null) {
 
-                Task existingTax = taskRepository.findById(taskRequest.getTaskId())
-                        .orElseThrow(() -> new TaxNotFoundException("Tax not found with Id: " + taskRequest.getTaskId()));
+                 task = taskRepository.findById(taskRequest.getTaskId())
+                        .orElseThrow(() -> new TaskNoFoundException("Task not found with Id: " + taskRequest.getTaskId()));
 
-                taskMapper.mapToTaxEntity(taskRequest, existingTax);
+                taskMapper.mapToTaxEntity(taskRequest, task);
+                task.setUpdatedBy(currentUser.getId());
+                task.setUpdatedAt(LocalDateTime.now());
+
+
+            }else {
+                task = taskMapper.mapToTask(taskRequest);
+                task.setCreatedBy(currentUser.getId());
+                task.setCreatedAt(LocalDateTime.now());
             }
 
-
-            task = taskMapper.mapToTask(taskRequest);
-
-
+             task.setTaskDetails(taskRequest.getTaskDetails());
             task = taskRepository.save(task);
             taskRequest.setTaskId(task.getTaskId());
             addTaskSchedule(taskRequest);
@@ -121,7 +130,7 @@ public class TaskServiceImpl implements TaskService {
         TaskSchedule taskSchedule = optionalTaskSchedule.orElseGet(TaskSchedule::new);
 
         taskSchedule = taskDetailsMapper.mapToTaskSchedule(taskRequest, taskSchedule);
-
+        taskSchedule.setTaskStartTime(LocalTime.now());
         taskScheduleRepository.save(taskSchedule);
 
         log.info("TaskSchedule processed successfully");
@@ -417,63 +426,91 @@ public class TaskServiceImpl implements TaskService {
 
 
     @Transactional
-    public void updateTaskMaterialForStatusProgress(
+    public void updateTaskMaterialForStatusProgress(Long taskId,
             CompleteTaskRequestDTO completeTaskRequestDTO,
             MultipartFile[] beforeImages,
             MultipartFile[] afterImages) {
 
-        log.info("Starting updateTaskMaterialForStatusProgress for taskId: {}", completeTaskRequestDTO.getTaskId());
+        log.info("Starting updateTaskMaterialForStatusProgress for taskId: {}", taskId);
 
         if (completeTaskRequestDTO.getTaskMaterialList() == null || completeTaskRequestDTO.getTaskMaterialList().isEmpty()) {
-            log.warn("No task materials provided for taskId: {}", completeTaskRequestDTO.getTaskId());
+            log.warn("No task materials provided for taskId: {}", taskId);
             return;
         }
 
         try {
-            log.info("Fetching existing task materials for taskId: {}", completeTaskRequestDTO.getTaskId());
-            List<TaskMaterial> existingMaterials = taskMaterialRepository.findByTaskId(completeTaskRequestDTO.getTaskId());
-            log.info("Found {} existing task materials for taskId: {}", existingMaterials.size(), completeTaskRequestDTO.getTaskId());
+            log.info("Fetching existing task materials for taskId: {}", taskId);
+            List<TaskMaterial> existingMaterials = taskMaterialRepository.findByTaskId(taskId);
+            log.info("Found {} existing task materials for taskId: {}", existingMaterials.size(), taskId);
 
-            // Save feedback list
-            saveFeedbackList(completeTaskRequestDTO.getFeedbackList(),completeTaskRequestDTO.getTaskId());
+            saveFeedbackList(completeTaskRequestDTO.getFeedbackList(),taskId);
 
             // Save or update task materials
-            saveTaskMaterials(completeTaskRequestDTO.getTaskId(), completeTaskRequestDTO.getTaskMaterialList(), existingMaterials);
+            saveTaskMaterials(taskId, completeTaskRequestDTO.getTaskMaterialList(), existingMaterials);
 
-            fileService.uploadFiles(completeTaskRequestDTO.getTaskId(),FileUploadConstants.BEFORE_SERVICE,beforeImages);
+            fileService.uploadFiles(taskId,FileUploadConstants.BEFORE_SERVICE,beforeImages);
 
-            fileService.uploadFiles(completeTaskRequestDTO.getTaskId(),FileUploadConstants.AFTER_SERVICE,afterImages);
+            fileService.uploadFiles(taskId,FileUploadConstants.AFTER_SERVICE,afterImages);
 
-            // update status
-            updateTaskStatusToCompleted(completeTaskRequestDTO.getTaskId());
+            updateTaskScheduleForCompletion(taskId);
+            updateTaskStatusToCompleted(taskId);
+
 
         } catch (Exception e) {
-            log.error("Error updating task materials for taskId: {}", completeTaskRequestDTO.getTaskId(), e);
+            log.error("Error updating task materials for taskId: {}", taskId, e);
             throw e;
         }
     }
 
-    private void saveFeedbackList(List<FeedbackRequest> feedbackRequests,Long taskId) {
-        if (feedbackRequests == null || feedbackRequests.isEmpty())
-            return;
+    private  void updateTaskScheduleForCompletion(Long taskId){
+       TaskSchedule taskSchedule =  taskScheduleRepository.findByTaskId(taskId);
+       if(Objects.nonNull(taskSchedule)){
+          taskSchedule.setTaskEndTime(LocalTime.now());
+           taskScheduleRepository.save(taskSchedule);
+       }
+    }
 
-        List<Feedback> feedbackList = new ArrayList<>();
-        for (FeedbackRequest dto : feedbackRequests) {
-            Feedback model = new Feedback();
-            model.setComment(dto.getComment());
-            model.setRating(dto.getRating());
-            model.setOtp(dto.getOtp());
-            model.setActive(Boolean.TRUE);
-            model.setTaskId(taskId);
-            model.setCreatedAt(LocalDateTime.now());
-            feedbackList.add(model);
+
+
+    private void saveFeedbackList(FeedbackRequest feedbackRequest, Long taskId) {
+        log.info("Into [saveFeedbackList] :: taskId = {}", taskId);
+
+        if (Objects.isNull(feedbackRequest)) {
+            log.warn("FeedbackRequest is null for taskId = {}", taskId);
+            return;
         }
 
-        if (!feedbackList.isEmpty()) {
-            feedbackRepository.saveAll(feedbackList);
-            log.info("Saved {} feedback entries", feedbackList.size());
+        try {
+            Optional<Feedback> existingFeedbackOpt = feedbackRepository.findByTaskId(taskId);
+
+            Feedback feedback;
+            if (existingFeedbackOpt.isPresent()) {
+                feedback = existingFeedbackOpt.get();
+                log.info("Existing feedback found for taskId = {}, updating entry", taskId);
+            } else {
+                feedback = new Feedback();
+                feedback.setTaskId(taskId);
+                feedback.setCreatedAt(LocalDateTime.now());
+                log.info("No feedback found for taskId = {}, creating new entry", taskId);
+            }
+
+            feedback.setComment(feedbackRequest.getComment());
+            feedback.setRating(feedbackRequest.getRating());
+            feedback.setOtp(feedbackRequest.getOtp());
+            feedback.setActive(Boolean.TRUE);
+            feedback.setUpdatedAt(LocalDateTime.now());
+
+            feedback = feedbackRepository.save(feedback);
+
+
+            updateTechnitianFeedBack(taskId, feedback.getId());
+            log.info("Feedback saved successfully for taskId = {}", taskId);
+
+        } catch (Exception e) {
+            log.error("Error while saving feedback for taskId = {}", taskId, e);
         }
     }
+
 
     private void saveTaskMaterials(Long taskId, List<TaskMaterialDTO> taskMaterialDTOs, List<TaskMaterial> existingMaterials) {
         Map<Long, TaskMaterial> existingMap = new HashMap<>();

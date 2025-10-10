@@ -4,6 +4,8 @@ import com.erp.Enum.TaskCategory;
 import com.erp.Enum.TaskStatus;
 import jakarta.persistence.*;
 import lombok.*;
+import org.springframework.data.annotation.CreatedDate;
+import org.springframework.data.annotation.LastModifiedDate;
 
 
 import java.time.LocalDateTime;
@@ -33,6 +35,7 @@ public class Task {
     private TaskCategory taskCategory;
 
 
+
     @Column(name = "task_details")
     private String taskDetails;
 
@@ -40,9 +43,11 @@ public class Task {
     @Column(name = "status", nullable = false)
     private TaskStatus taskStatus;
 
+    @CreatedDate
     @Column(name = "created_at", columnDefinition = "TIMESTAMP")
     private LocalDateTime createdAt;
 
+    @LastModifiedDate
     @Column(name = "updated_at", columnDefinition = "TIMESTAMP")
     private LocalDateTime updatedAt;
 
@@ -52,14 +57,6 @@ public class Task {
     @Column(name = "updated_by")
     private Long updatedBy;
 
-    @PrePersist
-    protected void onCreate() {
-        createdAt = LocalDateTime.now();
-        updatedAt = LocalDateTime.now();
-    }
 
-    @PreUpdate
-    protected void onUpdate() {
-        updatedAt = LocalDateTime.now();
-    }
+
 }

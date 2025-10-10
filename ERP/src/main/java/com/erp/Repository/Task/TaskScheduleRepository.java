@@ -100,4 +100,8 @@ public interface TaskScheduleRepository extends JpaRepository<TaskSchedule,Long>
     );
 
 
+    TaskSchedule findByTaskId(Long taskId);
+
+
+
 }

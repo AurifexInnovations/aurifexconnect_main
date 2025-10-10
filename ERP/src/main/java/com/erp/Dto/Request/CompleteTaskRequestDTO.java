@@ -12,8 +12,8 @@ import java.util.List;
 @AllArgsConstructor
 public class CompleteTaskRequestDTO {
 
-    private Long taskId;
-    private List<FeedbackRequest> feedbackList;
+
+    private FeedbackRequest feedbackList;
     private List<TaskMaterialDTO> taskMaterialList;
 
 }

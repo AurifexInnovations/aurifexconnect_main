@@ -48,11 +48,7 @@ public class TaskController {
     }
 
 
-
-
-
-
-    @GetMapping("/getAll")
+    @GetMapping("/tasks")
     @Operation(
             summary = "Get All Task Requests",
             description = "Retrieve all task requests with optional pagination.",
@@ -65,7 +61,6 @@ public class TaskController {
             @RequestParam(required = false) Integer page,
             @RequestParam(required = false) Integer size) {
 
-        // Set default values if null
         int safePage = (page == null || page < 0) ? 0 : page;
         int safeSize = (size == null || size <= 0) ? 10 : size;
 
@@ -116,7 +111,7 @@ public class TaskController {
 
 
 
-    @PostMapping("/searchByDate")
+    @PostMapping("/tracking")
     @Operation(
             summary = "Search Technicians by Date and Assigned Date",
             description = "Retrieve all technicians based on date and assigned date criteria.",
@@ -150,7 +145,8 @@ public class TaskController {
             @RequestParam String startDate,
             @RequestParam String endDate) {
 
-        log.info("[TechnicianPerformanceController] Entering getTechnicianPerformanceReport with startDate: {} and endDate: {}", startDate, endDate);
+        log.info("[TechnicianPerformanceController] Entering getTechnicianPerformanceReport" +
+                " with startDate: {} and endDate: {}", startDate, endDate);
 
         List<TechnicianLeaderboardDto> technicianLeaderboardDto = taskService.getTechnicianLeaderboard(startDate, endDate);
 
@@ -184,22 +180,7 @@ public class TaskController {
 
 
 
-
     @PostMapping("/task/completed/{taskId}")
-    @Operation(
-            summary = "Update Task Status to COMPLETED",
-            description = "Update the status of a task to COMPLETED by task ID",
-            responses = {
-                    @ApiResponse(responseCode = "200", description = "Task status updated to COMPLETED"),
-                    @ApiResponse(responseCode = "400", description = "Invalid task ID")
-            }
-    )
-    public ResponseEntity<ResponseStructure<String>> updateTaskToCompleted(@PathVariable Long taskId) {
-        taskService.updateTaskStatusToCompleted(taskId);
-        return ResponseBuilder.success(HttpStatus.OK, "Task status updated to COMPLETED", "Task ID: " + taskId);
-    }
-
-    @PostMapping("/task/completed")
     @Operation(
             summary = "Update Task Materials for a Task",
             description = "Update or add task materials for the given task ID",
@@ -208,17 +189,17 @@ public class TaskController {
                     @ApiResponse(responseCode = "400", description = "Invalid task ID or task material list")
             }
     )
-    public ResponseEntity<ResponseStructure<String>> updateTaskMaterials(
+    public ResponseEntity<ResponseStructure<String>> updateTaskMaterials(@PathVariable ("taskId") Long taskId,
             @RequestPart("completeTaskRequestDTO") CompleteTaskRequestDTO completeTaskRequestDTO,
             @RequestParam("beforeImages") MultipartFile[] beforeImages,
             @RequestParam("afterImages") MultipartFile[] afterImages) {
 
-        taskService.updateTaskMaterialForStatusProgress(completeTaskRequestDTO,beforeImages,afterImages);
+        taskService.updateTaskMaterialForStatusProgress(taskId,completeTaskRequestDTO,beforeImages,afterImages);
 
         return ResponseBuilder.success(
                 HttpStatus.OK,
                 "Task materials updated successfully",
-                "Task ID: " + completeTaskRequestDTO.getTaskId() + " | Total materials processed: " + (completeTaskRequestDTO.getTaskMaterialList() != null ? completeTaskRequestDTO.getTaskMaterialList().size() : 0)
+                "Task ID: " + taskId + " | Total materials processed: " + (completeTaskRequestDTO.getTaskMaterialList() != null ? completeTaskRequestDTO.getTaskMaterialList().size() : 0)
         );
     }
 

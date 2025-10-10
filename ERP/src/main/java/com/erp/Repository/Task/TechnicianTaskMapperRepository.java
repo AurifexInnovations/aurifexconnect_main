@@ -31,4 +31,6 @@ public interface TechnicianTaskMapperRepository extends JpaRepository<Technician
             " on u.id = tt.technician_id " +
             " where tt.feedback_id =:feedbackId and u.is_active =true " , nativeQuery = true)
     List<TechnitianFeedbackDetailProjection> getTechnitianFeedbackDetails(long feedbackId);
+
+
 }

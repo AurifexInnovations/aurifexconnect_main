@@ -26,11 +26,7 @@ public class TaskRequest {
     private Long customerId;
     private TaskCategory taskCategory;
     private TaskStatus taskStatus = TaskStatus.PENDING;
-    private String taskDetail;
-
-
-
-
+    private String taskDetails;
     private LocalDate assignedDate;
     private LocalTime assignedTime;
 

@@ -50,6 +50,7 @@ public class UserServiceImpl implements UserServices {
             User user = userMapper.mapToUser(userRequest);
             user.setPassword(passwordEncoder.encode(userRequest.getPassword()));
             user.setRoles(new HashSet<>());
+            user.setDesignation(userRequest.getDesignation());
             user.setCreatedByAdminId(currentAdmin.getId());
             user.setSchemaName(schemaName);
             user = userRepository.save(user);

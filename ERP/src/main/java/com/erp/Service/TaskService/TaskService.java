@@ -33,7 +33,7 @@ public interface TaskService {
 
      void updateTaskStatusToCompleted(Long taskId);
 
-    void updateTaskMaterialForStatusProgress(
+    void updateTaskMaterialForStatusProgress(Long taskId,
             CompleteTaskRequestDTO completeTaskRequestDTO,
             MultipartFile[] beforeImages,
             MultipartFile[] afterImages);
