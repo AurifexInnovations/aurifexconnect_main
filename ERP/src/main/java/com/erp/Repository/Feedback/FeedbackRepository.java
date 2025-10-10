@@ -6,6 +6,7 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 
 import java.util.List;
+import java.util.Optional;
 
 public interface FeedbackRepository extends JpaRepository<Feedback , Long> {
 
@@ -19,6 +20,10 @@ public interface FeedbackRepository extends JpaRepository<Feedback , Long> {
             "WHERE t.task_status = 'COMPLETED' and f.is_active = true" +
             "GROUP BY f.technician_id", nativeQuery = true)
     List<TechnicianStatsDTO> getTechnicianStats();
+
+
+    Optional<Feedback> findByTaskId(Long taskId);
+
 
 
 

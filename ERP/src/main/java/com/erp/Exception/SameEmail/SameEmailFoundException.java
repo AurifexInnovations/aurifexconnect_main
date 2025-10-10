@@ -9,4 +9,6 @@ public class SameEmailFoundException extends RuntimeException {
 
     private String message;
 
+
+
 }

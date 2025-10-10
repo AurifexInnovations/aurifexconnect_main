@@ -56,7 +56,7 @@ public class User implements GenericUser {
 
     @Enumerated(EnumType.STRING)
     @Column(name = "designation")
-    private Designation designation = Designation.TECHNICIAN;
+    private Designation designation ;
 
     @LastModifiedDate
     @Column(name = "last_modified_at")
