@@ -1,12 +1,18 @@
 package com.erp.Service.Otp;
 
 import com.erp.Dto.Response.OtpResponseDTO;
+
+import com.erp.Dto.Response.UserOtpDTO;
+import com.erp.Model.UserOtp;
+import com.erp.Repository.Otp.UserOtpRepository;
 import com.erp.Thirdparty.Otp.OtpCpassThirdpartyCallerService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
+
+import java.time.LocalDateTime;
 
 @Service
 @Slf4j
@@ -15,6 +21,8 @@ public class OtpServiceImpl  implements  OtpService{
 
 
     private final OtpCpassThirdpartyCallerService authClient;
+
+    private final UserOtpRepository userOtpRepository;
 
 
     @Value("${otp.customer-id}")
@@ -65,15 +73,36 @@ public class OtpServiceImpl  implements  OtpService{
         log.info("Sending OTP to mobile number={}", mobileNumber);
 
         try {
-
             String authToken = getAuthToken();
 
             ResponseEntity<OtpResponseDTO> response = authClient.sendOtp(authToken, country,flowType, mobileNumber);
+
 
             log.debug("CPaaS Response :: Status={}, Body={}", response.getStatusCode(), response.getBody());
 
             if (response.getStatusCode().is2xxSuccessful() && response.getBody() != null) {
                 log.info("OTP sent successfully to {}", mobileNumber);
+                OtpResponseDTO otpResponse = response.getBody();
+                if (otpResponse != null && otpResponse.getData() != null) {
+
+                    UserOtpDTO data = otpResponse.getData();
+
+                    UserOtp model = userOtpRepository.findByMobileNo(data.getMobileNumber())
+                            .orElse(new UserOtp());
+
+
+                    model.setVerificationId(data.getVerificationId());
+                    model.setMobileNo(data.getMobileNumber());
+                    model.setOtpGeneratedDateTime(LocalDateTime.now());
+                    model.setOtpExpiryDateTime(LocalDateTime.now().plusMinutes(5));
+                    model.setIsVerified(false);
+                    if (model.getId() != null) {
+                        model.setMaxAttemp(model.getMaxAttemp() != null ? model.getMaxAttemp() + 1 : 1);
+                    } else {
+                        model.setMaxAttemp(0);
+                    }
+                    userOtpRepository.save(model);
+                }
                 return response.getBody();
             } else {
                 log.error("Failed to send OTP :: Status={}, Body={}", response.getStatusCode(), response.getBody());

@@ -10,5 +10,5 @@ import lombok.NoArgsConstructor;
 public class OtpResponseDTO {
     private int responseCode;
     private String message;
-    private OtpData data;
+    private UserOtpDTO data;
 }
