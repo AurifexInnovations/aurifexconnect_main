@@ -1,19 +1,11 @@
 package com.erp.Service.Otp;
 
-import lombok.extern.slf4j.Slf4j;
-import org.springframework.stereotype.Service;
+import com.erp.Dto.Response.OtpResponseDTO;
 
-@Service
-@Slf4j
-public class OtpService {
+public interface OtpService {
 
+    String getAuthToken();
 
-    public void sendOtp(String mobileNo){
-        log.info("Into [OtpService] [sendOtp]");
+    public OtpResponseDTO sendOtp(String mobileNumber);
 
-
-
-
-        log.info("Exit [OtpService] [sendOtp]");
-    }
 }
