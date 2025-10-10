@@ -14,4 +14,10 @@ public class FeedbackRequest {
     private String comment;
 
     private float rating;
+
+    private  String otp;
+
+    private  String verificationId;
+
+
 }

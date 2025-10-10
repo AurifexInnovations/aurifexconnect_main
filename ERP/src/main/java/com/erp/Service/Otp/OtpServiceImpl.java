@@ -3,17 +3,23 @@ package com.erp.Service.Otp;
 import com.erp.Dto.Response.OtpResponseDTO;
 
 import com.erp.Dto.Response.UserOtpDTO;
-import com.erp.Exception.RequestNotFoundException;
+import com.erp.Exception.GlobalMessageExceptionHandler;
+import com.erp.Exception.BadRequestException;
+import com.erp.Exception.ResourceNotFoundException;
 import com.erp.Model.UserOtp;
 import com.erp.Repository.Otp.UserOtpRepository;
 import com.erp.Thirdparty.Otp.OtpCpassThirdpartyCallerService;
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
+import java.util.Optional;
 
 @Service
 @Slf4j
@@ -57,7 +63,12 @@ public class OtpServiceImpl  implements  OtpService{
 
             if (response.getStatusCode().is2xxSuccessful()) {
                 log.info("Auth token fetched successfully for customerId={}", customerId);
-                return response.getBody();
+                String responseBody = response.getBody();
+
+                ObjectMapper mapper = new ObjectMapper();
+                JsonNode node = mapper.readTree(responseBody);
+                return node.get("token").asText();
+
             } else {
                 log.error("Failed to fetch auth token :: Status={}, Response={}",
                         response.getStatusCode(), response.getBody());
@@ -74,7 +85,7 @@ public class OtpServiceImpl  implements  OtpService{
         log.info("Sending OTP to mobile number={}", mobileNumber);
 
         if (mobileNumber == null || mobileNumber.isEmpty()) {
-            throw new RequestNotFoundException("Mobile number is required to validate OTP.");
+            throw new BadRequestException("Mobile number is required to validate OTP.");
         }
 
         try {
@@ -115,25 +126,37 @@ public class OtpServiceImpl  implements  OtpService{
             }
         } catch (Exception e) {
             log.error("Exception while sending OTP to {} :: {}", mobileNumber, e.getMessage(), e);
-            throw new RuntimeException("Error sending OTP", e);
+            throw new GlobalMessageExceptionHandler(e.getMessage(), HttpStatus.EXPECTATION_FAILED);
         }
     }
 
-    public OtpResponseDTO validateOtp(String verificationId,String code) {
+    public OtpResponseDTO validateOtp(String mobileNo,String code) {
         log.info("Validating OTP for code={}", code);
         try {
 
 
-            if (verificationId == null || verificationId.isEmpty()) {
-                throw new RequestNotFoundException("No OTP request found. Please request OTP first.");
+            if (mobileNo == null || mobileNo.isEmpty()) {
+                throw new BadRequestException("No OTP request found. Please request OTP first.");
             }
+
+            Optional<UserOtp> userOtp =  userOtpRepository.findByMobileNo(mobileNo);
+            if(userOtp.isEmpty()){
+                throw new ResourceNotFoundException("Invalid OTP");
+            }
+
 
             String authToken = getAuthToken();
 
-            ResponseEntity<OtpResponseDTO> response = authClient.validateOtp(authToken, verificationId, code, flowType);
+            ResponseEntity<OtpResponseDTO> response =
+                    authClient.validateOtp(authToken, userOtp.get().getVerificationId(), code, flowType);
+
+             userOtp.get().setIsVerified(true);
+
+             userOtpRepository.save(userOtp.get());
+
 
             if (response.getStatusCode().is2xxSuccessful() && response.getBody() != null) {
-                log.info("OTP validated successfully for verificationId={}", verificationId);
+                log.info("OTP validated successfully for verificationId={}", userOtp.get().getVerificationId());
                 return response.getBody();
             } else {
                 log.error("Failed to validate OTP :: Status={}, Body={}", response.getStatusCode(), response.getBody());

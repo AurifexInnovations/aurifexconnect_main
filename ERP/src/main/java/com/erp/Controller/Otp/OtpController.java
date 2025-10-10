@@ -4,9 +4,12 @@ import com.erp.Dto.Response.OtpResponseDTO;
 import com.erp.Service.Otp.OtpServiceImpl;
 import com.erp.Utility.ResponseBuilder;
 import com.erp.Utility.ResponseStructure;
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -41,10 +44,10 @@ public class OtpController {
 
     @PostMapping("/validate")
     public ResponseEntity<ResponseStructure<OtpResponseDTO>> validateOtp(
-            @RequestParam String verificationId,@RequestParam String code) {
+            @RequestParam String mobileNo,@RequestParam String code) {
         log.info("Into [OtpController] [validateOtp] :: code={}", code);
 
-        OtpResponseDTO response = otpService.validateOtp(verificationId,code);
+        OtpResponseDTO response = otpService.validateOtp(mobileNo,code);
 
         log.info("Exit [OtpController] [validateOtp] :: code={}", code);
         return ResponseBuilder.success(HttpStatus.OK, "OTP validated successfully", response);

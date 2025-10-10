@@ -185,7 +185,7 @@ CREATE TABLE files (
 );
 
 CREATE TABLE user_otp (
-	id bigint NOT NULL,
+	id  BIGSERIAL PRIMARY KEY ,
 	mobile_no varchar NULL,
 	otp varchar(10) NULL,
 	otp_generated_date_time timestamp NULL,
@@ -193,5 +193,6 @@ CREATE TABLE user_otp (
 	lock_till_date_time timestamp NULL,
 	max_attemp int NULL,
 	is_verified boolean NULL,
-	CONSTRAINT user_otp_pk PRIMARY KEY (id)
+	verification_id VARCHAR(255)
+
 );

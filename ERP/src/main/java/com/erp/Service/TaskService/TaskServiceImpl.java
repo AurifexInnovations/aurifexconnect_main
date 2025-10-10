@@ -3,7 +3,7 @@ package com.erp.Service.TaskService;
 import com.erp.Dto.Request.*;
 import com.erp.Dto.Response.*;
 import com.erp.Enum.TaskStatus;
-import com.erp.Exception.RequestNotFoundException;
+import com.erp.Exception.BadRequestException;
 import com.erp.Exception.DBReltedException;
 import com.erp.Exception.GlobalMessageExceptionHandler;
 import com.erp.Exception.Task.TaskNoFoundException;
@@ -390,7 +390,7 @@ public class TaskServiceImpl implements TaskService {
         validateTaskById(taskId);
 
         if (selfie == null || selfie.length == 0) {
-            throw new RequestNotFoundException("Selfie file is required to update task status.");
+            throw new BadRequestException("Selfie file is required to update task status.");
         }
 
         fileService.uploadFiles(taskId, FileUploadConstants.SELFIE,selfie);
@@ -441,14 +441,14 @@ public class TaskServiceImpl implements TaskService {
 
         if (completeTaskRequestDTO.getTaskMaterialList() == null
                 || completeTaskRequestDTO.getTaskMaterialList().isEmpty()) {
-            throw new RequestNotFoundException(
+            throw new BadRequestException(
                     "No task materials provided for taskId: " + taskId
             );
         }
 
         if ((beforeImages == null || beforeImages.length == 0)
                 && (afterImages == null || afterImages.length == 0)) {
-            throw new RequestNotFoundException("Both before and after images are required to update task status.");
+            throw new BadRequestException("Both before and after images are required to update task status.");
         }
 
         try {
