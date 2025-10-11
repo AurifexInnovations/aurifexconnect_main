@@ -3,7 +3,7 @@ package com.erp.Controller.Subscriber;
 import com.erp.Dto.Request.BranchRqst;
 import com.erp.Dto.Response.BranchRpns;
 import com.erp.Dto.SubscriptionsDto.BranchDto;
-import com.erp.Service.SubscriptionService.IBranchService;
+import com.erp.Service.SubscriptionService.IBranchDetailService;
 import com.erp.Utility.ResponseBuilder;
 import com.erp.Utility.ResponseStructure;
 import io.swagger.v3.oas.annotations.Operation;
@@ -17,10 +17,10 @@ import org.springframework.web.bind.annotation.*;
 @RestController
 @RequestMapping("/api/v1/branch")
 @Tag(name = "Branch Controller", description = "APIs for Branch Details")
-public class BranchController {
+public class BranchDetailController {
 
     @Autowired
-    private IBranchService branchService;
+    private IBranchDetailService branchService;
 
     @GetMapping("/code/{branchCode}")
     @Operation(description = "Fetch branch details by branch code",

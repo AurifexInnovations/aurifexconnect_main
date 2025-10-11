@@ -5,7 +5,7 @@ import com.erp.Dto.Response.BranchRpns;
 import com.erp.Dto.SubscriptionsDto.BranchDto;
 import com.erp.Mapper.SubscriptionModule.BranchMapper;
 import com.erp.Model.BranchEntity;
-import com.erp.Repository.SubscriptionModule.BranchRepository;
+import com.erp.Repository.SubscriptionModule.BranchDetailRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -13,10 +13,10 @@ import java.sql.Timestamp;
 import java.time.LocalDateTime;
 
 @Service
-public class BranchServiceImpl implements IBranchService {
+public class BranchDetailServiceImpl implements IBranchDetailService {
 
     @Autowired
-    private BranchRepository branchRepository;
+    private BranchDetailRepository branchRepository;
 
     @Override
     public BranchDto fetchBranchByCode(String branchCode) {
