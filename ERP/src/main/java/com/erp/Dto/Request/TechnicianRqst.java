@@ -3,7 +3,7 @@ package com.erp.Dto.Request;
 import lombok.Data;
 
 @Data
-public class TechnicianRequest {
+public class TechnicianRqst {
     private String technicianName;
     private String contact;
     private Integer age;

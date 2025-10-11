@@ -1,6 +1,6 @@
 package com.erp.Controller.Subscriber;
 
-import com.erp.Dto.Request.TechnicianRequest;
+import com.erp.Dto.Request.TechnicianRqst;
 import com.erp.Dto.Response.TechnicianResponse;
 import com.erp.Dto.SubscriptionsDto.TechnicianDto;
 import com.erp.Service.SubscriptionService.ITechnicianService;
@@ -34,7 +34,7 @@ public class TechnicianController {
 
     @PostMapping("/create")
     public ResponseEntity<ResponseStructure<TechnicianResponse>> createTechnician(
-            @RequestBody TechnicianRequest request) {
+            @RequestBody TechnicianRqst request) {
         TechnicianResponse response = technicianService.createTechnician(request);
         return ResponseBuilder.success(HttpStatus.CREATED, "Technician created successfully", response);
     }

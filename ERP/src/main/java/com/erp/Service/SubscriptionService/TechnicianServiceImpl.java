@@ -1,6 +1,6 @@
 package com.erp.Service.SubscriptionService;
 
-import com.erp.Dto.Request.TechnicianRequest;
+import com.erp.Dto.Request.TechnicianRqst;
 import com.erp.Dto.Response.TechnicianResponse;
 import com.erp.Dto.SubscriptionsDto.TechnicianDto;
 import com.erp.Mapper.SubscriptionModule.TechnicianMapper;
@@ -31,7 +31,7 @@ public class TechnicianServiceImpl implements ITechnicianService {
 
 
     @Override
-    public TechnicianResponse createTechnician(TechnicianRequest request) {
+    public TechnicianResponse createTechnician(TechnicianRqst request) {
         TechnicianEntity entity = new TechnicianEntity();
         entity.setTechnicianName(request.getTechnicianName());
         entity.setContact(request.getContact());
