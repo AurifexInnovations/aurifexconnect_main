@@ -8,12 +8,15 @@ import com.erp.Mapper.Service.ServiceMapper;
 import com.erp.Model.Service;
 import com.erp.Repository.Service.ServiceRepository;
 import lombok.AllArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.web.bind.annotation.RequestBody;
 
+import java.util.ArrayList;
 import java.util.List;
 
 @org.springframework.stereotype.Service
 @AllArgsConstructor
+@Slf4j
 public class ServiceTypeImpl implements ServiceType {
 
     private final ServiceRepository repository;
@@ -87,6 +90,15 @@ public class ServiceTypeImpl implements ServiceType {
             throw  new ServiceNotFoundByIdException("Service Not Found!");
         }
         return serviceMapper.mapToServiceResponse(services);
+    }
+
+    public List<Service> getAllServicesByIds(List<Long> serviceIds){
+      log.info("[ServiceTypeImpl]  [getAllServicesByIds]  getting services by {}",serviceIds);
+        List<Service> services = repository.findAllById(serviceIds);
+        if(services.isEmpty()){
+            return new ArrayList<>();
+        }
+        return services;
     }
 
 }

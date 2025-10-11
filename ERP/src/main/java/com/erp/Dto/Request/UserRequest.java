@@ -5,6 +5,7 @@ import com.erp.Dto.Constraints.Name;
 import com.erp.Dto.Constraints.Password;
 import com.erp.Dto.Request.RoleRequest;
 
+import com.erp.Enum.Designation;
 import jakarta.validation.constraints.*;
 import lombok.Getter;
 import lombok.Setter;
@@ -31,6 +32,8 @@ public class UserRequest {
 
     @Password
     private String password;
+
+    private Designation designation;
 
     @NotEmpty(message = "Roles cannot be empty")
     @Size(min = 1, message = "User must have at least one role")
