@@ -75,3 +75,17 @@ logging:
     time-zone: Asia/Kolkata
     serialization:
       write-dates-as-timestamps: false
+otp:
+  service:
+  url: https://cpaas.messagecentral.com
+  customer-id: C-1C35A10D607A45B
+  key: WWFnbmVzaDIzQA
+  scope: NEW
+  country: 91
+  email: test@gmail.com
+  flowType: SMS
+
+
+web:
+  resources :
+    static-locations: file:uploads/

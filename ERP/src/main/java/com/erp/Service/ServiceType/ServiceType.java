@@ -3,6 +3,7 @@ package com.erp.Service.ServiceType;
 import com.erp.Dto.Request.CommanParam;
 import com.erp.Dto.Request.ServiceRequest;
 import com.erp.Dto.Response.ServiceResponse;
+import com.erp.Model.Service;
 
 import java.util.List;
 
@@ -24,6 +25,6 @@ public interface ServiceType {
 
     List<ServiceResponse> fetchServiceByCategory(ServiceRequest serviceRequest);
 
-
+    List<Service>  getAllServicesByIds(List<Long> ids);
 
 }
