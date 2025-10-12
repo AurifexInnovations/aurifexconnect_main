@@ -196,3 +196,15 @@ CREATE TABLE user_otp (
 	verification_id VARCHAR(255)
 
 );
+
+
+CREATE TABLE internal_ticket (
+    id BIGSERIAL PRIMARY KEY,
+    title VARCHAR(255) NOT NULL,
+    priority VARCHAR(255),
+    status VARCHAR(255),
+    assigned_to BIGINT,
+    created_by BIGINT,
+    created_date TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    last_updated TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);

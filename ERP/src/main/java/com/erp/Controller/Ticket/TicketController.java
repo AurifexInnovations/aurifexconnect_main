@@ -4,7 +4,8 @@ import com.erp.Dto.Request.TicketRequestDTO;
 import com.erp.Dto.Request.TicketSearchRequest;
 import com.erp.Dto.Response.TicketResponseDTO;
 import com.erp.Dto.Response.TicketSearchResponse;
-import com.erp.Service.Ticket.TicketService;
+
+import com.erp.Service.Ticket.customerHelpTicket.TicketService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
