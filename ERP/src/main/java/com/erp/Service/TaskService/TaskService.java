@@ -3,15 +3,12 @@ package com.erp.Service.TaskService;
 import com.erp.Dto.Request.*;
 import com.erp.Dto.Response.*;
 import com.erp.Model.TechnicianTaskMapper;
+import com.erp.Projection.GetAllTaskResponse;
 import com.erp.Projection.TechnicianResponse;
 import com.erp.Projection.TechnicianTaskProjection;
 import com.erp.Projection.TechnitianFeedbackDetailProjection;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.multipart.MultipartFile;
 
-import java.time.LocalDate;
 import java.util.List;
 
 public interface TaskService {
