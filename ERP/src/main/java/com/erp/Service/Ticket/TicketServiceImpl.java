@@ -4,6 +4,7 @@ import com.erp.Dto.Request.TicketRequestDTO;
 import com.erp.Dto.Request.TicketSearchRequest;
 import com.erp.Dto.Response.TicketResponseDTO;
 import com.erp.Dto.Response.TicketSearchResponse;
+import com.erp.Enum.TicketStatus;
 import com.erp.Mapper.Ticket.TicketMapper;
 import com.erp.Model.Ticket;
 import com.erp.Repository.Ticket.TicketRepository;
@@ -54,6 +55,10 @@ public class TicketServiceImpl implements TicketService {
                 log.info("Existing ticket found. Updating ticket with id={}", ticketId);
                 ticket = ticketRepository.findById(ticketId).orElseThrow(() ->
                         new RuntimeException("Ticket not found with id=" + ticketId));
+
+                if(TicketStatus.CLOSED.equals(ticket.getTicketStatus())){
+                    ticket.setResolvedAt(LocalDateTime.now());
+                }
                 ticketMapper.mapToTicketEntity(ticketRequestDTO, ticket);
             } else {
                 log.info("No existing ticket found. Creating a new ticket for customerId={}", ticketRequestDTO.getCustomerId());
@@ -63,7 +68,6 @@ public class TicketServiceImpl implements TicketService {
             }
 
             ticket.setCreatedAt(LocalDateTime.now());
-            ticket.setResolvedAt(LocalDateTime.now());
             ticketRepository.save(ticket);
             log.info("Ticket saved successfully with id={}", ticket.getId());
 
