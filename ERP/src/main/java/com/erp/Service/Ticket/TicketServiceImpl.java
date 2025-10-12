@@ -1,18 +1,31 @@
 package com.erp.Service.Ticket;
 
 import com.erp.Dto.Request.TicketRequestDTO;
+import com.erp.Dto.Request.TicketSearchRequest;
 import com.erp.Dto.Response.TicketResponseDTO;
+import com.erp.Dto.Response.TicketSearchResponse;
 import com.erp.Mapper.Ticket.TicketMapper;
 import com.erp.Model.Ticket;
 import com.erp.Repository.Ticket.TicketRepository;
+import jakarta.persistence.criteria.CriteriaBuilder;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import jakarta.persistence.EntityManager;
+import jakarta.persistence.PersistenceContext;
+import jakarta.persistence.criteria.CriteriaQuery;
+import jakarta.persistence.criteria.Predicate;
+import jakarta.persistence.criteria.Root;
+import jakarta.persistence.*;
+import jakarta.persistence.criteria.*;
 
+import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
-import java.util.Optional;
+
+
 
 @Slf4j
 @Service
@@ -20,72 +33,137 @@ import java.util.Optional;
 public class TicketServiceImpl implements TicketService {
 
     private final TicketRepository ticketRepository;
+
     private final TicketMapper ticketMapper;
+
+    @PersistenceContext
+    private EntityManager entityManager;
+
 
     @Override
     @Transactional
     public TicketResponseDTO createTicket(TicketRequestDTO ticketRequestDTO) {
-        log.info("Creating ticket for customerId={} and taskId={}", ticketRequestDTO.getCustomerId(), ticketRequestDTO.getTaskId());
-        try {
-            Ticket ticket = ticketMapper.mapToTicket(ticketRequestDTO);
-            ticketRepository.save(ticket);
-            log.info("Ticket created successfully with supportId={}", ticket.getId());
-            return ticketMapper.mapToTicketResponse(ticket);
-        } catch (Exception e) {
-            log.error("Error creating ticket for customerId={}: {}", ticketRequestDTO.getCustomerId(), e.getMessage(), e);
-            throw new RuntimeException("Failed to create ticket");
-        }
-    }
+        Long ticketId = ticketRequestDTO.getId();
+        log.info("Add/Update ticket request received :: ticketId={}, customerId={}", ticketId, ticketRequestDTO.getCustomerId());
 
-    @Override
-    @Transactional
-    public TicketResponseDTO updateTicket(TicketRequestDTO ticketRequestDTO) {
-        log.info("Updating ticket with supportId={}", ticketRequestDTO.getId());
         try {
-            Optional<Ticket> optionalTicket = ticketRepository.findById(ticketRequestDTO.getId());
-            if (optionalTicket.isPresent()) {
-                Ticket ticket = optionalTicket.get();
+            Ticket ticket = null;
+
+            if (ticketId != null && ticketRepository.existsById(ticketId)) {
+
+                log.info("Existing ticket found. Updating ticket with id={}", ticketId);
+                ticket = ticketRepository.findById(ticketId).orElseThrow(() ->
+                        new RuntimeException("Ticket not found with id=" + ticketId));
                 ticketMapper.mapToTicketEntity(ticketRequestDTO, ticket);
-                ticketRepository.save(ticket);
-                log.info("Ticket updated successfully with supportId={}", ticket.getId());
-                return ticketMapper.mapToTicketResponse(ticket);
             } else {
-                log.warn("Ticket not found with supportId={}", ticketRequestDTO.getId());
-                throw new RuntimeException("Ticket not found with supportId=" + ticketRequestDTO.getId());
+                log.info("No existing ticket found. Creating a new ticket for customerId={}", ticketRequestDTO.getCustomerId());
+
+
+                ticket = ticketMapper.mapToTicket(ticketRequestDTO);
             }
+
+            ticket.setCreatedAt(LocalDateTime.now());
+            ticket.setResolvedAt(LocalDateTime.now());
+            ticketRepository.save(ticket);
+            log.info("Ticket saved successfully with id={}", ticket.getId());
+
+            return ticketMapper.mapToTicketResponse(ticket);
+
         } catch (Exception e) {
-            log.error("Error updating ticket with supportId={}: {}", ticketRequestDTO.getId(), e.getMessage(), e);
-            throw new RuntimeException("Failed to update ticket");
+            log.error("Error while creating/updating ticket for id={} :: {}", ticketId, e.getMessage(), e);
+            throw new RuntimeException("Failed to create or update ticket");
         }
     }
 
     @Override
-    public TicketResponseDTO getTicketBySupportId(Long supportId) {
-        log.info("Fetching ticket with supportId={}", supportId);
-        try {
-            return ticketRepository.findById(supportId)
-                    .map(ticketMapper::mapToTicketResponse)
-                    .orElseThrow(() -> {
-                        log.warn("Ticket not found with supportId={}", supportId);
-                        return new RuntimeException("Ticket not found with supportId=" + supportId);
-                    });
-        } catch (Exception e) {
-            log.error("Error fetching ticket with supportId={}: {}", supportId, e.getMessage(), e);
-            throw new RuntimeException("Failed to fetch ticket");
+    public TicketSearchResponse searchTickets(TicketSearchRequest request) {
+        log.info("Searching tickets with filters={}, sortBy={}, direction={}, page={}, size={}",
+                request.getFilters(), request.getSortBy(), request.getSortDirection(), request.getPage(), request.getSize());
+
+        CriteriaBuilder cb = entityManager.getCriteriaBuilder();
+
+        // --- Create main query ---
+        CriteriaQuery<Ticket> cq = cb.createQuery(Ticket.class);
+        Root<Ticket> root = cq.from(Ticket.class);
+
+        List<Predicate> predicates = buildPredicates(request.getFilters(), cb, root);
+
+        cq.where(cb.and(predicates.toArray(new Predicate[0])));
+
+        // --- Sorting ---
+        if (request.getSortBy() != null && !request.getSortBy().isEmpty()) {
+            Path<Object> sortPath = root.get(request.getSortBy());
+            cq.orderBy("DESC".equalsIgnoreCase(request.getSortDirection())
+                    ? cb.desc(sortPath)
+                    : cb.asc(sortPath));
         }
+
+        TypedQuery<Ticket> query = entityManager.createQuery(cq);
+
+        // --- Pagination ---
+        int page = request.getPage();
+        int size = request.getSize();
+        query.setFirstResult(page * size);
+        query.setMaxResults(size);
+
+        List<Ticket> resultList = query.getResultList();
+
+        // --- Count Query for Total Elements ---
+        CriteriaQuery<Long> countQuery = cb.createQuery(Long.class);
+        Root<Ticket> countRoot = countQuery.from(Ticket.class);
+        countQuery.select(cb.count(countRoot))
+                .where(cb.and(buildPredicates(request.getFilters(), cb, countRoot).toArray(new Predicate[0])));
+        long totalElements = entityManager.createQuery(countQuery).getSingleResult();
+
+        // --- Build Response ---
+        TicketSearchResponse response = new TicketSearchResponse();
+        response.setTickets(ticketMapper.mapToTicketResponse(resultList));
+        response.setTotalElements(totalElements);
+        response.setTotalPages((int) Math.ceil((double) totalElements / size));
+        response.setCurrentPage(page);
+        response.setPageSize(size);
+
+        log.info("Fetched {} tickets, totalElements={}, totalPages={}", resultList.size(), totalElements, response.getTotalPages());
+        return response;
     }
 
-    @Override
-    public List<TicketResponseDTO> getAllTickets(Map<String, Object> filters) {
-        log.info("Fetching all tickets with filters={}", filters);
-        try {
-            List<Ticket> tickets = ticketRepository.findAll();
-            log.info("Fetched {} tickets", tickets.size());
-            return ticketMapper.mapToTicketResponse(tickets);
-        } catch (Exception e) {
-            log.error("Error fetching tickets: {}", e.getMessage(), e);
-            throw new RuntimeException("Failed to fetch tickets");
+    private List<Predicate> buildPredicates(Map<String, Object> filters, CriteriaBuilder cb, Root<Ticket> root) {
+        List<Predicate> predicates = new ArrayList<>();
+        if (filters == null) return predicates;
+
+        for (Map.Entry<String, Object> entry : filters.entrySet()) {
+            String key = entry.getKey();
+            Object value = entry.getValue();
+
+            if (value != null && !value.toString().trim().isEmpty()) {
+                String lowerKey = key.toLowerCase();
+                String searchValue = "%" + value.toString().toLowerCase() + "%";
+
+                switch (lowerKey) {
+                    case "priority":
+                        predicates.add(cb.like(cb.lower(root.get("priority")), searchValue));
+                        break;
+                    case "status":
+                        predicates.add(cb.like(cb.lower(root.get("status")), searchValue));
+                        break;
+                    case "customerlocation":
+                        predicates.add(cb.like(cb.lower(root.get("customerLocation")), searchValue));
+                        break;
+                    case "technicianid":
+                        predicates.add(cb.equal(root.get("technicianId"), value));
+                        break;
+                    case "customerid":
+                        predicates.add(cb.equal(root.get("customerId"), value));
+                        break;
+                    case "taskid":
+                        predicates.add(cb.equal(root.get("taskId"), value));
+                        break;
+                    default:
+                        log.warn("Ignoring unknown filter key: {}", key);
+                }
+            }
         }
+        return predicates;
     }
 
     @Override
@@ -106,30 +184,5 @@ public class TicketServiceImpl implements TicketService {
         }
     }
 
-    @Override
-    public List<TicketResponseDTO> searchTickets(String columnName, String value) {
-        log.info("Searching tickets by {}={}", columnName, value);
-        try {
-            List<Ticket> tickets;
-            switch (columnName.toLowerCase()) {
-                case "priority":
-                    tickets = ticketRepository.findByPriority(value);
-                    break;
-                case "status":
-                    tickets = ticketRepository.findByStatus(value);
-                    break;
-                case "customerlocation":
-                    tickets = ticketRepository.findByCustomerLocation(value);
-                    break;
-                default:
-                    log.warn("Unknown column {}. Fetching all tickets", columnName);
-                    tickets = ticketRepository.findAll();
-            }
-            log.info("Found {} tickets for {}={}", tickets.size(), columnName, value);
-            return ticketMapper.mapToTicketResponse(tickets);
-        } catch (Exception e) {
-            log.error("Error searching tickets by {}={}: {}", columnName, value, e.getMessage(), e);
-            throw new RuntimeException("Failed to search tickets");
-        }
-    }
+
 }

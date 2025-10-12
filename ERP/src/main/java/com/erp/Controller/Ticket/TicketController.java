@@ -1,7 +1,9 @@
 package com.erp.Controller.Ticket;
 
 import com.erp.Dto.Request.TicketRequestDTO;
+import com.erp.Dto.Request.TicketSearchRequest;
 import com.erp.Dto.Response.TicketResponseDTO;
+import com.erp.Dto.Response.TicketSearchResponse;
 import com.erp.Service.Ticket.TicketService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -26,30 +28,6 @@ public class TicketController {
         return ResponseEntity.ok(response);
     }
 
-    @PutMapping("/Update")
-    public ResponseEntity<TicketResponseDTO> updateTicket(
-            @PathVariable Long supportId,
-            @RequestBody TicketRequestDTO ticketRequestDTO) {
-        log.info("Controller: updateTicket called for supportId={}", supportId);
-        ticketRequestDTO.setId(supportId);
-        TicketResponseDTO response = ticketService.updateTicket(ticketRequestDTO);
-        return ResponseEntity.ok(response);
-    }
-
-    @GetMapping("/{supportId}")
-    public ResponseEntity<TicketResponseDTO> getTicketBySupportId(@PathVariable Long supportId) {
-        log.info("Controller: getTicketBySupportId called for supportId={}", supportId);
-        TicketResponseDTO response = ticketService.getTicketBySupportId(supportId);
-        return ResponseEntity.ok(response);
-    }
-
-    @GetMapping
-    public ResponseEntity<List<TicketResponseDTO>> getAllTickets(@RequestParam(required = false) Map<String, Object> filters) {
-        log.info("Controller: getAllTickets called with filters={}", filters);
-        List<TicketResponseDTO> response = ticketService.getAllTickets(filters);
-        return ResponseEntity.ok(response);
-    }
-
     @DeleteMapping("/{supportId}")
     public ResponseEntity<String> deleteTicketBySupportId(@PathVariable Long supportId) {
         log.info("Controller: deleteTicketBySupportId called for supportId={}", supportId);
@@ -57,12 +35,12 @@ public class TicketController {
         return ResponseEntity.ok("Ticket deleted successfully");
     }
 
-    @GetMapping("/search")
-    public ResponseEntity<List<TicketResponseDTO>> searchTickets(
-            @RequestParam String columnName,
-            @RequestParam String value) {
-        log.info("Controller: searchTickets called with {}={}", columnName, value);
-        List<TicketResponseDTO> response = ticketService.searchTickets(columnName, value);
+    @PostMapping("/search")
+    public ResponseEntity<TicketSearchResponse> searchTickets(@RequestBody TicketSearchRequest request) {
+        log.info("Received ticket search request: {}", request);
+        TicketSearchResponse response = ticketService.searchTickets(request);
         return ResponseEntity.ok(response);
     }
+
+
 }

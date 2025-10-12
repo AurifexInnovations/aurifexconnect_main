@@ -12,6 +12,8 @@ import java.time.LocalDateTime;
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
+@Table(name = "tickets")
+@Entity
 public class Ticket {
 
     @Id
