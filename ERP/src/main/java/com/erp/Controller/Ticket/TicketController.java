@@ -28,10 +28,10 @@ public class TicketController {
         return ResponseEntity.ok(response);
     }
 
-    @DeleteMapping("/{supportId}")
-    public ResponseEntity<String> deleteTicketBySupportId(@PathVariable Long supportId) {
-        log.info("Controller: deleteTicketBySupportId called for supportId={}", supportId);
-        ticketService.deleteTicketBySupportId(supportId);
+    @DeleteMapping("/{ticketId}")
+    public ResponseEntity<String> deleteTicketBySupportId(@PathVariable Long ticketId) {
+        log.info("Controller: deleteTicketBySupportId called for ticketId={}", ticketId);
+        ticketService.deleteTicketBySupportId(ticketId);
         return ResponseEntity.ok("Ticket deleted successfully");
     }
 

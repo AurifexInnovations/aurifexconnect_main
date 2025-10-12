@@ -168,18 +168,18 @@ public class TicketServiceImpl implements TicketService {
 
     @Override
     @Transactional
-    public void deleteTicketBySupportId(Long supportId) {
-        log.info("Deleting ticket with supportId={}", supportId);
+    public void deleteTicketBySupportId(Long ticketId) {
+        log.info("Deleting ticket with ticketId={}", ticketId);
         try {
-            if (ticketRepository.existsById(supportId)) {
-                ticketRepository.deleteById(supportId);
-                log.info("Ticket deleted successfully with supportId={}", supportId);
+            if (ticketRepository.existsById(ticketId)) {
+                ticketRepository.deleteById(ticketId);
+                log.info("Ticket deleted successfully with ticketId={}", ticketId);
             } else {
-                log.warn("Ticket not found with supportId={}", supportId);
-                throw new RuntimeException("Ticket not found with supportId=" + supportId);
+                log.warn("Ticket not found with ticketId={}", ticketId);
+                throw new RuntimeException("Ticket not found with ticketId=" + ticketId);
             }
         } catch (Exception e) {
-            log.error("Error deleting ticket with supportId={}: {}", supportId, e.getMessage(), e);
+            log.error("Error deleting ticket with supportId={}: {}", ticketId, e.getMessage(), e);
             throw new RuntimeException("Failed to delete ticket");
         }
     }
