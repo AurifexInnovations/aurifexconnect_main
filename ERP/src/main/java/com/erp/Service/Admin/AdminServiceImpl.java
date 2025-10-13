@@ -42,18 +42,22 @@ public class AdminServiceImpl implements AdminService {
         logger.info("Creating admin for email: {}", adminRequest.getEmail());
 
         String sanitizedEmail = adminRequest.getEmail().replaceAll("[^a-zA-Z0-9]", "_").toLowerCase();
-        if (sanitizedEmail.length() > 63) {
+        if (sanitizedEmail.length() > 63)
+        {
             throw new IllegalArgumentException("Schema name too long");
         }
         long tenantCount;
-        try (var context = new TenantContextHolder("public")) {
+        try (var context = new TenantContextHolder("public"))
+        {
             tenantCount = metaAdminRepository.count() + 1;
         }
         String schemaName = "tenant_" + tenantCount + "_" + sanitizedEmail;
         logger.info("Generated schema: {}", schemaName);
 
-        try (var context = new TenantContextHolder("public")) {
-            if (metaAdminRepository.existsByAdminEmail(adminRequest.getEmail())) {
+        try (var context = new TenantContextHolder("public"))
+        {
+            if (metaAdminRepository.existsByAdminEmail(adminRequest.getEmail()))
+            {
                 throw new AdminAlreadyExistsException("Admin with email already exists: " + adminRequest.getEmail());
             }
         }
