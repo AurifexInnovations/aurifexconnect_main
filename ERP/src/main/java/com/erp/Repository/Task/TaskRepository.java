@@ -1,10 +1,9 @@
 package com.erp.Repository.Task;
 
-import com.erp.Dto.Response.GetAllTaskResponse;
+import com.erp.Projection.GetAllTaskResponse;
 import com.erp.Enum.TaskStatus;
 import com.erp.Model.Task;
 import com.erp.Projection.TechnicianResponse;
-import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
