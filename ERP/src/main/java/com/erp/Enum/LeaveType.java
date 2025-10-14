@@ -1,6 +1,7 @@
 package com.erp.Enum;
 
-public enum LeaveType {
+public enum LeaveType
+{
     PAID,
     UNPAID
 }

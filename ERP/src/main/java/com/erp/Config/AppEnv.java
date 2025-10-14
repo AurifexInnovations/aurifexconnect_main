@@ -11,9 +11,8 @@ import java.util.List;
 @Setter
 @Component
 @ConfigurationProperties(prefix = "app")
-public class AppEnv {
-
-
+public class AppEnv
+{
     private String baseUrl;
     private Security security;
     private Domain domain;
