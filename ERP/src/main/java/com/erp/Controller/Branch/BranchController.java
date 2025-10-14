@@ -18,11 +18,13 @@ import jakarta.validation.Valid;
 import lombok.AllArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 import java.util.List;
 
 @RestController
 @AllArgsConstructor
+@PreAuthorize("hasAuthority('MODULE_MARKETING')")
 @RequestMapping("/")
 @Tag(name = "Branch Controller", description = "Collection of API Endpoints Dealing with Branch Data")
 public class BranchController {

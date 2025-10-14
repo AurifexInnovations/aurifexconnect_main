@@ -162,6 +162,12 @@ public class SecurityConfig {
                         .requestMatchers(baseUrl + "/user", baseUrl + "/user/delete/**").hasAnyAuthority("ROLE_ADMIN")
                         .requestMatchers(baseUrl + "/user/update/**").hasRole("EMPLOYEE")
                         .requestMatchers(baseUrl + "/logout").authenticated()
+                        .requestMatchers("/marketing/").hasAuthority("MODULE_MARKETING")
+                        .requestMatchers("/technician/").hasAuthority("MODULE_TECHNICIAN")
+                        .requestMatchers("/account/").hasAuthority("MODULE_ACCOUNT")
+                        .requestMatchers("/finance/").hasAuthority("MODULE_FINANCE")
+                        .requestMatchers("/sales/").hasAuthority("MODULE_SALES")
+
                         .anyRequest().authenticated())
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .addFilterBefore(new AuthFilter(jwtService, tokenBlackListService, userRepositoryRegistry), UsernamePasswordAuthenticationFilter.class)
