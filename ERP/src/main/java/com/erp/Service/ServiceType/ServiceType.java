@@ -23,7 +23,7 @@ public interface ServiceType {
 
     List<String> fetchAllCategories();
 
-    List<ServiceResponse> fetchServiceByCategory(ServiceRequest serviceRequest);
+    List<ServiceResponse> findByServiceCategory(ServiceRequest serviceRequest);
 
     List<Service>  getAllServicesByIds(List<Long> ids);
 

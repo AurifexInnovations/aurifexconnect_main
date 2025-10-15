@@ -29,7 +29,6 @@ import java.util.Optional;
 @AllArgsConstructor
 public class BranchServiceImpl implements BranchService
 {
-
     private final BranchRepository branchRepository;
     private final BranchMapper branchMapper;
     private final InventoryRepository inventoryRepository;
@@ -37,8 +36,8 @@ public class BranchServiceImpl implements BranchService
     private final AdminUserRepository adminUserRepository;
 
     @Override
-    public BranchResponse createBranch(BranchRequest branchRequest){
-
+    public BranchResponse createBranch(BranchRequest branchRequest)
+    {
         Long id = userIdentity.getCurrentUser().getId();
 
         Admin admin = adminUserRepository.findById(id)

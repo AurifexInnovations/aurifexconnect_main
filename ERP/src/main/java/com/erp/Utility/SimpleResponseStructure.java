@@ -5,7 +5,8 @@ import lombok.Getter;
 
 @Getter
 @Builder
-public class SimpleResponseStructure {
+public class SimpleResponseStructure
+{
     private int status;
     private String message;
 }

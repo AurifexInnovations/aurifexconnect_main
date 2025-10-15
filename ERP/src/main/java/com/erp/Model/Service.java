@@ -1,5 +1,6 @@
 package com.erp.Model;
 
+import com.erp.Enum.ServiceCategory;
 import com.erp.Enum.ServiceStatus;
 import jakarta.persistence.*;
 import lombok.Getter;
@@ -34,8 +35,9 @@ public class Service {
     @Column(name = "service_status")
     private ServiceStatus serviceStatus;
 
-    @Column(name = "categories")
-    private String categories;
+    @Enumerated(EnumType.STRING)
+    @Column(name = "service_category")
+    private ServiceCategory serviceCategory;
 
     @CreatedDate
     @Column(name = "created_at")
