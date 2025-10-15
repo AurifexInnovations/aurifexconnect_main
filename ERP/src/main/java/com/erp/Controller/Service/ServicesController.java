@@ -1,4 +1,4 @@
-package com.erp.Controller.ServiceType;
+package com.erp.Controller.Service;
 
 import com.erp.Dto.Request.CommanParam;
 import com.erp.Dto.Request.ServiceRequest;
@@ -13,6 +13,7 @@ import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.validation.Valid;
 import lombok.AllArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -24,8 +25,8 @@ import java.util.List;
 @AllArgsConstructor
 @RequestMapping("/service")
 @Tag(name = "Service Controller", description = "Collection of API Endpoints for Managing Service Types")
-public class ServicesController {
-
+public class ServicesController
+{
     private final ServiceType serviceTypeService;
 
     // POST /service
@@ -39,7 +40,8 @@ public class ServicesController {
                             content = @Content(schema = @Schema(implementation = SimpleErrorResponse.class)))
             }
     )
-    public ResponseEntity<ResponseStructure<ServiceResponse>> addService(@RequestBody ServiceRequest serviceRequest) {
+    public ResponseEntity<ResponseStructure<ServiceResponse>> addService(@Valid @RequestBody ServiceRequest serviceRequest)
+    {
         ServiceResponse servicesResponse = serviceTypeService.addService(serviceRequest);
         return ResponseBuilder.success(HttpStatus.CREATED, "Service added successfully!!", servicesResponse);
     }
@@ -57,7 +59,8 @@ public class ServicesController {
                             content = @Content(schema = @Schema(implementation = SimpleErrorResponse.class)))
             }
     )
-    public ResponseEntity<ResponseStructure<ServiceResponse>> updateServices(@RequestBody ServiceRequest serviceRequest) {
+    public ResponseEntity<ResponseStructure<ServiceResponse>> updateServices(@RequestBody ServiceRequest serviceRequest)
+    {
         ServiceResponse servicesResponse = serviceTypeService.updateById(serviceRequest);
         return ResponseBuilder.success(HttpStatus.OK, "Service updated successfully!!", servicesResponse);
     }
@@ -73,7 +76,8 @@ public class ServicesController {
                             content = @Content(schema = @Schema(implementation = SimpleErrorResponse.class)))
             }
     )
-    public ResponseEntity<ListResponseStructure<ServiceResponse>> findByIdOrServiceName(@RequestBody CommanParam param) {
+    public ResponseEntity<ListResponseStructure<ServiceResponse>> findByIdOrServiceName(@RequestBody CommanParam param)
+    {
         List<ServiceResponse> servicesResponse = serviceTypeService.findByIdOrServiceName(param);
         return ResponseBuilder.success(HttpStatus.OK, "Services retrieved successfully!!", servicesResponse);
     }
@@ -89,7 +93,8 @@ public class ServicesController {
                             content = @Content(schema = @Schema(implementation = SimpleErrorResponse.class)))
             }
     )
-    public ResponseEntity<ResponseStructure<ServiceResponse>> deleteByServiceId(@RequestBody CommanParam param) {
+    public ResponseEntity<ResponseStructure<ServiceResponse>> deleteByServiceId(@RequestBody CommanParam param)
+    {
         ServiceResponse response = serviceTypeService.deleteByServiceId(param);
         return ResponseBuilder.success(HttpStatus.OK, "Service deleted successfully!!", response);
     }
@@ -105,7 +110,8 @@ public class ServicesController {
                             content = @Content(schema = @Schema(implementation = SimpleErrorResponse.class)))
             }
     )
-    public ResponseEntity<ListResponseStructure<ServiceResponse>> fetchAllServices() {
+    public ResponseEntity<ListResponseStructure<ServiceResponse>> fetchAllServices()
+    {
         List<ServiceResponse> servicesResponse = serviceTypeService.fetchAllServices();
         return ResponseBuilder.success(HttpStatus.OK, "All services fetched successfully!!", servicesResponse);
     }
@@ -119,7 +125,8 @@ public class ServicesController {
                     @ApiResponse(responseCode = "404", description = "No services found")
             }
     )
-    public ResponseEntity<ListResponseStructure<ServiceResponse>> findByStatus(@RequestBody ServiceRequest serviceRequest) {
+    public ResponseEntity<ListResponseStructure<ServiceResponse>> findByStatus(@RequestBody ServiceRequest serviceRequest)
+    {
         List<ServiceResponse> servicesResponse = serviceTypeService.findByStatus(serviceRequest);
         return ResponseBuilder.success(HttpStatus.OK, "Services fetched successfully by status!!", servicesResponse);
     }
@@ -135,14 +142,16 @@ public class ServicesController {
                             content = @Content(schema = @Schema(implementation = SimpleErrorResponse.class)))
             }
     )
-    public ResponseEntity<ListResponseStructure<String>> fetchAllCategories() {
+    public ResponseEntity<ListResponseStructure<String>> fetchAllCategories()
+    {
         List<String> categories = serviceTypeService.fetchAllCategories();
         return ResponseBuilder.success(HttpStatus.OK, "Categories fetched successfully!", categories);
     }
 
     @PostMapping("/bycategory")
-    public ResponseEntity<ListResponseStructure<ServiceResponse>> fetchServiceByCategory(@RequestBody ServiceRequest serviceRequest){
-        List<ServiceResponse> serviceResponses = serviceTypeService.fetchServiceByCategory(serviceRequest);
+    public ResponseEntity<ListResponseStructure<ServiceResponse>> fetchServiceByCategory(@RequestBody ServiceRequest serviceRequest)
+    {
+        List<ServiceResponse> serviceResponses = serviceTypeService.findByServiceCategory(serviceRequest);
         return ResponseBuilder.success(HttpStatus.OK,"Service Found By Given Categories", serviceResponses);
     }
 }

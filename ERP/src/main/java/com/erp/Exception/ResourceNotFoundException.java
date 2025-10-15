@@ -1,8 +1,9 @@
 package com.erp.Exception;
 
-public class ResourceNotFoundException extends RuntimeException{
-
-    public ResourceNotFoundException(String message) {
+public class ResourceNotFoundException extends RuntimeException
+{
+    public ResourceNotFoundException(String message)
+    {
         super(message);
     }
 }

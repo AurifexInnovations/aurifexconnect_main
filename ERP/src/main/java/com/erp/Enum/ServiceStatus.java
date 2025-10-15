@@ -1,6 +1,7 @@
 package com.erp.Enum;
 
-public enum ServiceStatus {
-    AVAILABLE,
-    UNAVAILABLE
+public enum ServiceStatus
+{
+    ACTIVE,
+    INACTIVE
 }

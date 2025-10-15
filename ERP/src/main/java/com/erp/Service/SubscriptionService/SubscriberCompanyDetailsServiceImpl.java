@@ -5,7 +5,7 @@ import com.erp.Dto.Response.CompanyDetailsResponse;
 import com.erp.Dto.SubscriptionsDto.CompanyDetailsDto;
 import com.erp.Mapper.SubscriptionModule.CompanyDetailsMapper;
 import com.erp.Model.CompanyDetailsEntity;
-import com.erp.Repository.SubscriptionModule.CompanyDetailsRepository;
+import com.erp.Repository.SubscriptionModule.SubscriberCompanyDetailsRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -13,15 +13,15 @@ import java.sql.Timestamp;
 import java.time.LocalDateTime;
 
 @Service
-public class CompanyDetailsServiceImpl implements ICompanyDetailsService {
+public class SubscriberCompanyDetailsServiceImpl implements ICompanyDetailsService {
 
     @Autowired
-    private CompanyDetailsRepository companyDetailsRepository;
+    private SubscriberCompanyDetailsRepository subscriberCompanyDetailsRepository;
 
     @Override
     public CompanyDetailsDto fetchCompanyDetailsByCode(String companyCode) {
         try {
-            CompanyDetailsEntity entity = companyDetailsRepository.findByCompanyCode(companyCode).orElse(null);
+            CompanyDetailsEntity entity = subscriberCompanyDetailsRepository.findByCompanyCode(companyCode).orElse(null);
             return entity != null ? CompanyDetailsMapper.toDto(entity) : null;
         } catch (Exception e) {
             e.printStackTrace();
@@ -38,7 +38,7 @@ public class CompanyDetailsServiceImpl implements ICompanyDetailsService {
         entity.setActiveYn("Y");
         entity.setCreatedOn(Timestamp.valueOf(LocalDateTime.now()));
 
-        CompanyDetailsEntity saved = companyDetailsRepository.save(entity);
+        CompanyDetailsEntity saved = subscriberCompanyDetailsRepository.save(entity);
 
         CompanyDetailsResponse response = new CompanyDetailsResponse();
         response.setCompanyId(saved.getCompanyId());

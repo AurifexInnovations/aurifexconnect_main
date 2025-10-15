@@ -2,6 +2,7 @@ package com.erp.Service.TaskService;
 
 import com.erp.Dto.Request.*;
 import com.erp.Dto.Response.*;
+import com.erp.Dto.Response.TechnicianResponse;
 import com.erp.Enum.TaskStatus;
 import com.erp.Exception.BadRequestException;
 import com.erp.Exception.DBReltedException;
@@ -251,10 +252,10 @@ public class TaskServiceImpl implements TaskService {
 
 
     @Override
-    public List<TechnicianResponse> getTechnicians(TechnicianRequest technicianRequest) {
+    public List<com.erp.Projection.TechnicianResponse> getTechnicians(TechnicianRequest technicianRequest) {
         log.info("[TaskService] [getTechnicians] Entered with request: {}", technicianRequest);
 
-        List<TechnicianResponse> technicianList = new ArrayList<>();
+        List<com.erp.Projection.TechnicianResponse> technicianList = new ArrayList<>();
 
         try {
 

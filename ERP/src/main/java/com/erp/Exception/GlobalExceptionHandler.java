@@ -17,6 +17,7 @@ public class GlobalExceptionHandler  {
         log.info("Into [GlobalExceptionHandler] [handleGlobalException] ");
 
         ErrorResponse errorResponse = new ErrorResponse(ex.getMessage());
+        errorResponse.setCode(404);
 
         log.error("Error [GlobalExceptionHandler] [handleGlobalException]  :: {} " , ex.getStackTrace());
 

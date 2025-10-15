@@ -1,5 +1,6 @@
 package com.erp.Repository.Service;
 
+import com.erp.Enum.ServiceCategory;
 import com.erp.Enum.ServiceStatus;
 import com.erp.Model.Service;
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -13,7 +14,7 @@ public interface ServiceRepository extends JpaRepository<Service,Long> {
 
     List<Service> findByServiceStatus(ServiceStatus serviceStatus);
 
-    List<Service> findServiceByCategories(String categories);
+    List<Service> findByServiceCategory(ServiceCategory serviceCategory);
 
     List<Service> findAll();
 
