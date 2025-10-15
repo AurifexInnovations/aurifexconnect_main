@@ -24,6 +24,7 @@ public class ServiceTypeImpl implements ServiceType
     private final ServiceRepository repository;
     private final ServiceMapper serviceMapper;
 
+
     @Override
     public ServiceResponse addService(ServiceRequest serviceRequest)
     {
@@ -31,6 +32,7 @@ public class ServiceTypeImpl implements ServiceType
         repository.save(service);
         return serviceMapper.mapToServiceResponse(service);
     }
+
 
     @Override
     public ServiceResponse updateById(ServiceRequest serviceRequest)
@@ -43,15 +45,15 @@ public class ServiceTypeImpl implements ServiceType
         return serviceMapper.mapToServiceResponse(service);
     }
 
+
     @Override
     public List<ServiceResponse> findByIdOrServiceName(CommanParam param)
     {
         List<Service> services = repository.findByServiceIdOrServiceName(param.getId(),param.getName());
-        if (services.isEmpty()) {
-            throw new ResourceNotFoundException("Services Not Found !!");
-        }
+
         return serviceMapper.mapToServiceResponse(services);
     }
+
 
     @Override
     public ServiceResponse deleteByServiceId(CommanParam param)
@@ -69,11 +71,6 @@ public class ServiceTypeImpl implements ServiceType
     {
         List<Service> services = repository.findAll();
 
-        if (services.isEmpty())
-        {
-            throw new ResourceNotFoundException("Services Not Found !!");
-        }
-
         return serviceMapper.mapToServiceResponse(services);
     }
 
@@ -82,12 +79,10 @@ public class ServiceTypeImpl implements ServiceType
     public List<ServiceResponse> findByStatus(ServiceRequest serviceRequest)
     {
         List<Service> services = repository.findByServiceStatus(serviceRequest.getServiceStatus());
-        if (services.isEmpty())
-        {
-            throw new ResourceNotFoundException("Services Not Found !! With Status: " + serviceRequest.getServiceStatus());
-        }
+
         return serviceMapper.mapToServiceResponse(services);
     }
+
 
     @Override
     public List<String> fetchAllCategories()
@@ -100,16 +95,15 @@ public class ServiceTypeImpl implements ServiceType
         return categories;
     }
 
+
     @Override
     public List<ServiceResponse> findByServiceCategory(@RequestBody ServiceRequest serviceRequest)
     {
         List<Service> services = repository.findByServiceCategory(serviceRequest.getServiceCategory());
-        if(services.isEmpty())
-        {
-            throw new ResourceNotFoundException("Services Not Found !! With Category: " + serviceRequest.getServiceCategory());
-        }
+
         return serviceMapper.mapToServiceResponse(services);
     }
+
 
     public List<Service> getAllServicesByIds(List<Long> serviceIds)
     {
