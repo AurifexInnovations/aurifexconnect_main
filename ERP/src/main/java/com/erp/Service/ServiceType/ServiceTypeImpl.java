@@ -51,6 +51,11 @@ public class ServiceTypeImpl implements ServiceType
     {
         List<Service> services = repository.findByServiceIdOrServiceName(param.getId(),param.getName());
 
+        if(services.isEmpty())
+        {
+            throw new ResourceNotFoundException("Services Not Found !! Using ID or Name");
+        }
+
         return serviceMapper.mapToServiceResponse(services);
     }
 
@@ -71,6 +76,11 @@ public class ServiceTypeImpl implements ServiceType
     {
         List<Service> services = repository.findAll();
 
+        if(services.isEmpty())
+        {
+            throw new ResourceNotFoundException("Services Not Found !!");
+        }
+
         return serviceMapper.mapToServiceResponse(services);
     }
 
@@ -79,6 +89,11 @@ public class ServiceTypeImpl implements ServiceType
     public List<ServiceResponse> findByStatus(ServiceRequest serviceRequest)
     {
         List<Service> services = repository.findByServiceStatus(serviceRequest.getServiceStatus());
+
+        if(services.isEmpty())
+        {
+            throw new ResourceNotFoundException("Services Not Found !! Using Status");
+        }
 
         return serviceMapper.mapToServiceResponse(services);
     }
@@ -100,6 +115,11 @@ public class ServiceTypeImpl implements ServiceType
     public List<ServiceResponse> findByServiceCategory(@RequestBody ServiceRequest serviceRequest)
     {
         List<Service> services = repository.findByServiceCategory(serviceRequest.getServiceCategory());
+
+        if(services.isEmpty())
+        {
+            throw new ResourceNotFoundException("Services Not Found !! Using Category");
+        }
 
         return serviceMapper.mapToServiceResponse(services);
     }

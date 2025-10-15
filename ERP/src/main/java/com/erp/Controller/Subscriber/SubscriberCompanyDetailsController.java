@@ -17,7 +17,7 @@ import org.springframework.web.bind.annotation.*;
 @RestController
 @RequestMapping("/api/v1/company")
 @Tag(name = "CompanyDetails Controller", description = "APIs for Company Details")
-public class CompanyDetailsController {
+public class SubscriberCompanyDetailsController {
 
     @Autowired
     private ICompanyDetailsService companyDetailsService;
