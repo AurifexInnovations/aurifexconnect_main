@@ -1,5 +1,6 @@
 package com.erp.Service.LedgerService;
 
+import com.erp.Dto.Request.CommanParam;
 import com.erp.Dto.Request.LedgerRequest;
 import com.erp.Dto.Response.LedgerResponse;
 import com.erp.Exception.Ledger.LedgerNotFoundException;
@@ -27,8 +28,8 @@ public class LedgerServiceImpl implements LedgerService {
     }
 
     @Override
-    public LedgerResponse updateLedgerInfo(LedgerRequest ledgerRequest, long id){
-        Ledger ledger = ledgerRepository.findById(id)
+    public LedgerResponse updateLedgerInfo(LedgerRequest ledgerRequest){
+        Ledger ledger = ledgerRepository.findById(ledgerRequest.getFindLegerId())
                 .orElseThrow(()-> new LedgerNotFoundException("Ledger Not Found! Invalid Id"));
 
         ledgerMapper.mapToLedgerEntity(ledgerRequest, ledger);
@@ -37,17 +38,10 @@ public class LedgerServiceImpl implements LedgerService {
     }
 
     @Override
-    public LedgerResponse findByLedgerId(long ledgerId) {
-        Ledger ledger = ledgerRepository.findById(ledgerId)
+    public LedgerResponse deleteByLedgerId(LedgerRequest ledgerId){
+        Ledger ledger = ledgerRepository.findById(ledgerId.getFindLegerId())
                 .orElseThrow(()-> new LedgerNotFoundException("Ledger Not Found! Invalid Id"));
-        return ledgerMapper.mapToLedgerResponse(ledger);
-    }
-
-    @Override
-    public LedgerResponse deleteByLedgerId(long ledgerId){
-        Ledger ledger = ledgerRepository.findById(ledgerId)
-                .orElseThrow(()-> new LedgerNotFoundException("Ledger Not Found! Invalid Id"));
-        ledgerRepository.deleteById(ledgerId);
+        ledgerRepository.deleteById(ledger.getLedgerId());
         return ledgerMapper.mapToLedgerResponse(ledger);
     }
 
@@ -65,11 +59,11 @@ public class LedgerServiceImpl implements LedgerService {
     }
 
     @Override
-    public List<LedgerResponse> getLedgerByName(String ledgerName) {
-        List<Ledger> ledgers = ledgerRepository.findByName(ledgerName);
+    public List<LedgerResponse> getLedgerByIdOrName(CommanParam param) {
+        List<Ledger> ledgers = ledgerRepository.findByLedgerIdOrName(param.getId(),param.getName());
 
         if (ledgers.isEmpty()) {
-            throw new LedgerNotFoundException("No ledger found with name: " + ledgerName);
+            throw new LedgerNotFoundException("No ledger found ");
         }else {
             return ledgerMapper.mapToLedgerResponse(ledgers);
         }

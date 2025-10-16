@@ -16,4 +16,6 @@ public class BankAccountRequest {
     private Double openingBalance;
 
     private AccountStatus accountStatus;
+
+    private long findBankAccountId;
 }

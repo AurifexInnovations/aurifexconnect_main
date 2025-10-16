@@ -1,5 +1,6 @@
 package com.erp.Service.LedgerService;
 
+import com.erp.Dto.Request.CommanParam;
 import com.erp.Dto.Request.LedgerRequest;
 import com.erp.Dto.Response.LedgerResponse;
 
@@ -23,18 +24,9 @@ public interface LedgerService {
      * Updates an existing customer’s information.
      *
      * @param ledgerRequest The updated customer details.
-     * @param id              The ID of the customer to update.
      * @return LedgerResponse The updated customer information or an error response if the update fails.
      */
-    LedgerResponse updateLedgerInfo(LedgerRequest ledgerRequest, long id);
-
-    /**
-     * Retrieves a customer by their ID.
-     *
-     * @param customerId The ID of the customer to retrieve.
-     * @return LedgerResponse The details of the customer, or an error response if not found.
-     */
-    LedgerResponse findByLedgerId(long customerId);
+    LedgerResponse updateLedgerInfo(LedgerRequest ledgerRequest);
 
     /**
      * Deletes a customer by their ID.
@@ -42,7 +34,7 @@ public interface LedgerService {
      * @param customerId The ID of the customer to delete.
      * @return LedgerResponse A response confirming successful deletion or indicating failure.
      */
-    LedgerResponse deleteByLedgerId(long customerId);
+    LedgerResponse deleteByLedgerId(LedgerRequest InventoryId);
 
     /**
      * Retrieves all customer records from the database.
@@ -51,5 +43,5 @@ public interface LedgerService {
      */
     List<LedgerResponse> getAllLedger();
 
-    List<LedgerResponse> getLedgerByName(String ledgerName);
+    List<LedgerResponse> getLedgerByIdOrName(CommanParam param);
 }

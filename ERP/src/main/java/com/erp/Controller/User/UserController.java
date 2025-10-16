@@ -1,6 +1,6 @@
 package com.erp.Controller.User;
 
-
+import com.erp.Dto.Request.CommanParam;
 import com.erp.Dto.Request.UserRequest;
 import com.erp.Dto.Request.UserUpdateRequest;
 import com.erp.Dto.Response.UserResponse;
@@ -28,35 +28,40 @@ public class UserController {
     public ResponseEntity<ResponseStructure<UserResponse>> createUser(@RequestBody UserRequest userRequest) {
         UserResponse userResponse = userServices.createUser(userRequest);
         return ResponseBuilder.success(HttpStatus.CREATED, "User created successfully !!", userResponse);
+
     }
 
     @PreAuthorize("hasAnyRole('ROLE_ADMIN')")
     @GetMapping("/users")
-    public ResponseEntity<ListResponseStructure<UserResponse>> getListOfUsers(){
-
+    public ResponseEntity<ListResponseStructure<UserResponse>> getListOfUsers() {
         List<UserResponse> userResponses = userServices.getListOfUsers();
-        return ResponseBuilder.success(HttpStatus.OK,"List of users !!", userResponses);
-
-    }
-
-    @PreAuthorize("hasRole('EMPLOYEE')")
-    @PutMapping("/user/update/{id}")
-    public ResponseEntity<ResponseStructure<UserResponse>> updateUserById
-            (@RequestBody UserUpdateRequest userUpdateRequest, @PathVariable long id) throws Exception {
-
-        UserResponse userResponse = userServices.updateUserById(userUpdateRequest ,id);
-        return ResponseBuilder.success(HttpStatus.OK,"User Updated Successfully !!", userResponse);
+        return ResponseBuilder.success(HttpStatus.OK, "List of users !!", userResponses);
 
     }
 
     @PreAuthorize("hasAnyRole('ROLE_ADMIN')")
-    @DeleteMapping("/user/delete/{id}")
-    public ResponseEntity<ResponseStructure<UserResponse>> deleteUserById(@PathVariable long id){
-
-        UserResponse userResponse = userServices.deleteUserById(id);
-        return ResponseBuilder.success(HttpStatus.OK,"User delete Successfully !!", userResponse);
+    @PostMapping("/users/search")
+    public ResponseEntity<ListResponseStructure<UserResponse>> findByIdOrName(@RequestBody CommanParam commanParamIdOrName) {
+        List<UserResponse> userResponses = userServices.findByIdOrName(commanParamIdOrName);
+        return ResponseBuilder.success(HttpStatus.OK, "User found !!", userResponses);
 
     }
 
+    @PreAuthorize("hasAnyRole('ROLE_ADMIN')")
+    @PutMapping("/users")
+    public ResponseEntity<ResponseStructure<UserResponse>> updateUserById
+            (@RequestBody UserUpdateRequest userUpdateRequest) throws Exception {
+        UserResponse userResponse = userServices.updateUserById(userUpdateRequest);
+        return ResponseBuilder.success(HttpStatus.OK, "User Updated Successfully !!", userResponse);
+
+    }
+
+    @PreAuthorize("hasAnyRole('ROLE_ADMIN')")
+    @DeleteMapping("/users")
+    public ResponseEntity<ResponseStructure<UserResponse>> deleteUserById(@RequestBody CommanParam commanParamId) {
+        UserResponse userResponse = userServices.deleteUserById(commanParamId);
+        return ResponseBuilder.success(HttpStatus.OK, "User delete Successfully !!", userResponse);
+
+    }
 
 }

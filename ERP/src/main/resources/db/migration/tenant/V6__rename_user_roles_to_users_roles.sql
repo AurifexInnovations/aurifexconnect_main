@@ -1,0 +1,15 @@
+--DO
+--$$
+--DECLARE
+--    schema_name TEXT;
+--BEGIN
+--    FOR schema_name IN
+--        SELECT schema_name
+--        FROM information_schema.schemata
+--        WHERE schema_name NOT IN ('pg_catalog', 'information_schema', 'public')
+--          AND schema_name LIKE 'tenant_%'
+--    LOOP
+--        EXECUTE format('ALTER TABLE IF EXISTS %I.user_roles RENAME TO users_roles;', schema_name);
+--    END LOOP;
+--END
+--$$;

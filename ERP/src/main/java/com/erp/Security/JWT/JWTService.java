@@ -1,7 +1,7 @@
 package com.erp.Security.JWT;
 
 import com.erp.Config.AppEnv;
-import com.erp.Exception.InvalidJWTException;
+import com.erp.Exception.JWTException.InvalidJWTException;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.JwtException;
 import io.jsonwebtoken.Jwts;

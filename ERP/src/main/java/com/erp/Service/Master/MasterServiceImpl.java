@@ -1,7 +1,10 @@
 package com.erp.Service.Master;
 
+import com.erp.Dto.Request.AdjustmentDTO;
 import com.erp.Dto.Request.MasterRequest;
+import com.erp.Dto.Request.PurchaseSalesRequest;
 import com.erp.Dto.Response.MasterResponse;
+import com.erp.Dto.Response.PurchaseSalesResponse;
 import com.erp.Enum.AccountStatus;
 import com.erp.Enum.ReferenceType;
 import com.erp.Enum.TransactionStatus;
@@ -20,16 +23,18 @@ import com.erp.Repository.BankAccount.BankAccountRepository;
 import com.erp.Repository.Ledger.LedgerRepository;
 import com.erp.Repository.Master.MasterRepository;
 import com.erp.Repository.Voucher.VoucherRepository;
+import com.erp.Service.AgainstRefMap.AgainstRefMapService;
 import com.erp.Service.Voucher.VoucherService;
+import jakarta.transaction.Transactional;
 import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Service;
 
-import java.util.List;
-import java.util.Objects;
+import javax.naming.LimitExceededException;
+import java.util.*;
 
 @Service
 @AllArgsConstructor
-public class MasterServiceImpl implements MasterService{
+public class MasterServiceImpl implements MasterService {
 
     private final MasterRepository masterRepository;
     private final VoucherService voucherService;
@@ -37,12 +42,14 @@ public class MasterServiceImpl implements MasterService{
     private final LedgerRepository ledgerRepository;
     private final BankAccountRepository bankAccountRepository;
     private final VoucherRepository voucherRepository;
+    private final AgainstRefMapService againstRefMapService;
 
     @Override
-    public MasterResponse createMaster(MasterRequest masterRequest, long ledgerId) {
+    @Transactional
+    public MasterResponse createMaster(MasterRequest masterRequest) throws LimitExceededException {
 
-        Ledger ledger = ledgerRepository.findById(ledgerId)
-                .orElseThrow(()-> new LedgerNotFoundException("Ledger not found by this id : "+ledgerId+" , Invalid LedgerId"));
+        Ledger ledger = ledgerRepository.findById(masterRequest.getLedgerId())
+                .orElseThrow(() -> new LedgerNotFoundException("Ledger not found by this id : " + masterRequest.getLedgerId() + " , Invalid LedgerId"));
 
         if (masterRequest.getVoucherType() == null) {
             throw new VoucherNotFound("Voucher type must not be null or empty , Voucher Not Found ");
@@ -53,149 +60,221 @@ public class MasterServiceImpl implements MasterService{
         Master master = masterMapper.mapToMasterRequest(masterRequest);
         master.setLedger(ledger);
         master.setVoucher(voucher);
+
         String formattedVoucherId = voucherService.getFormattedVoucherId(voucher);
-
-        master.setVoucherIndex(formattedVoucherId); // Store the formatted voucher ID in Master
-
-        switch (masterRequest.getVoucherType()) {
-            case SALES      -> handleInvoice(master);
-            case PURCHASE   -> handleBill(master);
-            case RECEIPTS   -> handleReceipt(master, masterRequest);
-            case PAYMENTS   -> handlePayment(master, masterRequest);
-            default         -> throw new VoucherNotFound("Voucher Not Found By This Voucher type : "+masterRequest.getVoucherType()+" ,Invalid Voucher Type");
-        }
+        master.setVoucherIndex(formattedVoucherId);
 
         masterRepository.save(master);
+
+        switch (masterRequest.getVoucherType()) {
+            case SALES -> handleInvoice(master, masterRequest);
+            case PURCHASE -> handleBill(master);
+            case RECEIPTS -> handleReceipt(master, masterRequest);
+            case PAYMENTS -> handlePayment(master, masterRequest);
+            default ->
+                    throw new VoucherNotFound("Voucher Not Found By This Voucher type : " + masterRequest.getVoucherType() + " ,Invalid Voucher Type");
+        }
         return masterMapper.mapToMasterResponse(master);
     }
 
     @Override
-    public MasterResponse findById(long masterId) {
-        Master master = masterRepository.findById(masterId)
-                .orElseThrow(()-> new MasterNotFoundException("Master Not found By Id , Invalid master Id"));
+    public MasterResponse findById(MasterRequest request) {
+        Master master = masterRepository.findById(request.getFindMasterId())
+                .orElseThrow(() -> new MasterNotFoundException("Master Not found By Id , Invalid master Id"));
 
         return masterMapper.mapToMasterResponse(master);
     }
 
-//    @Override
-//    public MasterResponse updateMaster(Long masterId, MasterRequest masterRequest) {
-//        Master existingMaster = masterRepository.findById(masterId)
-//                .orElseThrow(() -> new InvoiceNotFoundException("Master not found with id: " + masterId));
-//
-//        Ledger ledger = ledgerRepository.findById(existingMaster.getLedger().getLedgerId())
-//                .orElseThrow(() -> new LedgerNotFoundException("Ledger not found"));
-//
-//        Voucher voucher = voucherRepository.findByVoucherType(masterRequest.getVoucherType())
-//                .orElseThrow(() -> new VoucherNotFound("Voucher Not Found By Voucher Type"));
-//
-//        masterMapper.mapToMasterEntity(masterRequest,existingMaster);
-//
-//        existingMaster.setVoucher(voucher);
-//        existingMaster.setLedger(ledger);
-//        existingMaster.setVoucherType(masterRequest.getVoucherType());
-//        existingMaster.setFinancialYear(masterRequest.getFinancialYear());
-//        existingMaster.setVoucherIndex(voucher.getVoucherIndex());
-//
-//        switch (masterRequest.getVoucherType()) {
-//            case SALES      -> handleInvoice(existingMaster);
-//            case PURCHASE   -> handleBill(existingMaster);
-//            case RECEIPTS   -> handleReceipt(existingMaster, masterRequest);
-//            case PAYMENTS   -> handlePayment(existingMaster, masterRequest);
-//            default         -> throw new VoucherNotFound("Invalid voucher type: " + masterRequest.getVoucherType());
-//        }
-//
-//        masterRepository.save(existingMaster);
-//        return masterMapper.mapToMasterResponse(existingMaster);
-//    }
+    @Override
+    public List<PurchaseSalesResponse> getPurchaseSalesSummary(PurchaseSalesRequest request) {
+        String format;
+        switch (request.getType().toLowerCase())
+        {   //NEW
+            case "week" -> format = "%Y-%W";
+            case "month" -> format = "%Y-%m";
+            case "day" -> format = "%Y-%m-%d";
+            case "year" -> format = "%Y";
+            default -> throw new IllegalArgumentException("Invalid type. Use 'day', 'week', or 'month'");
+        }
 
+        List<Object[]> result = masterRepository.getPurchaseSalesSummary(format, request.getVoucherType().name());
+        List<PurchaseSalesResponse> responseList = new ArrayList<>();
+//NEW
+        for (Object[] row : result)
+        {
+            String period = (String) row[0];
+            double totalAmount = row[1] != null ? ((Number) row[1]).doubleValue() : 0.0;
+            responseList.add(new PurchaseSalesResponse(period, totalAmount));
+        }
 
-    private void handleInvoice(Master master){
-        master.setTransactionStatus(TransactionStatus.UNPAID);
+        return responseList;
     }
 
-    private void handleBill(Master master) {
-        master.setTransactionStatus(TransactionStatus.UNPAID);
-    }
+    private void handleInvoice(Master invoice, MasterRequest masterRequest) throws LimitExceededException {
+        invoice.setReferenceType(ReferenceType.NEWREF);
+        invoice.setTransactionStatus(TransactionStatus.UNPAID);
 
-    private void handleReceipt(Master master, MasterRequest masterRequest) {
-        BankAccount bankAccount = bankAccountRepository.findById(masterRequest.getBankAccountId())
-                .orElseThrow(() -> new BankAccountNotFoundException("Bank account not found , Invalid bank Account Id"));
+        if (masterRequest.getAdjustmentDTOS() == null || masterRequest.getAdjustmentDTOS().isEmpty()) return;
 
-        if (bankAccount.getAccountStatus() != AccountStatus.ACTIVE) {
-            throw new InactiveBankAccountException("Bank account is INACTIVE. Please contact admin.");
+        double totalAdjusted = 0;
+
+        for (AdjustmentDTO adjustment : masterRequest.getAdjustmentDTOS()) {
+            Master advanceReceipt = validateReferenceVoucher(adjustment.getInvoiceAndBillId(), VoucherType.RECEIPTS);
+
+            double adjAmt = adjustment.getAdjustAmount();
+            totalAdjusted += adjAmt;
+
+            // Update advance mapping (adjustment of advance to this invoice)
+            againstRefMapService.againRefMap(advanceReceipt, invoice.getLedger(), ReferenceType.AGAINREF, adjAmt);
+
+            double alreadyAdjusted = masterRepository.findByReferenceMaster(advanceReceipt)
+                    .stream().mapToDouble(Master::getAmount).sum();
+
+            double totalUsed = alreadyAdjusted + adjAmt;
+            advanceReceipt.setTransactionStatus(getUpdatedStatus(advanceReceipt.getAmount(), totalUsed));
+            masterRepository.save(advanceReceipt);
         }
 
-        Master invoice = masterRepository.findById(masterRequest.getInvoiceId())
-                .orElseThrow(() -> new MasterNotFoundException("Invoice not found with id: " + masterRequest.getInvoiceId()));
+        double remaining = invoice.getAmount() - totalAdjusted;
 
-        if (invoice.getVoucherType() != VoucherType.SALES) {
-            throw new VoucherNotFound("Provided related ID is not of type SALES");
+        // Credit limit check
+        Double creditLimitObj = invoice.getLedger().getCreditLimit();
+        double creditLimit = creditLimitObj != null ? creditLimitObj : 0.0;
+
+        if (remaining > creditLimit) {
+            throw new LimitExceededException("Credit limit exceeded for ledger: " + invoice.getLedger().getName());
         }
 
-        List<Master> receipts = masterRepository.findByVoucherTypeAndMasterId(invoice.getVoucherType(),invoice.getMasterId());
-
-        double totalPaidSoFar = receipts.stream().mapToDouble(Master::getAmount).sum();
-        double newPayment = master.getAmount();
-        double invoiceTotal = invoice.getAmount();
-        double newTotalPaid = totalPaidSoFar + newPayment;
-
-        if (newTotalPaid > invoiceTotal) {
-            master.setReferenceType(ReferenceType.ADVANCEREF);
-        }
-
-        bankAccount.setCurrentBalance(bankAccount.getCurrentBalance() + newPayment);
-        master.setBankAccount(bankAccount);
-
-        // Update invoice status
-        if (Double.compare(newTotalPaid, invoiceTotal) == 0) {
+        if (remaining == 0) {
             invoice.setTransactionStatus(TransactionStatus.PAID);
-        } else {
+        } else if (totalAdjusted > 0) {
             invoice.setTransactionStatus(TransactionStatus.PARTIALLY_PAID);
+        } else {
+            invoice.setTransactionStatus(TransactionStatus.UNPAID);
         }
-
-        master.setReferenceType(ReferenceType.NEWREF);
     }
 
 
+    private void handleBill(Master master) throws LimitExceededException {
+        master.setTransactionStatus(TransactionStatus.UNPAID);
+        master.setReferenceType(ReferenceType.NEWREF);
+        Double debitLimitObj = master.getLedger().getDebitLimit();
+        double debitLimit = debitLimitObj != null ? debitLimitObj : 0.0;
+
+        if (master.getAmount() > debitLimit) {
+            throw new LimitExceededException("Debit limit exceeded for ledger: " + master.getLedger().getName());
+        }
+    }
+
+    @Transactional
+    private void handleReceipt(Master master, MasterRequest masterRequest) {
+        BankAccount bankAccount = validateBankAccount(masterRequest.getBankAccountId());
+
+        double totalAdjusted = 0;
+
+        if (masterRequest.getAdjustmentDTOS() != null && !masterRequest.getAdjustmentDTOS().isEmpty()) {
+            for (AdjustmentDTO adjustment : masterRequest.getAdjustmentDTOS()) {
+                Master invoice = validateReferenceVoucher(adjustment.getInvoiceAndBillId(), VoucherType.SALES);
+
+                double adjAmt = adjustment.getAdjustAmount();
+                totalAdjusted += adjAmt;
+
+                againstRefMapService.againRefMap(master, master.getLedger(), ReferenceType.AGAINREF, adjAmt);
+
+                double alreadyAdjusted = masterRepository.findByReferenceMaster(invoice)
+                        .stream().mapToDouble(Master::getAmount).sum();
+
+                double newTotal = alreadyAdjusted + adjAmt;
+                invoice.setTransactionStatus(getUpdatedStatus(invoice.getAmount(), newTotal));
+                masterRepository.save(invoice);
+            }
+
+            double remaining = master.getAmount() - totalAdjusted;
+            if (remaining > 0) {
+                master.setReferenceType(ReferenceType.ADVANCEREF);
+            } else {
+                master.setReferenceType(ReferenceType.AGAINREF);
+            }
+
+        } else {
+            master.setReferenceType(ReferenceType.ADVANCEREF);
+        }
+
+        bankAccount.setCurrentBalance(bankAccount.getCurrentBalance() + master.getAmount());
+        bankAccountRepository.save(bankAccount);
+
+        master.setBankAccount(bankAccount);
+    }
+
+    @Transactional
     private void handlePayment(Master master, MasterRequest masterRequest) {
-        BankAccount bankAccount = bankAccountRepository.findById(masterRequest.getBankAccountId())
-                .orElseThrow(() -> new BankAccountNotFoundException("Bank account not found , Invalid bank Account Id"));
+        BankAccount bankAccount = validateBankAccount(masterRequest.getBankAccountId());
+
+        double totalAdjusted = 0;
+
+        if (masterRequest.getAdjustmentDTOS() != null && !masterRequest.getAdjustmentDTOS().isEmpty()) {
+            for (AdjustmentDTO adjustment : masterRequest.getAdjustmentDTOS()) {
+                Master bill = validateReferenceVoucher(adjustment.getInvoiceAndBillId(), VoucherType.PURCHASE);
+
+                double adjAmt = adjustment.getAdjustAmount();
+                totalAdjusted += adjAmt;
+
+                againstRefMapService.againRefMap(master, master.getLedger(), ReferenceType.AGAINREF, adjAmt);
+
+                double alreadyAdjusted = masterRepository.findByReferenceMaster(bill)
+                        .stream().mapToDouble(Master::getAmount).sum();
+ 
+                double newTotal = alreadyAdjusted + adjAmt;
+                bill.setTransactionStatus(getUpdatedStatus(bill.getAmount(), newTotal));
+                masterRepository.save(bill);
+            }
+
+            double remaining = master.getAmount() - totalAdjusted;
+            if (remaining > 0) {
+                master.setReferenceType(ReferenceType.ADVANCEREF);
+            } else {
+                master.setReferenceType(ReferenceType.AGAINREF);
+            }
+
+        } else {
+            master.setReferenceType(ReferenceType.ADVANCEREF);
+        }
+
+        bankAccount.setCurrentBalance(bankAccount.getCurrentBalance() - master.getAmount());
+        bankAccountRepository.save(bankAccount);
+
+        master.setBankAccount(bankAccount);
+    }
+
+    private BankAccount validateBankAccount(Long id) {
+        BankAccount bankAccount = bankAccountRepository.findById(id)
+                .orElseThrow(() -> new BankAccountNotFoundException("Bank account not found, Invalid bank Account Id"));
 
         if (bankAccount.getAccountStatus() != AccountStatus.ACTIVE) {
             throw new InactiveBankAccountException("Bank account is INACTIVE. Please contact admin.");
         }
-
-        Master bill = masterRepository.findById(masterRequest.getBillId())  // assuming you renamed invoiceId to billId in DTO
-                .orElseThrow(() -> new MasterNotFoundException("Bill not found with id: " + masterRequest.getBillId()));
-
-        if (bill.getVoucherType() != VoucherType.PURCHASE) {
-            throw new VoucherNotFound("Provided related ID is not of type PURCHASE");
-        }
-
-        List<Master> previousPayments = masterRepository.findByVoucherTypeAndMasterId(bill.getVoucherType(), bill.getMasterId());
-
-        double totalPaidSoFar = previousPayments.stream().mapToDouble(Master::getAmount).sum();
-        double newPayment = master.getAmount();
-        double billTotal = bill.getAmount();
-        double newTotalPaid = totalPaidSoFar + newPayment;
-
-        if (newTotalPaid > billTotal) {
-            master.setReferenceType(ReferenceType.ADVANCEREF);
-        } else {
-            master.setReferenceType(ReferenceType.AGAINREF);
-        }
-
-        // Deduct payment from bank account
-        bankAccount.setCurrentBalance(bankAccount.getCurrentBalance() - newPayment);
-        master.setBankAccount(bankAccount);
-
-        // Update bill status
-        if (Double.compare(newTotalPaid, billTotal) == 0) {
-            bill.setTransactionStatus(TransactionStatus.PAID);
-        } else {
-            bill.setTransactionStatus(TransactionStatus.PARTIALLY_PAID);
-        }
+        return bankAccount;
     }
+
+    private Master validateReferenceVoucher(Long id, VoucherType expectedType) {
+        Master master = masterRepository.findById(id)
+                .orElseThrow(() -> new MasterNotFoundException("Reference voucher not found with id: " + id));
+
+        if (master.getVoucherType() != expectedType) {
+            throw new VoucherNotFound("Provided related ID is not of type " + expectedType);
+        }
+        return master;
+    }
+
+    private TransactionStatus getUpdatedStatus(double totalAmount, double paidAmount) {
+        return Double.compare(paidAmount, totalAmount) == 0
+                ? TransactionStatus.PAID
+                : TransactionStatus.PARTIALLY_PAID;
+    }
+}
+
+
+
 
 //    @Override
 //    public MasterResponse deleteMaster(Long masterId) {
@@ -270,7 +349,8 @@ public class MasterServiceImpl implements MasterService{
 //
 //        masterRepository.deleteById(masterId);
 //        return masterMapper.mapToMasterResponse(master);
-//    }
 
 
-}
+
+//
+//   }.

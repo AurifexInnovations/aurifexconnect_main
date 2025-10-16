@@ -4,9 +4,8 @@ import com.erp.Model.Ledger;
 import org.springframework.data.jpa.repository.JpaRepository;
 
 import java.util.List;
-import java.util.Optional;
 
 public interface LedgerRepository extends JpaRepository<Ledger, Long>{
 
-    List<Ledger> findByName(String ledgerName);
+    List<Ledger> findByLedgerIdOrName(long id, String ledgerName);
 }

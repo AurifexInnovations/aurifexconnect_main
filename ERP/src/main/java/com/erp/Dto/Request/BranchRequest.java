@@ -8,6 +8,8 @@ import lombok.Setter;
 @Setter
 public class BranchRequest {
 
+    private long id;
+
     private String branchName;
 
     private String location;

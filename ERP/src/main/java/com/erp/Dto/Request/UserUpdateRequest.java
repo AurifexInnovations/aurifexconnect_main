@@ -10,15 +10,14 @@ import lombok.Setter;
 @Setter
 public class UserUpdateRequest {
 
-    @Name
+    private long id;
+
     private String firstName;
 
-    @Name
     private String lastName;
 
     @Email
     private String email;
 
-    @ContactNumber
     private long phoneNo;
 }

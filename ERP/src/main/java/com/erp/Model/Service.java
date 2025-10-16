@@ -1,0 +1,47 @@
+package com.erp.Model;
+
+import com.erp.Enum.ServiceStatus;
+import jakarta.persistence.*;
+import lombok.Getter;
+import lombok.Setter;
+import org.springframework.data.annotation.CreatedDate;
+import org.springframework.data.annotation.LastModifiedDate;
+import org.springframework.data.jpa.domain.support.AuditingEntityListener;
+
+import java.time.LocalDateTime;
+
+@Entity
+@Getter
+@Setter
+@EntityListeners(AuditingEntityListener.class)
+public class Service {
+
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Column(name = "service_id")
+    private long serviceId;
+
+    @Column(name = "service_name")
+    private String serviceName;
+
+    @Column(name = "service_description")
+    private String serviceDescription;
+
+    @Column(name = "service_price")
+    private double servicePrice;
+
+    @Enumerated(EnumType.STRING)
+    @Column(name = "service_status")
+    private ServiceStatus serviceStatus;
+
+    @Column(name = "categories")
+    private String categories;
+
+    @CreatedDate
+    @Column(name = "created_at")
+    private LocalDateTime createdAt;
+
+    @LastModifiedDate
+    @Column(name = "last_modified_at")
+    private LocalDateTime lastModifiedAt;
+}

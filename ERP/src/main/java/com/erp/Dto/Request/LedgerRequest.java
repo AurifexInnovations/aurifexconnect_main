@@ -26,4 +26,12 @@ public class LedgerRequest {
     @NotBlank(message = "Address is required")
     @NotEmpty
     private String address;
+
+    private String GSTno;
+
+    private double creditLimit;
+
+    private double debitLimit;
+
+    private long findLegerId;
 }

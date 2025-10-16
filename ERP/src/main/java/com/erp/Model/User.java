@@ -1,5 +1,6 @@
 package com.erp.Model;
 
+import com.erp.Enum.AssignModule;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
@@ -9,12 +10,8 @@ import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 
-
 import java.time.LocalDate;
-import java.util.Collection;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 import java.util.stream.Collectors;
 
 @Entity
@@ -23,6 +20,7 @@ import java.util.stream.Collectors;
 @Setter
 @EntityListeners(AuditingEntityListener.class)
 public class User implements GenericUser {
+
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "id")
@@ -46,6 +44,12 @@ public class User implements GenericUser {
     @Column(name = "is_active")
     private boolean isActive = true;
 
+    @Column(name = "schema_name")
+    private String schemaName;
+
+    @Column(name = "created_by_admin_id")
+    private long createdByAdminId;
+
     @CreatedDate
     @Column(name = "created_at")
     private LocalDate createdAt;
@@ -58,13 +62,17 @@ public class User implements GenericUser {
     private Set<Role> roles = new HashSet<>();
 
 
+    @ElementCollection(targetClass = AssignModule.class)
+    @Enumerated(EnumType.STRING)
+    @CollectionTable(name = "user_modules", joinColumns = @JoinColumn(name = "user_id"))
+    @Column(name = "module")
+    private Set<AssignModule> modules = new HashSet<>();
+
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
-        Collection<SimpleGrantedAuthority> authorities = roles.stream()
+        return roles.stream()
                 .map(role -> new SimpleGrantedAuthority("ROLE_" + role.getRoleName()))
                 .collect(Collectors.toList());
-        System.out.println("Authorities: " + authorities); // Debug
-        return authorities;
     }
 
     @Override
@@ -79,21 +87,35 @@ public class User implements GenericUser {
 
     @Override
     public boolean isAccountNonExpired() {
-        return GenericUser.super.isAccountNonExpired();
+        return isActive;
     }
 
     @Override
     public boolean isAccountNonLocked() {
-        return GenericUser.super.isAccountNonLocked();
+        return isActive;
     }
 
     @Override
     public boolean isCredentialsNonExpired() {
-        return GenericUser.super.isCredentialsNonExpired();
+        return isActive;
     }
 
     @Override
     public boolean isEnabled() {
-        return GenericUser.super.isEnabled();
+        return isActive;
     }
+
+    @Override
+    public String getSchemaName() {
+        return schemaName;
+    }
+
+    @OneToMany(mappedBy = "user")
+    private List<Salary> salaries;
+
+    @OneToMany(mappedBy = "user")
+    private List<Leave> leaves;
+
+    @OneToMany(mappedBy = "user")
+    private List<Attendance> attendances;
 }

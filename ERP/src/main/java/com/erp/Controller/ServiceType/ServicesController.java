@@ -1,8 +1,9 @@
 package com.erp.Controller.ServiceType;
 
-import com.erp.Dto.Request.ServiceTypeRequest;
-import com.erp.Dto.Response.ServiceTypeResponse;
-import com.erp.Service.ServiceType.ServiceTypeService;
+import com.erp.Dto.Request.CommanParam;
+import com.erp.Dto.Request.ServiceRequest;
+import com.erp.Dto.Response.ServiceResponse;
+import com.erp.Service.ServiceType.ServiceType;
 import com.erp.Utility.ListResponseStructure;
 import com.erp.Utility.ResponseBuilder;
 import com.erp.Utility.ResponseStructure;
@@ -11,6 +12,7 @@ import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.AllArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -21,81 +23,126 @@ import java.util.List;
 @RestController
 @AllArgsConstructor
 @RequestMapping("/service")
+@Tag(name = "Service Controller", description = "Collection of API Endpoints for Managing Service Types")
 public class ServicesController {
 
-    private final ServiceTypeService serviceTypeService;
+    private final ServiceType serviceTypeService;
 
+    // POST /service
     @PostMapping
     @Operation(
             summary = "Add a new service",
-            description = "This API endpoint allows you to add a new service.",
+            description = "API to add a new service record.",
             responses = {
                     @ApiResponse(responseCode = "201", description = "Service added successfully"),
-                    @ApiResponse(responseCode = "400", description = "Bad request")
+                    @ApiResponse(responseCode = "400", description = "Invalid request body",
+                            content = @Content(schema = @Schema(implementation = SimpleErrorResponse.class)))
             }
     )
-    public ResponseEntity<ResponseStructure<ServiceTypeResponse>> addService(@RequestBody ServiceTypeRequest serviceTypeRequest){
-        ServiceTypeResponse servicesResponse = serviceTypeService.addService(serviceTypeRequest);
-        return ResponseBuilder.success(HttpStatus.CREATED,"Service added successfully !!",servicesResponse);
+    public ResponseEntity<ResponseStructure<ServiceResponse>> addService(@RequestBody ServiceRequest serviceRequest) {
+        ServiceResponse servicesResponse = serviceTypeService.addService(serviceRequest);
+        return ResponseBuilder.success(HttpStatus.CREATED, "Service added successfully!!", servicesResponse);
     }
 
-    @PutMapping("/{serviceId}")
+    // PUT /service/update
+    @PutMapping("/update")
     @Operation(
             summary = "Update an existing service",
-            description = "This API endpoint allows you to update an existing service by its ID.",
+            description = "API to update a service based on its ID.",
             responses = {
                     @ApiResponse(responseCode = "200", description = "Service updated successfully"),
-                    @ApiResponse(responseCode = "400", description = "Invalid request parameters"),
-                    @ApiResponse(responseCode = "404", description = "Service not found")
+                    @ApiResponse(responseCode = "400", description = "Invalid request parameters",
+                            content = @Content(schema = @Schema(implementation = SimpleErrorResponse.class))),
+                    @ApiResponse(responseCode = "404", description = "Service not found",
+                            content = @Content(schema = @Schema(implementation = SimpleErrorResponse.class)))
             }
     )
-    public ResponseEntity<ResponseStructure<ServiceTypeResponse>> updateServices(@RequestBody ServiceTypeRequest serviceTypeRequest,@PathVariable long serviceId){
-        ServiceTypeResponse servicesResponse = serviceTypeService.updateById(serviceTypeRequest,serviceId);
-        return ResponseBuilder.success(HttpStatus.OK,"Service updated successfully !!",servicesResponse);
+    public ResponseEntity<ResponseStructure<ServiceResponse>> updateServices(@RequestBody ServiceRequest serviceRequest) {
+        ServiceResponse servicesResponse = serviceTypeService.updateById(serviceRequest);
+        return ResponseBuilder.success(HttpStatus.OK, "Service updated successfully!!", servicesResponse);
     }
 
-    @GetMapping
+    // POST /service/byid
+    @PostMapping("/byid")
     @Operation(
-            summary = "Find services by name",
-            description = "This API endpoint allows you to search for services by name.",
+            summary = "Find services by ID or name",
+            description = "API to retrieve services by service ID or name.",
             responses = {
-                    @ApiResponse(responseCode = "200", description = "Services found successfully"),
+                    @ApiResponse(responseCode = "200", description = "Services retrieved successfully"),
+                    @ApiResponse(responseCode = "404", description = "Services not found",
+                            content = @Content(schema = @Schema(implementation = SimpleErrorResponse.class)))
+            }
+    )
+    public ResponseEntity<ListResponseStructure<ServiceResponse>> findByIdOrServiceName(@RequestBody CommanParam param) {
+        List<ServiceResponse> servicesResponse = serviceTypeService.findByIdOrServiceName(param);
+        return ResponseBuilder.success(HttpStatus.OK, "Services retrieved successfully!!", servicesResponse);
+    }
+
+    // DELETE /service/delete
+    @DeleteMapping("/delete")
+    @Operation(
+            summary = "Delete a service by ID",
+            description = "API to delete a service using its ID.",
+            responses = {
+                    @ApiResponse(responseCode = "200", description = "Service deleted successfully"),
+                    @ApiResponse(responseCode = "404", description = "Service not found",
+                            content = @Content(schema = @Schema(implementation = SimpleErrorResponse.class)))
+            }
+    )
+    public ResponseEntity<ResponseStructure<ServiceResponse>> deleteByServiceId(@RequestBody CommanParam param) {
+        ServiceResponse response = serviceTypeService.deleteByServiceId(param);
+        return ResponseBuilder.success(HttpStatus.OK, "Service deleted successfully!!", response);
+    }
+
+    // GET /service/all
+    @GetMapping("/all")
+    @Operation(
+            summary = "Fetch all services",
+            description = "API to retrieve all service records.",
+            responses = {
+                    @ApiResponse(responseCode = "200", description = "Services fetched successfully"),
+                    @ApiResponse(responseCode = "404", description = "No services found",
+                            content = @Content(schema = @Schema(implementation = SimpleErrorResponse.class)))
+            }
+    )
+    public ResponseEntity<ListResponseStructure<ServiceResponse>> fetchAllServices() {
+        List<ServiceResponse> servicesResponse = serviceTypeService.fetchAllServices();
+        return ResponseBuilder.success(HttpStatus.OK, "All services fetched successfully!!", servicesResponse);
+    }
+
+    @GetMapping("/status")
+    @Operation(
+            summary = "Find services by status",
+            description = "This API fetches services filtered by their status (ACTIVE, INACTIVE, DELETED).",
+            responses = {
+                    @ApiResponse(responseCode = "200", description = "Services fetched successfully"),
                     @ApiResponse(responseCode = "404", description = "No services found")
             }
     )
-    public ResponseEntity<ListResponseStructure<ServiceTypeResponse>> findByName(@RequestParam(name = "name") String name){
-        List<ServiceTypeResponse> servicesResponse = serviceTypeService.findByName(name);
-        return ResponseBuilder.success(HttpStatus.OK,"Service updated successfully !!",servicesResponse);
+    public ResponseEntity<ListResponseStructure<ServiceResponse>> findByStatus(@RequestBody ServiceRequest serviceRequest) {
+        List<ServiceResponse> servicesResponse = serviceTypeService.findByStatus(serviceRequest);
+        return ResponseBuilder.success(HttpStatus.OK, "Services fetched successfully by status!!", servicesResponse);
     }
 
-    @GetMapping("/{serviceId}")
+    // GET /service/categories
+    @GetMapping("/categories")
     @Operation(
-            summary = "Find service by ID",
-            description = "This API endpoint allows you to retrieve a service by its ID.",
+            summary = "Fetch all distinct service categories",
+            description = "API to retrieve all unique service categories available in the system.",
             responses = {
-                    @ApiResponse(responseCode = "200", description = "Service found successfully"),
-                    @ApiResponse(responseCode = "404", description = "Service not found")
+                    @ApiResponse(responseCode = "200", description = "Categories fetched successfully"),
+                    @ApiResponse(responseCode = "404", description = "No categories found",
+                            content = @Content(schema = @Schema(implementation = SimpleErrorResponse.class)))
             }
     )
-    public ResponseEntity<ResponseStructure<ServiceTypeResponse>> findByServiceId(@PathVariable long serviceId){
-        ServiceTypeResponse servicesResponse = serviceTypeService.findByServiceId(serviceId);
-        return ResponseBuilder.success(HttpStatus.OK,"Service found Successfully!!",servicesResponse);
+    public ResponseEntity<ListResponseStructure<String>> fetchAllCategories() {
+        List<String> categories = serviceTypeService.fetchAllCategories();
+        return ResponseBuilder.success(HttpStatus.OK, "Categories fetched successfully!", categories);
     }
 
-
-    @DeleteMapping("{serviceId}")
-    @Operation(
-            summary = "Delete a service by ID",
-            description = "This API endpoint allows you to delete a service by its ID.",
-            responses = {
-                    @ApiResponse(responseCode = "200", description = "Service deleted successfully"),
-                    @ApiResponse(responseCode = "404", description = "Service not found", content = @Content(schema = @Schema(implementation = SimpleErrorResponse.class)))
-            }
-    )
-    public ResponseEntity<ResponseStructure<ServiceTypeResponse>> deleteByItemId(@PathVariable long serviceId) {
-        ServiceTypeResponse response = serviceTypeService.deleteByItemId(serviceId);
-        return ResponseBuilder.success(HttpStatus.OK,"Service deleted successfully!!",response);
-
+    @PostMapping("/bycategory")
+    public ResponseEntity<ListResponseStructure<ServiceResponse>> fetchServiceByCategory(@RequestBody ServiceRequest serviceRequest){
+        List<ServiceResponse> serviceResponses = serviceTypeService.fetchServiceByCategory(serviceRequest);
+        return ResponseBuilder.success(HttpStatus.OK,"Service Found By Given Categories", serviceResponses);
     }
-
 }
