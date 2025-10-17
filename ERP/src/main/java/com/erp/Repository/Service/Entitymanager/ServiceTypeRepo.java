@@ -42,6 +42,7 @@ public class ServiceTypeRepo {
               String selectQuery = "SELECT s.service_id, s.service_name, s.service_description, s.service_price, " +
                       "s.service_status, s.service_category, s.created_at, s.last_modified_at ";
 
+
               String fromQuery = "FROM service s WHERE 1=1 ";
 
 
@@ -71,13 +72,6 @@ public class ServiceTypeRepo {
                           .append(request.getDateRequest().getEndDate()).append("'");
               }
 
-              // --- Count Query ---
-              String countQueryStr = "SELECT COUNT(*) " + fromQuery + where;
-              log.info("Executing Count Query: {}", countQueryStr);
-              Query countQuery = entityManager.createNativeQuery(countQueryStr);
-              long totalCount = ((Number) countQuery.getSingleResult()).longValue();
-
-
               Map<String, String> filters = request.getSearchFilters();
 
               if (filters != null && !filters.isEmpty()) {
@@ -92,6 +86,12 @@ public class ServiceTypeRepo {
                       }
                   }
               }
+
+              // --- Count Query ---
+              String countQueryStr = "SELECT COUNT(*) " + fromQuery + where;
+              log.info("Executing Count Query: {}", countQueryStr);
+              Query countQuery = entityManager.createNativeQuery(countQueryStr);
+              long totalCount = ((Number) countQuery.getSingleResult()).longValue();
 
 
               StringBuilder orderBy = new StringBuilder(" ORDER BY s.created_at ASC "); // default
