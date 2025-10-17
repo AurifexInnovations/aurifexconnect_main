@@ -2,12 +2,16 @@ package com.erp.Service.ServiceType;
 
 import com.erp.Dto.Request.CommanParam;
 import com.erp.Dto.Request.ServiceRequest;
+import com.erp.Dto.Request.ServiceTypeGetRequest;
+import com.erp.Dto.Response.ResultDto;
 import com.erp.Dto.Response.ServiceResponse;
+import com.erp.Dto.Response.ServiceTypeResponse;
 import com.erp.Enum.ServiceCategory;
 import com.erp.Exception.ResourceNotFoundException;
 import com.erp.Exception.Service_Exception.ServiceNotFoundException;
 import com.erp.Mapper.Service.ServiceMapper;
 import com.erp.Model.Service;
+import com.erp.Repository.Service.Entitymanager.ServiceTypeRepo;
 import com.erp.Repository.Service.ServiceRepository;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -23,7 +27,7 @@ public class ServiceTypeImpl implements ServiceType
 {
     private final ServiceRepository repository;
     private final ServiceMapper serviceMapper;
-
+    private final ServiceTypeRepo serviceTypeRepo;
 
     @Override
     public ServiceResponse addService(ServiceRequest serviceRequest)
@@ -134,5 +138,13 @@ public class ServiceTypeImpl implements ServiceType
             return new ArrayList<>();
         }
         return services;
+    }
+
+    @Override
+    public ResultDto<ServiceTypeResponse> getAllServices(ServiceTypeGetRequest request) {
+        log.info("[ServiceTypeImpl]  [getAllServices]  into get all services data " );
+        ResultDto<ServiceTypeResponse>  serviceTypeResponses = serviceTypeRepo.getAllServices(request);
+        log.info("[ServiceTypeImpl]  [getAllServices]  exit get all services data " );
+        return serviceTypeResponses;
     }
 }
