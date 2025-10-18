@@ -1,10 +1,12 @@
 package com.erp.Controller.Attendance;
 
 import com.erp.Dto.Request.AttendanceRequest;
+import com.erp.Dto.Request.FilterRequest;
 import com.erp.Dto.Request.Param;
 import com.erp.Dto.Response.AttendanceChartResponse;
 import com.erp.Dto.Response.AttendanceResponse;
 import com.erp.Dto.Response.AttendanceSummaryChartResponse;
+import com.erp.Dto.Response.ResultDto;
 import com.erp.Service.Attendance.AttendanceService;
 import com.erp.Utility.ListResponseStructure;
 import com.erp.Utility.ResponseBuilder;
@@ -185,4 +187,14 @@ public class AttendanceController {
         AttendanceSummaryChartResponse response = attendanceService.getAttendanceSummaryAnalytics(request);
         return ResponseBuilder.success(HttpStatus.OK, "Monthly summary data fetched", response);
     }
+
+    @PostMapping("/filter")
+    public ResponseEntity<ResponseStructure<ResultDto<AttendanceResponse>>> getAttendanceDetails(
+            @RequestBody FilterRequest filterRequest
+    ) {
+        ResultDto<AttendanceResponse> attendanceResponses = attendanceService.getFilteredAttendance(filterRequest);
+        return ResponseBuilder.success(HttpStatus.OK, "Attendance retrieved successfully!", attendanceResponses);
+    }
+
+
 }
