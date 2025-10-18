@@ -7,6 +7,7 @@ import com.erp.Dto.Request.FilterRequest;
 import com.erp.Dto.Request.PaginationRequest;
 import com.erp.Dto.Response.BranchResponse;
 import com.erp.Dto.Response.BranchResponseId;
+import com.erp.Dto.Response.ResultDto;
 
 import java.util.List;
 
@@ -26,5 +27,5 @@ public interface BranchService
 
     List<BranchResponse> getBranchesByItemName(CommanParam param);
 
-    List<BranchResponse> getBranchDetails(FilterRequest filterRequest);
+    ResultDto<BranchResponse> getBranchDetails(FilterRequest filterRequest);
 }
