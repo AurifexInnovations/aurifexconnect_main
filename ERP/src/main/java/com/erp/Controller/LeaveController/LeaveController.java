@@ -1,5 +1,6 @@
 package com.erp.Controller.LeaveController;
 
+import com.erp.Dto.Request.FilterRequest;
 import com.erp.Dto.Request.Param;
 import com.erp.Dto.Request.LeaveRequest;
 import com.erp.Dto.Response.LeaveResponse;
@@ -118,5 +119,17 @@ public class LeaveController {
     public ResponseEntity<ResponseStructure<LeaveResponse>> deleteLeave(@Valid @RequestBody Param param) {
         LeaveResponse response = leaveService.deleteLeaveRequest(param);
         return ResponseBuilder.success(HttpStatus.OK, "Leave deleted", response);
+    }
+
+    @PostMapping("/filter")
+    @Operation(summary = "Get Leave Filter Details",
+            description = "API Endpoint to find leave requests filtered by status",
+            responses = {
+                    @ApiResponse(responseCode = "200", description = "Found leave requests by status"),
+                    @ApiResponse(responseCode = "400", description = "Invalid request data")
+            })
+    public ResponseEntity<ListResponseStructure<LeaveResponse>> getLeaveDetails(@RequestBody FilterRequest filterRequest) {
+        List<LeaveResponse> response = leaveService.getLeaveDetails(filterRequest);
+        return ResponseBuilder.success(HttpStatus.OK, "Leave requests by status", response);
     }
 }

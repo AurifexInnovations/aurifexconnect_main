@@ -1,5 +1,6 @@
 package com.erp.Service.LeaveService;
 
+import com.erp.Dto.Request.FilterRequest;
 import com.erp.Dto.Request.LeaveRequest;
 import com.erp.Dto.Request.Param;
 import com.erp.Dto.Response.LeaveResponse;
@@ -17,4 +18,5 @@ public interface LeaveService {
     List<LeaveResponse> getAllLeaveRequests();
     LeaveResponse updateLeaveStatus(LeaveRequest request);
     LeaveResponse deleteLeaveRequest(Param param);
+    List<LeaveResponse> getLeaveDetails(FilterRequest filterRequest);
 }
