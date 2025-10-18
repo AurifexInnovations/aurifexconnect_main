@@ -2,6 +2,8 @@ package com.erp.CustomRepository;
 
 import com.erp.Dto.Request.FilterRequest;
 import com.erp.Dto.Response.LeaveResponse;
+import com.erp.Dto.Response.ResultDto;
+import com.erp.Enum.LeaveType;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.PersistenceContext;
 import jakarta.persistence.Query;
@@ -22,21 +24,24 @@ public class LeaveCustomRepository {
             "status", "status",
             "leaveBalance", "leaveBalance",
             "startDate", "startDate",
-            "endDate", "endDate"
+            "endDate", "endDate",
+            "reason", "reason"
     );
 
     private final Map<String, String> searchParamMap = Map.of(
             "userIdSearch", "userId",
             "userNameSearch", "userName",
-            "leaveTypeSearch", "leaveType"
+            "leaveTypeSearch", "leaveType",
+            "reasonSearch", "reason"
     );
 
     @PersistenceContext
     private EntityManager entityManager;
 
-    public List<LeaveResponse> getFilteredLeaves(FilterRequest filterRequest) {
+    public ResultDto<LeaveResponse> getFilteredLeaves(FilterRequest filterRequest) {
         log.info("Into [LeaveCustomRepository] [getFilteredLeaves]");
 
+        // ---------- BASE DATA QUERY ----------
         StringBuilder sql = new StringBuilder("""
                 SELECT 
                     l.id,
@@ -55,40 +60,70 @@ public class LeaveCustomRepository {
                 WHERE 1=1
                 """);
 
+        // ---------- BASE COUNT QUERY ----------
+        StringBuilder countSql = new StringBuilder("""
+                SELECT COUNT(*) 
+                FROM leave_request l
+                INNER JOIN users u ON l.user_id = u.id
+                WHERE 1=1
+                """);
+
         Map<String, String> filters = filterRequest.getFilterColumns();
         Map<String, String> search = filterRequest.getSearchColumns();
         Map<String, String> orderBy = filterRequest.getOrderByColumns();
 
-        // 🔹 Exact Filters
-        if (filters != null && !filters.isEmpty()) {
-            if (filters.containsKey("leaveType"))
+        // ---------- FILTER CONDITIONS ----------
+        if (filters != null) {
+            if (filters.containsKey("leaveType") && !filters.get("leaveType").isEmpty()) {
                 sql.append(" AND l.leave_type = :leaveType");
-            if (filters.containsKey("status"))
+                countSql.append(" AND l.leave_type = :leaveType");
+            }
+            if (filters.containsKey("status") && !filters.get("status").isEmpty()) {
                 sql.append(" AND l.status = :status");
-            if (filters.containsKey("leaveBalance"))
+                countSql.append(" AND l.status = :status");
+            }
+            if (filters.containsKey("leaveBalance") && !filters.get("leaveBalance").isEmpty()) {
                 sql.append(" AND l.leave_balance = :leaveBalance");
-
-            // Date range filters
-            if (filters.containsKey("startDate") && filters.containsKey("endDate")) {
+                countSql.append(" AND l.leave_balance = :leaveBalance");
+            }
+            if (filters.containsKey("reason") && !filters.get("reason").isEmpty()) {
+                sql.append(" AND LOWER(l.reason) = LOWER(:reason)");
+                countSql.append(" AND LOWER(l.reason) = LOWER(:reason)");
+            }
+            if (filters.containsKey("startDate") && !filters.get("startDate").isEmpty()
+                    && filters.containsKey("endDate") && !filters.get("endDate").isEmpty()) {
                 sql.append(" AND l.start_date BETWEEN :startDate AND :endDate");
-            } else if (filters.containsKey("startDate")) {
+                countSql.append(" AND l.start_date BETWEEN :startDate AND :endDate");
+            } else if (filters.containsKey("startDate") && !filters.get("startDate").isEmpty()) {
                 sql.append(" AND l.start_date >= :startDate");
-            } else if (filters.containsKey("endDate")) {
+                countSql.append(" AND l.start_date >= :startDate");
+            } else if (filters.containsKey("endDate") && !filters.get("endDate").isEmpty()) {
                 sql.append(" AND l.end_date <= :endDate");
+                countSql.append(" AND l.end_date <= :endDate");
             }
         }
 
-        // 🔹 Search Filters (LIKE or exact)
-        if (search != null && !search.isEmpty()) {
-            if (search.containsKey("userName"))
-                sql.append(" AND LOWER(CONCAT(u.first_name, ' ', u.last_name)) LIKE LOWER(CONCAT('%', :userNameSearch, '%'))");
-            if (search.containsKey("userId"))
+        // ---------- SEARCH CONDITIONS ----------
+        if (search != null) {
+            if (search.containsKey("leaveType") && !search.get("leaveType").isEmpty()) {
+                sql.append(" AND l.leave_type::text LIKE :leaveTypeSearch");
+                countSql.append(" AND l.leave_type::text LIKE :leaveTypeSearch");
+            }
+            if (search.containsKey("reason") && !search.get("reason").isEmpty()) {
+                sql.append(" AND LOWER(l.reason) LIKE :reasonSearch");
+                countSql.append(" AND LOWER(l.reason) LIKE :reasonSearch");
+            }
+            if (search.containsKey("userName") && !search.get("userName").isEmpty()) {
+                sql.append(" AND LOWER(CONCAT(u.first_name, ' ', u.last_name)) LIKE :userNameSearch");
+                countSql.append(" AND LOWER(CONCAT(u.first_name, ' ', u.last_name)) LIKE :userNameSearch");
+            }
+            if (search.containsKey("userId") && !search.get("userId").isEmpty()) {
                 sql.append(" AND u.id = :userIdSearch");
-            if (search.containsKey("leaveType"))
-                sql.append(" AND l.leave_type = :leaveTypeSearch");
+                countSql.append(" AND u.id = :userIdSearch");
+            }
         }
 
-        // 🔹 ORDER BY
+        // ---------- ORDER BY ----------
         if (orderBy != null && !orderBy.isEmpty()) {
             sql.append(" ORDER BY ");
             List<String> orderClauses = new ArrayList<>();
@@ -110,53 +145,92 @@ public class LeaveCustomRepository {
 
         log.info("[LeaveCustomRepository] [getFilteredLeaves] :: Query {}", sql);
 
-        Query query = entityManager.createNativeQuery(sql.toString());
+        Query dataQuery = entityManager.createNativeQuery(sql.toString());
+        Query countQuery = entityManager.createNativeQuery(countSql.toString());
 
-        // 🔹 Bind Filter Parameters
+        // ---------- BIND FILTER PARAMETERS ----------
         if (filters != null) {
-            filterParamMap.forEach((paramName, mapKey) -> {
-                String value = filters.get(mapKey);
+            filters.forEach((key, value) -> {
                 if (value != null && !value.isEmpty()) {
-                    switch (paramName) {
-                        case "leaveBalance" -> query.setParameter(paramName, Integer.parseInt(value));
-                        case "startDate", "endDate" -> query.setParameter(paramName, Date.valueOf(value));
-                        default -> query.setParameter(paramName, value);
+                    switch (key) {
+                        case "leaveType" -> {
+                            dataQuery.setParameter("leaveType", value.toUpperCase());
+                            countQuery.setParameter("leaveType", value.toUpperCase());
+                        }
+                        case "status" -> {
+                            dataQuery.setParameter("status", value.toUpperCase());
+                            countQuery.setParameter("status", value.toUpperCase());
+                        }
+                        case "leaveBalance" -> {
+                            int balance = Integer.parseInt(value);
+                            dataQuery.setParameter("leaveBalance", balance);
+                            countQuery.setParameter("leaveBalance", balance);
+                        }
+                        case "reason" -> {
+                            dataQuery.setParameter("reason", value.toLowerCase());
+                            countQuery.setParameter("reason", value.toLowerCase());
+                        }
+                        case "startDate" -> {
+                            Date start = Date.valueOf(value);
+                            dataQuery.setParameter("startDate", start);
+                            countQuery.setParameter("startDate", start);
+                        }
+                        case "endDate" -> {
+                            Date end = Date.valueOf(value);
+                            dataQuery.setParameter("endDate", end);
+                            countQuery.setParameter("endDate", end);
+                        }
                     }
                 }
             });
         }
 
-        // 🔹 Bind Search Parameters
+        // ---------- BIND SEARCH PARAMETERS ----------
         if (search != null) {
-            searchParamMap.forEach((paramName, mapKey) -> {
-                String value = search.get(mapKey);
+            search.forEach((key, value) -> {
                 if (value != null && !value.isEmpty()) {
-                    if (paramName.equals("userIdSearch"))
-                        query.setParameter(paramName, Long.parseLong(value));
-                    else
-                        query.setParameter(paramName, value);
+                    switch (key) {
+                        case "leaveType" -> {
+                            dataQuery.setParameter("leaveTypeSearch", "%" + value.toUpperCase() + "%");
+                            countQuery.setParameter("leaveTypeSearch", "%" + value.toUpperCase() + "%");
+                        }
+                        case "reason" -> {
+                            dataQuery.setParameter("reasonSearch", "%" + value.toLowerCase() + "%");
+                            countQuery.setParameter("reasonSearch", "%" + value.toLowerCase() + "%");
+                        }
+                        case "userName" -> {
+                            dataQuery.setParameter("userNameSearch", "%" + value.toLowerCase() + "%");
+                            countQuery.setParameter("userNameSearch", "%" + value.toLowerCase() + "%");
+                        }
+                        case "userId" -> {
+                            dataQuery.setParameter("userIdSearch", Long.parseLong(value));
+                            countQuery.setParameter("userIdSearch", Long.parseLong(value));
+                        }
+                    }
                 }
             });
         }
 
-        // 🔹 Pagination
+        // ---------- PAGINATION ----------
         if (filterRequest.getPaginationRequest() != null) {
             int page = filterRequest.getPaginationRequest().getPageNumber();
             int size = filterRequest.getPaginationRequest().getPageSize();
-            query.setFirstResult(page * size);
-            query.setMaxResults(size);
+            dataQuery.setFirstResult(page * size);
+            dataQuery.setMaxResults(size);
         }
 
-        // 🔹 Map results to LeaveResponse manually
-        List<Object[]> rows = query.getResultList();
-        List<LeaveResponse> results = new ArrayList<>();
+        // ---------- EXECUTE QUERIES ----------
+        long totalCount = ((Number) countQuery.getSingleResult()).longValue();
+        List<Object[]> rows = dataQuery.getResultList();
 
+        // ---------- MAP RESULTS ----------
+        List<LeaveResponse> results = new ArrayList<>();
         for (Object[] row : rows) {
             LeaveResponse response = new LeaveResponse();
             response.setId(((Number) row[0]).longValue());
             response.setStartDate(((Date) row[1]).toLocalDate());
             response.setEndDate(((Date) row[2]).toLocalDate());
-            response.setLeaveType(row[3] != null ? Enum.valueOf(com.erp.Enum.LeaveType.class, row[3].toString()) : null);
+            response.setLeaveType(row[3] != null ? LeaveType.valueOf(row[3].toString()) : null);
             response.setReason((String) row[4]);
             response.setStatus(row[5] != null ? row[5].toString() : null);
 
@@ -172,7 +246,12 @@ public class LeaveCustomRepository {
             results.add(response);
         }
 
-        log.info("Exit [LeaveCustomRepository] [getFilteredLeaves]");
-        return results;
+        // ---------- WRAP INTO ResultDto ----------
+        ResultDto<LeaveResponse> resultDto = new ResultDto<>();
+        resultDto.setCount(totalCount);
+        resultDto.setResults(results);
+
+        log.info("Exit [LeaveCustomRepository] [getFilteredLeaves] with count = {}", totalCount);
+        return resultDto;
     }
 }
