@@ -64,12 +64,6 @@ public class InventoryCustomRepository {
             if (filters.containsKey("branchId"))
                 sql.append(" AND i.branch_branch_id = :branchId");
 
-            // Product Name ordering (A-Z/Z-A)
-            if (orderBy != null && orderBy.containsKey("itemName")) {
-                sql.append(" ORDER BY i.item_name ")
-                        .append(orderBy.get("itemName").equalsIgnoreCase("desc") ? "DESC" : "ASC");
-            }
-
             // Date filter
             if (filters.containsKey("startDate") && filters.containsKey("endDate")) {
                 sql.append(" AND i.created_at BETWEEN :startDate AND :endDate");
