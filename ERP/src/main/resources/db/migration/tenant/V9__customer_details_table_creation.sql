@@ -1,3 +1,5 @@
+CREATE SEQUENCE IF NOT EXISTS customer_details_seq START WITH 1 INCREMENT BY 1;
+
 CREATE TABLE IF NOT EXISTS customer_details (
     id BIGSERIAL PRIMARY KEY,
     name VARCHAR(255) NOT NULL,
@@ -6,12 +8,9 @@ CREATE TABLE IF NOT EXISTS customer_details (
     company VARCHAR(255),
     engagement VARCHAR(255),
     lead_id BIGINT,
-
-    -- Optional auditing fields from AbstractAuditable
-    created_by BIGSERIAL,
-    created_date TIMESTAMP,
-    last_modified_by BIGSERIAL,
-    last_modified_date TIMESTAMP,
-
-    FOREIGN KEY (lead_id) REFERENCES leads(id)
+    createdby_id BIGINT,
+    createddate TIMESTAMP,
+    lastmodifiedby_id BIGINT,
+    lastmodifieddate TIMESTAMP,
+    FOREIGN KEY (lead_id) REFERENCES lead_details(id)
 );

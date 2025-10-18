@@ -40,13 +40,6 @@ public class CustomerController {
         return new ResponseEntity<>(service.create(dto), HttpStatus.CREATED);
     }
 
-    @Operation(summary = "Update contact")
-    @PutMapping("/update/{id}")
-    public ResponseEntity<CustomerResponseDto> update(
-            @PathVariable Long id, @RequestBody CustomerRequestDto dto) {
-        return ResponseEntity.ok(service.update(id, dto));
-    }
-
     @Operation(summary = "Fetch contact by ID")
     @GetMapping("/record/{id}")
     public ResponseEntity<CustomerResponseDto> fetchById(@PathVariable Long id) {

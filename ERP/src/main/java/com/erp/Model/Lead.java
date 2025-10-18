@@ -1,5 +1,6 @@
 package com.erp.Model;
 
+import com.erp.Config.Auditable;
 import jakarta.persistence.*;
 import lombok.*;
 import org.springframework.data.jpa.domain.AbstractAuditable;
@@ -10,7 +11,7 @@ import java.time.LocalDateTime;
 @NoArgsConstructor
 @AllArgsConstructor
 @Entity
-@Table(name = "leads")
+@Table(name = "lead_details")
 @EntityListeners(AuditingEntityListener.class)
 @Getter
 @Setter
@@ -18,7 +19,9 @@ import java.time.LocalDateTime;
 public class Lead extends AbstractAuditable<Admin, Long> {
 
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "lead_details_seq_gen")
+    @SequenceGenerator(name = "lead_details_seq_gen", sequenceName = "lead_details_seq", allocationSize = 1)
+    @Column(name = "id")
     private Long id;
 
     @Column(name = "name")

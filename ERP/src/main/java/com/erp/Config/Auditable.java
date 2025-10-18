@@ -15,18 +15,18 @@ import java.util.Date;
 public class Auditable extends AbstractAuditable<Admin, Long> {
 
     @ManyToOne
-    @JoinColumn(name = "createdby_id", updatable = false)
+    @JoinColumn(name = "created_by", updatable = false)
     private Admin createdBy;
 
     @ManyToOne
-    @JoinColumn(name = "lastmodifiedby_id")
+    @JoinColumn(name = "last_modified_by")
     private Admin lastModifiedBy;
 
     @Temporal(TemporalType.TIMESTAMP)
-    @Column(name = "createddate", updatable = false)
+    @Column(name = "created_date", updatable = false)
     private Date createdDate;
 
-    @Column(name = "lastModifieddate")
+    @Column(name = "last_modified_date")
     @Temporal(TemporalType.TIMESTAMP)
     @Nullable
     private Date lastModifiedDate;
