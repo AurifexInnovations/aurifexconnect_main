@@ -140,7 +140,7 @@ public class BranchController
                             @Content(schema = @Schema(implementation = SimpleErrorResponse.class))
                     })
             })
-    public ResponseEntity<ListResponseStructure<BranchResponse>> getBranchesByItemName(@RequestBody FilterRequest filterRequest){
+    public ResponseEntity<ListResponseStructure<BranchResponse>> getBranchesDetails(@RequestBody FilterRequest filterRequest){
         List<BranchResponse> branchResponse = branchService.getBranchDetails(filterRequest);
         return ResponseBuilder.success(HttpStatus.OK,"Branches retrieved successfully!",branchResponse);
     }
