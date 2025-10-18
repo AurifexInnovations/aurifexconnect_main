@@ -1,9 +1,12 @@
 package com.erp.Controller.BankAccount;
 
+import com.erp.Dto.Request.BankAccountGetRequest;
 import com.erp.Dto.Request.BankAccountRequest;
 import com.erp.Dto.Request.CommanParam;
+import com.erp.Dto.Request.FilterRequest;
 import com.erp.Dto.Response.BankAccountResponse;
 import com.erp.Dto.Response.BankBalanceResponse;
+import com.erp.Projection.BankAccountProjection;
 import com.erp.Service.BankAccount.BankAccountService;
 import com.erp.Utility.ListResponseStructure;
 import com.erp.Utility.ResponseBuilder;
@@ -33,11 +36,26 @@ public class BankAccountController {
         return ResponseBuilder.success(HttpStatus.OK,"Bank Account Updated Successfully", bankAccountResponse);
     }
 
-    @PostMapping("bank-account-find")
-    public ResponseEntity<ResponseStructure<BankAccountResponse>> findByBankAccountId(@RequestBody CommanParam param){
-        BankAccountResponse bankAccountResponse = bankAccountService.findByBankAccountId(param);
-        return ResponseBuilder.success(HttpStatus.OK,"Bank Account Found Successfully!", bankAccountResponse);
+//    @PostMapping("bank-account-find")
+//    public ResponseEntity<ResponseStructure<BankAccountResponse>> findByBankAccountId(@RequestBody CommanParam param){
+//        BankAccountResponse bankAccountResponse = bankAccountService.findByBankAccountId(param);
+//        return ResponseBuilder.success(HttpStatus.OK,"Bank Account Found Successfully!", bankAccountResponse);
+//    }
+
+    @PostMapping("/find")
+    public ResponseEntity<ListResponseStructure<BankAccountProjection>> findBankAccount(
+            @RequestBody FilterRequest filterRequest) {
+
+        List<BankAccountProjection> projections = bankAccountService.findByBankAccountId(filterRequest);
+
+        return ResponseBuilder.success(
+                HttpStatus.OK,
+                "Bank Account(s) Found Successfully!",
+                projections
+        );
     }
+
+
 
     @DeleteMapping("bank-account-delete")
     public ResponseEntity<ResponseStructure<BankAccountResponse>> deleteByBankAccountId(@RequestBody BankAccountRequest request){

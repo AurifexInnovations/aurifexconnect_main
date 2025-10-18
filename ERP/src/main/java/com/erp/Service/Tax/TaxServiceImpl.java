@@ -1,11 +1,14 @@
 package com.erp.Service.Tax;
 
+import com.erp.CustomRepository.TaxCustomRepository;
 import com.erp.Dto.Request.CommanParam;
+import com.erp.Dto.Request.FilterRequest;
 import com.erp.Dto.Request.TaxRequest;
 import com.erp.Dto.Response.TaxResponse;
 import com.erp.Exception.Tax.TaxNotFoundException;
 import com.erp.Mapper.Tax.TaxMapper;
 import com.erp.Model.Tax;
+import com.erp.Projection.TaxProjection;
 import com.erp.Repository.Tax.TaxRepository;
 import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -19,6 +22,7 @@ public class TaxServiceImpl implements TaxService {
 
     private final TaxRepository taxRepository;
     private final TaxMapper taxMapper;
+    private final TaxCustomRepository taxCustomRepository;
 
     @Override
     public TaxResponse addTax(TaxRequest taxRequest) {
@@ -99,5 +103,22 @@ public class TaxServiceImpl implements TaxService {
 
         return result;
     }
+
+
+    @Override
+    public List<TaxProjection> findTaxesByFilter(FilterRequest filterRequest) {
+        if (filterRequest == null) {
+            throw new TaxNotFoundException("Filter data is required!");
+        }
+
+        List<TaxProjection> projections = taxCustomRepository.getTaxDetails(filterRequest);
+
+        if (projections == null || projections.isEmpty()) {
+            throw new TaxNotFoundException("No taxes found for the given filter!");
+        }
+
+        return projections;
+    }
+
 }
 

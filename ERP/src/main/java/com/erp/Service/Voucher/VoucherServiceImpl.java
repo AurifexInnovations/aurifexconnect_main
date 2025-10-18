@@ -1,15 +1,19 @@
 package com.erp.Service.Voucher;
 
+import com.erp.CustomRepository.VoucherCustomRepository;
+import com.erp.Dto.Request.FilterRequest;
 import com.erp.Dto.Response.VoucherResponse;
 import com.erp.Enum.VoucherType;
 import com.erp.Exception.Voucher.VoucherNotFound;
 import com.erp.Mapper.Voucher.VoucherMapper;
 import com.erp.Model.Voucher;
+import com.erp.Projection.VoucherProjection;
 import com.erp.Repository.Voucher.VoucherRepository;
 import jakarta.transaction.Transactional;
 import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Service;
 import java.time.LocalDate;
+import java.util.List;
 
 @Service
 @AllArgsConstructor
@@ -17,6 +21,7 @@ public class VoucherServiceImpl implements VoucherService{
 
     private final VoucherRepository voucherRepository;
     private final VoucherMapper voucherMapper;
+    private final VoucherCustomRepository voucherCustomRepository;
 
     @Override
     @Transactional
@@ -63,5 +68,21 @@ public class VoucherServiceImpl implements VoucherService{
 
         return voucherMapper.mapToVoucherResponse(voucher);
     }
+
+    @Override
+    public List<VoucherProjection> findVouchersByFilter(FilterRequest filterRequest) {
+        if (filterRequest == null) {
+            throw new VoucherNotFound("Filter data is required!");
+        }
+
+        List<VoucherProjection> projections = voucherCustomRepository.getVoucherDetails(filterRequest);
+
+        if (projections == null || projections.isEmpty()) {
+            throw new VoucherNotFound("No vouchers found for the given filter!");
+        }
+
+        return projections;
+    }
+
 
 }
