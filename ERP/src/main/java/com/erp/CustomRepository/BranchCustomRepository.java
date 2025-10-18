@@ -1,13 +1,16 @@
 package com.erp.CustomRepository;
 
 import com.erp.Dto.Request.FilterRequest;
+import com.erp.Dto.Response.BranchResponse;
+import com.erp.Enum.BranchStatus;
+import com.erp.Enum.BranchType;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.PersistenceContext;
 import jakarta.persistence.Query;
-import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Repository;
 
+import java.sql.Timestamp;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -33,24 +36,24 @@ public class BranchCustomRepository {
     private EntityManager entityManager;
 
     public List getBranchDetails(FilterRequest filterRequest) {
-        log.info("Into [BranchCustomRepository] [getBranchDetails]");
-
         StringBuilder sql = new StringBuilder("""
                     SELECT 
                       b.branch_name AS branchName,
+                      b.location AS location,
                       b.contact_info AS contactInfo,
                       b.phone_number AS phoneNumber,
+                      b.created_at AS createdAt ,
                       b.branch_status AS branchStatus,
                       b.branch_type AS branchType,
                       b.edited_by AS editedBy,
                       b.pincode AS pincode,
                       b.city AS city,
-                      b.state AS state,
-                      b.location AS location,
-                      b.created_at AS createdAt
+                      b.state AS state
                     FROM branch b
                     WHERE 1=1
                 """);
+        log.info("Into [BranchCustomRepository] [getBranchDetails]");
+
 
         Map<String, String> filters = filterRequest.getFilterColumns();
         Map<String, String> search = filterRequest.getSearchColumns();
@@ -147,8 +150,27 @@ public class BranchCustomRepository {
             query.setMaxResults(size);
         }
 
+        List<Object[]> rows = query.getResultList();
+        List<BranchResponse> result = new ArrayList<>();
+        for (Object[] row : rows) {
+            BranchResponse br = new BranchResponse();
+            br.setBranchName((String) row[0]);
+            br.setLocation((String) row[1]);
+            br.setContactInfo((String) row[2]);
+            br.setPhoneNumber((String) row[3]);
+            br.setCreatedAt(row[4] != null ? ((Timestamp) row[4]).toLocalDateTime() : null);
+            br.setBranchStatus(row[5] != null ? BranchStatus.valueOf((String) row[5]) : null);
+            br.setBranchType(row[6] != null ? BranchType.valueOf((String) row[6]) : null);
+            br.setEditedBy((String) row[7]);
+            br.setPincode((String) row[8]);
+            br.setCity((String) row[9]);
+            br.setState((String) row[10]);
+
+            result.add(br);
+        }
+
         log.info("Exit [BranchCustomRepository] [getBranchDetails]");
 
-        return query.getResultList();
+        return result;
     }
 }
