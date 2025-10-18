@@ -12,8 +12,6 @@ public interface CustomerService {
 
     CustomerResponseDto create(CustomerRequestDto dto);
 
-    CustomerResponseDto update(Long id, CustomerRequestDto dto);
-
     CustomerResponseDto findById(Long id);
 
     void deleteById(Long id);

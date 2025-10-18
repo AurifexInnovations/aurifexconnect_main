@@ -1,11 +1,8 @@
 package com.erp.Service.crm;
 
-import com.erp.Dto.Request.CustomerRequestDto;
 import com.erp.Dto.Request.LeadRequestDto;
-import com.erp.Dto.Response.CustomerResponseDto;
 import com.erp.Dto.Response.LeadResponseDto;
 import com.erp.Mapper.crm.LeadMapper;
-import com.erp.Model.Customer;
 import com.erp.Model.Lead;
 import com.erp.Repository.crm.LeadRepository;
 import lombok.AllArgsConstructor;
@@ -26,21 +23,31 @@ public class LeadServiceImpl implements LeadService {
 
     @Override
     public Page<LeadResponseDto> findByCriteria(String name, String email, Pageable pageable) {
+        log.info("findByCriteria called with name={}, email={}, pageable={}", name, email, pageable);
+        // TODO: implement criteria search
+        log.debug("findByCriteria returning empty result (not implemented)");
         return null;
     }
 
     @Override
     public LeadResponseDto create(LeadRequestDto dto) {
+        log.info("create called with dto={}", dto);
         Lead entity = mapper.toEntity(dto);
         entity = leadRepository.save(entity);
+        log.info("Lead created with id={}", entity.getId());
         return mapper.toDto(entity);
     }
 
     @Override
     public LeadResponseDto findById(Long id) {
+        log.info("findById called with id={}", id);
         Lead lead = leadRepository.findById(id)
-                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Lead not found with ID: " + id));
+                .orElseThrow(() -> {
+                    log.warn("Lead not found for id={}", id);
+                    return new ResponseStatusException(HttpStatus.NOT_FOUND, "Lead not found with ID: " + id);
+                });
 
-        return mapper.toDto(lead); // Convert to LeadResponseDto
+        log.info("Lead found with id={}", id);
+        return mapper.toDto(lead);
     }
 }
