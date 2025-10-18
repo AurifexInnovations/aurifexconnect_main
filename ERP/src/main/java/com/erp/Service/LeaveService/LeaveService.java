@@ -4,6 +4,7 @@ import com.erp.Dto.Request.FilterRequest;
 import com.erp.Dto.Request.LeaveRequest;
 import com.erp.Dto.Request.Param;
 import com.erp.Dto.Response.LeaveResponse;
+import com.erp.Dto.Response.ResultDto;
 
 import java.util.List;
 
@@ -18,5 +19,5 @@ public interface LeaveService {
     List<LeaveResponse> getAllLeaveRequests();
     LeaveResponse updateLeaveStatus(LeaveRequest request);
     LeaveResponse deleteLeaveRequest(Param param);
-    List<LeaveResponse> getLeaveDetails(FilterRequest filterRequest);
+    ResultDto<LeaveResponse> getLeaveDetails(FilterRequest filterRequest);
 }

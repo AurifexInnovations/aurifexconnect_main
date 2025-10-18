@@ -4,6 +4,7 @@ import com.erp.Dto.Request.FilterRequest;
 import com.erp.Dto.Request.Param;
 import com.erp.Dto.Request.LeaveRequest;
 import com.erp.Dto.Response.LeaveResponse;
+import com.erp.Dto.Response.ResultDto;
 import com.erp.Service.LeaveService.LeaveService;
 import com.erp.Utility.ListResponseStructure;
 import com.erp.Utility.ResponseBuilder;
@@ -128,8 +129,8 @@ public class LeaveController {
                     @ApiResponse(responseCode = "200", description = "Found leave requests by status"),
                     @ApiResponse(responseCode = "400", description = "Invalid request data")
             })
-    public ResponseEntity<ListResponseStructure<LeaveResponse>> getLeaveDetails(@RequestBody FilterRequest filterRequest) {
-        List<LeaveResponse> response = leaveService.getLeaveDetails(filterRequest);
+    public ResponseEntity<ResponseStructure<ResultDto<LeaveResponse>>> getLeaveDetails(@RequestBody FilterRequest filterRequest) {
+        ResultDto<LeaveResponse> response = leaveService.getLeaveDetails(filterRequest);
         return ResponseBuilder.success(HttpStatus.OK, "Leave requests by status", response);
     }
 }

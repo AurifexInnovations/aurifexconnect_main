@@ -5,6 +5,7 @@ import com.erp.Dto.Request.FilterRequest;
 import com.erp.Dto.Request.LeaveRequest;
 import com.erp.Dto.Request.Param;
 import com.erp.Dto.Response.LeaveResponse;
+import com.erp.Dto.Response.ResultDto;
 import com.erp.Enum.LeaveStatus;
 import com.erp.Enum.LeaveType;
 import com.erp.Exception.Leave.LeaveNotFoundException;
@@ -195,12 +196,12 @@ public class LeaveServiceImpl implements LeaveService {
     }
 
     @Override
-    public List<LeaveResponse> getLeaveDetails(FilterRequest filterRequest){
+    public ResultDto<LeaveResponse> getLeaveDetails(FilterRequest filterRequest){
         log.info("Into [LeaveServiceImpl] [getLeaveDetails]");
 
         log.info("[LeaveServiceImpl] [getLeaveDetails]");
 
-        List<LeaveResponse> leaveResponses = new ArrayList<>();
+        ResultDto<LeaveResponse> leaveResponses = new ResultDto<>();
 
         try{
              leaveResponses = leaveCustomRepository.getFilteredLeaves(filterRequest);
