@@ -3,6 +3,7 @@ package com.erp.Controller.Branch;
 import com.erp.Dto.PaginationResponse;
 import com.erp.Dto.Request.BranchRequest;
 import com.erp.Dto.Request.CommanParam;
+import com.erp.Dto.Request.FilterRequest;
 import com.erp.Dto.Request.PaginationRequest;
 import com.erp.Dto.Response.BranchResponse;
 import com.erp.Dto.Response.BranchResponseId;
@@ -131,5 +132,16 @@ public class BranchController
     }
 
 
-
+    @PostMapping("/branch")
+    @Operation(description = "API Endpoint to Retrieve Branches ",
+            responses = {
+                    @ApiResponse(responseCode = "200", description = "Branches Retrieved Successfully"),
+                    @ApiResponse(responseCode = "404", description = "No Branches Found for Given Item", content = {
+                            @Content(schema = @Schema(implementation = SimpleErrorResponse.class))
+                    })
+            })
+    public ResponseEntity<ListResponseStructure<BranchResponse>> getBranchesByItemName(@RequestBody FilterRequest filterRequest){
+        List<BranchResponse> branchResponse = branchService.getBranchDetails(filterRequest);
+        return ResponseBuilder.success(HttpStatus.OK,"Branches retrieved successfully!",branchResponse);
+    }
 }

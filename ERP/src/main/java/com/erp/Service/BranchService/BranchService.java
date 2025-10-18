@@ -3,6 +3,7 @@ package com.erp.Service.BranchService;
 import com.erp.Dto.PaginationResponse;
 import com.erp.Dto.Request.BranchRequest;
 import com.erp.Dto.Request.CommanParam;
+import com.erp.Dto.Request.FilterRequest;
 import com.erp.Dto.Request.PaginationRequest;
 import com.erp.Dto.Response.BranchResponse;
 import com.erp.Dto.Response.BranchResponseId;
@@ -25,4 +26,5 @@ public interface BranchService
 
     List<BranchResponse> getBranchesByItemName(CommanParam param);
 
+    List<BranchResponse> getBranchDetails(FilterRequest filterRequest);
 }

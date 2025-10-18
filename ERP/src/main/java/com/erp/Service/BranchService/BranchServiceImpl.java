@@ -1,8 +1,10 @@
 package com.erp.Service.BranchService;
 
+import com.erp.CustomRepository.BranchCustomRepository;
 import com.erp.Dto.PaginationResponse;
 import com.erp.Dto.Request.BranchRequest;
 import com.erp.Dto.Request.CommanParam;
+import com.erp.Dto.Request.FilterRequest;
 import com.erp.Dto.Request.PaginationRequest;
 import com.erp.Dto.Response.BranchResponse;
 import com.erp.Dto.Response.BranchResponseId;
@@ -16,17 +18,22 @@ import com.erp.Repository.Admin.AdminUserRepository;
 import com.erp.Repository.Branch.BranchRepository;
 import com.erp.Repository.Inventory.InventoryRepository;
 import com.erp.Security.util.UserIdentity;
+import com.erp.Utility.ObjectMapperUtils;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.AllArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
 @Service
 @AllArgsConstructor
+@Slf4j
 public class BranchServiceImpl implements BranchService
 {
     private final BranchRepository branchRepository;
@@ -34,6 +41,8 @@ public class BranchServiceImpl implements BranchService
     private final InventoryRepository inventoryRepository;
     private final UserIdentity userIdentity;
     private final AdminUserRepository adminUserRepository;
+
+    private final BranchCustomRepository branchCustomRepository;
 
     @Override
     public BranchResponse createBranch(BranchRequest branchRequest)
@@ -136,5 +145,24 @@ public class BranchServiceImpl implements BranchService
             throw new InventoryNotFoundException("No Branches found Stocking Item: "+param.getName());
         }
         return branchMapper.mapToBranchResponse(branches);
+    }
+
+    public List<BranchResponse> getBranchDetails(FilterRequest filterRequest){
+        log.info("Into [BranchServiceImpl] [getBranchDetails] ");
+
+        log.info("[BranchServiceImpl] [getBranchDetails] :: Request {} " ,
+                ObjectMapperUtils.writeValueAsString(filterRequest));
+
+        List<BranchResponse> branchResponses = new ArrayList<>();
+
+        try {
+            branchResponses = branchCustomRepository.getBranchDetails(filterRequest);
+        }catch (Exception exception){
+            log.error("Error [BranchServiceImpl] [getBranchDetails] :: {} :: {} " , exception.getMessage() , exception);
+        }
+
+        log.info("Exit [BranchServiceImpl] [getBranchDetails] ");
+
+        return branchResponses;
     }
 }
