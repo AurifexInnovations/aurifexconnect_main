@@ -1,6 +1,7 @@
 package com.erp.Service.StaffService;
 
 import com.erp.Dto.Request.*;
+import com.erp.Dto.Response.ResultDto;
 import com.erp.Dto.Response.StaffResponse;
 
 import java.util.List;
@@ -25,5 +26,5 @@ public interface StaffService {
     // Get staff by Branch Id
     List<StaffResponse> getStaffByBranchId(CommanParam param);
 
-    List<StaffResponse> getStaffDetails(FilterRequest filterRequest);
+    ResultDto<StaffResponse> getStaffDetails(FilterRequest filterRequest);
 }

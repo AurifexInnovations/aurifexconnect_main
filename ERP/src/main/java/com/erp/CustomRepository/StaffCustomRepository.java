@@ -1,6 +1,7 @@
 package com.erp.CustomRepository;
 
 import com.erp.Dto.Request.FilterRequest;
+import com.erp.Dto.Response.ResultDto;
 import com.erp.Dto.Response.StaffResponse;
 import com.erp.Enum.Designation;
 import com.erp.Enum.StaffStatus;
@@ -39,9 +40,10 @@ public class StaffCustomRepository {
     @PersistenceContext
     private EntityManager entityManager;
 
-    public List<StaffResponse> getFilteredStaff(FilterRequest filterRequest) {
+    public ResultDto<StaffResponse> getFilteredStaff(FilterRequest filterRequest) {
         log.info("Into [StaffCustomRepository] [getFilteredStaff]");
 
+        // ---------- BASE DATA QUERY ----------
         StringBuilder sql = new StringBuilder("""
                 SELECT 
                     s.id,
@@ -56,42 +58,68 @@ public class StaffCustomRepository {
                 WHERE 1=1
                 """);
 
+        // ---------- BASE COUNT QUERY ----------
+        StringBuilder countSql = new StringBuilder("""
+                SELECT COUNT(*) 
+                FROM staff s
+                JOIN branch b ON s.branch_branch_id = b.branch_id
+                WHERE 1=1
+                """);
+
         Map<String, String> filters = filterRequest.getFilterColumns();
         Map<String, String> search = filterRequest.getSearchColumns();
         Map<String, String> orderBy = filterRequest.getOrderByColumns();
 
-        // 🔹 Exact filters
-        if (filters != null && !filters.isEmpty()) {
-            if (filters.containsKey("staffId"))
+        // ---------- FILTER CONDITIONS ----------
+        if (filters != null) {
+            if (filters.containsKey("staffId") && !filters.get("staffId").isEmpty()) {
                 sql.append(" AND s.id = :staffId");
-            if (filters.containsKey("staffName"))
-                sql.append(" AND s.staff_name = :staffName");
-            if (filters.containsKey("designation"))
+                countSql.append(" AND s.id = :staffId");
+            }
+            if (filters.containsKey("staffName") && !filters.get("staffName").isEmpty()) {
+                sql.append(" AND LOWER(s.staff_name) = LOWER(:staffName)");
+                countSql.append(" AND LOWER(s.staff_name) = LOWER(:staffName)");
+            }
+            if (filters.containsKey("designation") && !filters.get("designation").isEmpty()) {
                 sql.append(" AND s.designation = :designation");
-            if (filters.containsKey("staffStatus"))
+                countSql.append(" AND s.designation = :designation");
+            }
+            if (filters.containsKey("staffStatus") && !filters.get("staffStatus").isEmpty()) {
                 sql.append(" AND s.staff_status = :staffStatus");
-            if (filters.containsKey("branchName"))
+                countSql.append(" AND s.staff_status = :staffStatus");
+            }
+            if (filters.containsKey("branchName") && !filters.get("branchName").isEmpty()) {
                 sql.append(" AND LOWER(b.branch_name) = LOWER(:branchName)");
+                countSql.append(" AND LOWER(b.branch_name) = LOWER(:branchName)");
+            }
+            if (filters.containsKey("fromDate") && !filters.get("fromDate").isEmpty() &&
+                    filters.containsKey("toDate") && !filters.get("toDate").isEmpty()) {
+                sql.append(" AND s.created_at BETWEEN :fromDate AND :toDate");
+                countSql.append(" AND s.created_at BETWEEN :fromDate AND :toDate");
+            }
         }
 
-        // 🔹 Date range filter (BETWEEN)
-        if (filters != null && filters.containsKey("fromDate") && filters.containsKey("toDate")) {
-            sql.append(" AND s.created_at BETWEEN :fromDate AND :toDate");
+        // ---------- SEARCH CONDITIONS ----------
+        if (search != null) {
+            if (search.containsKey("staffName") && !search.get("staffName").isEmpty()) {
+                sql.append(" AND LOWER(s.staff_name) LIKE :staffNameSearch");
+                countSql.append(" AND LOWER(s.staff_name) LIKE :staffNameSearch");
+            }
+            if (search.containsKey("designation") && !search.get("designation").isEmpty()) {
+                sql.append(" AND LOWER(s.designation) LIKE :designationSearch");
+                countSql.append(" AND LOWER(s.designation) LIKE :designationSearch");
+            }
+            if (search.containsKey("staffStatus") && !search.get("staffStatus").isEmpty()) {
+                sql.append(" AND LOWER(s.staff_status) LIKE :staffStatusSearch");
+                countSql.append(" AND LOWER(s.staff_status) LIKE :staffStatusSearch");
+            }
+            if (search.containsKey("branchName") && !search.get("branchName").isEmpty()) {
+                sql.append(" AND LOWER(b.branch_name) LIKE :branchNameSearch");
+                countSql.append(" AND LOWER(b.branch_name) LIKE :branchNameSearch");
+            }
         }
 
-        // 🔹 Search (LIKE)
-        if (search != null && !search.isEmpty()) {
-            if (search.containsKey("staffName"))
-                sql.append(" AND LOWER(s.staff_name) LIKE LOWER(CONCAT('%', :staffNameSearch, '%'))");
-            if (search.containsKey("designation"))
-                sql.append(" AND LOWER(s.designation) LIKE LOWER(CONCAT('%', :designationSearch, '%'))");
-            if (search.containsKey("staffStatus"))
-                sql.append(" AND LOWER(s.staff_status) LIKE LOWER(CONCAT('%', :staffStatusSearch, '%'))");
-            if (search.containsKey("branchName"))
-                sql.append(" AND LOWER(b.branch_name) LIKE LOWER(CONCAT('%', :branchNameSearch, '%'))");
-        }
-
-        // 🔹 ORDER BY
+        // ---------- ORDER BY ----------
         if (orderBy != null && !orderBy.isEmpty()) {
             sql.append(" ORDER BY ");
             List<String> orderClauses = new ArrayList<>();
@@ -103,78 +131,124 @@ public class StaffCustomRepository {
                     case "designation" -> orderClauses.add("s.designation " + direction);
                     case "staffStatus" -> orderClauses.add("s.staff_status " + direction);
                     case "branchName" -> orderClauses.add("b.branch_name " + direction);
+                    default -> orderClauses.add("s.id DESC");
                 }
             }
-            if (!orderClauses.isEmpty()) {
-                sql.append(String.join(", ", orderClauses));
-            }
+            sql.append(String.join(", ", orderClauses));
+        } else {
+            sql.append(" ORDER BY s.id DESC");
         }
 
         log.info("[StaffCustomRepository] [getFilteredStaff] :: Query {}", sql);
 
-        Query query = entityManager.createNativeQuery(sql.toString());
+        Query dataQuery = entityManager.createNativeQuery(sql.toString());
+        Query countQuery = entityManager.createNativeQuery(countSql.toString());
 
-        // 🔹 Bind exact filters
+        // ---------- BIND FILTER PARAMETERS ----------
         if (filters != null) {
-            filterParamMap.forEach((paramName, mapKey) -> {
-                String value = filters.get(mapKey);
+            filters.forEach((key, value) -> {
                 if (value != null && !value.isEmpty()) {
                     try {
-                        switch (paramName) {
-                            case "staffId" -> query.setParameter(paramName, Long.parseLong(value));
-                            case "fromDate", "toDate" -> {
-                                LocalDateTime dateValue = LocalDateTime.parse(value);
-                                query.setParameter(paramName, dateValue);
+                        switch (key) {
+                            case "staffId" -> {
+                                Long id = Long.parseLong(value);
+                                dataQuery.setParameter("staffId", id);
+                                countQuery.setParameter("staffId", id);
                             }
-                            default -> query.setParameter(paramName, value);
+                            case "staffName" -> {
+                                dataQuery.setParameter("staffName", value.toLowerCase());
+                                countQuery.setParameter("staffName", value.toLowerCase());
+                            }
+                            case "designation" -> {
+                                dataQuery.setParameter("designation", value);
+                                countQuery.setParameter("designation", value);
+                            }
+                            case "staffStatus" -> {
+                                dataQuery.setParameter("staffStatus", value);
+                                countQuery.setParameter("staffStatus", value);
+                            }
+                            case "branchName" -> {
+                                dataQuery.setParameter("branchName", value.toLowerCase());
+                                countQuery.setParameter("branchName", value.toLowerCase());
+                            }
+                            case "fromDate" -> {
+                                LocalDateTime from = LocalDateTime.parse(value);
+                                dataQuery.setParameter("fromDate", from);
+                                countQuery.setParameter("fromDate", from);
+                            }
+                            case "toDate" -> {
+                                LocalDateTime to = LocalDateTime.parse(value);
+                                dataQuery.setParameter("toDate", to);
+                                countQuery.setParameter("toDate", to);
+                            }
                         }
                     } catch (Exception e) {
-                        log.warn("Invalid parameter [{}] with value [{}]", paramName, value);
+                        log.warn("Invalid filter parameter [{}] with value [{}]", key, value);
                     }
                 }
             });
         }
 
-        // 🔹 Bind search parameters
+        // ---------- BIND SEARCH PARAMETERS ----------
         if (search != null) {
-            searchParamMap.forEach((paramName, mapKey) -> {
-                String value = search.get(mapKey);
+            search.forEach((key, value) -> {
                 if (value != null && !value.isEmpty()) {
-                    query.setParameter(paramName, value);
+                    switch (key) {
+                        case "staffName" -> {
+                            dataQuery.setParameter("staffNameSearch", "%" + value.toLowerCase() + "%");
+                            countQuery.setParameter("staffNameSearch", "%" + value.toLowerCase() + "%");
+                        }
+                        case "designation" -> {
+                            dataQuery.setParameter("designationSearch", "%" + value.toLowerCase() + "%");
+                            countQuery.setParameter("designationSearch", "%" + value.toLowerCase() + "%");
+                        }
+                        case "staffStatus" -> {
+                            dataQuery.setParameter("staffStatusSearch", "%" + value.toLowerCase() + "%");
+                            countQuery.setParameter("staffStatusSearch", "%" + value.toLowerCase() + "%");
+                        }
+                        case "branchName" -> {
+                            dataQuery.setParameter("branchNameSearch", "%" + value.toLowerCase() + "%");
+                            countQuery.setParameter("branchNameSearch", "%" + value.toLowerCase() + "%");
+                        }
+                    }
                 }
             });
         }
 
-        // 🔹 Pagination
+        // ---------- PAGINATION ----------
         if (filterRequest.getPaginationRequest() != null) {
             int page = filterRequest.getPaginationRequest().getPageNumber();
             int size = filterRequest.getPaginationRequest().getPageSize();
-            query.setFirstResult(page * size);
-            query.setMaxResults(size);
+            dataQuery.setFirstResult(page * size);
+            dataQuery.setMaxResults(size);
         }
 
-        // 🔹 Execute & map results manually to DTO
-        List<Object[]> results = query.getResultList();
-        List<StaffResponse> responseList = new ArrayList<>();
+        // ---------- EXECUTE QUERIES ----------
+        long totalCount = ((Number) countQuery.getSingleResult()).longValue();
+        List<Object[]> rows = dataQuery.getResultList();
 
-        for (Object[] row : results) {
+        // ---------- MAP RESULTS ----------
+        List<StaffResponse> results = new ArrayList<>();
+        for (Object[] row : rows) {
             StaffResponse dto = new StaffResponse();
             dto.setId(((Number) row[0]).longValue());
             dto.setStaffName((String) row[1]);
             dto.setEmail((String) row[2]);
             dto.setContactNo((String) row[3]);
 
-            // handle enum safely
-            if (row[4] != null)
-                dto.setDesignation(Designation.valueOf(row[4].toString()));
-            if (row[5] != null)
-                dto.setStaffStatus(StaffStatus.valueOf(row[5].toString()));
+            if (row[4] != null) dto.setDesignation(Designation.valueOf(row[4].toString()));
+            if (row[5] != null) dto.setStaffStatus(StaffStatus.valueOf(row[5].toString()));
 
             dto.setBranchName((String) row[6]);
-            responseList.add(dto);
+            results.add(dto);
         }
 
-        log.info("Exit [StaffCustomRepository] [getFilteredStaff]");
-        return responseList;
+        // ---------- WRAP INTO ResultDto ----------
+        ResultDto<StaffResponse> resultDto = new ResultDto<>();
+        resultDto.setCount(totalCount);
+        resultDto.setResults(results);
+
+        log.info("Exit [StaffCustomRepository] [getFilteredStaff] with count = {}", totalCount);
+        return resultDto;
     }
 }

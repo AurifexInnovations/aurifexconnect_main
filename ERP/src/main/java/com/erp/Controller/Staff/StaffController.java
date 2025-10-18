@@ -1,6 +1,7 @@
 package com.erp.Controller.Staff;
 
 import com.erp.Dto.Request.*;
+import com.erp.Dto.Response.ResultDto;
 import com.erp.Dto.Response.StaffResponse;
 import com.erp.Service.StaffService.StaffService;
 import com.erp.Utility.ListResponseStructure;
@@ -110,8 +111,8 @@ public class StaffController {
                             @Content(schema = @Schema(implementation = SimpleErrorResponse.class))
                     })
             })
-    public ResponseEntity<ListResponseStructure<StaffResponse>> getStaffDetails(@RequestBody FilterRequest filterRequest){
-        List<StaffResponse> staffResponses = staffService.getStaffDetails(filterRequest);
+    public ResponseEntity<ResponseStructure<ResultDto<StaffResponse>>> getStaffDetails(@RequestBody FilterRequest filterRequest){
+        ResultDto<StaffResponse> staffResponses = staffService.getStaffDetails(filterRequest);
         return ResponseBuilder.success(HttpStatus.OK, "Staff retrieved successfully!", staffResponses);
     }
 

@@ -2,6 +2,7 @@ package com.erp.Service.StaffService;
 
 import com.erp.CustomRepository.StaffCustomRepository;
 import com.erp.Dto.Request.*;
+import com.erp.Dto.Response.ResultDto;
 import com.erp.Dto.Response.StaffResponse;
 import com.erp.Exception.Staff_Exception.StaffNotFoundException;
 import com.erp.Mapper.Staff.StaffMapper;
@@ -101,10 +102,10 @@ public class StaffServiceImpl implements StaffService {
     }
 
     @Override
-    public List<StaffResponse> getStaffDetails(FilterRequest filterRequest){
+    public ResultDto<StaffResponse> getStaffDetails(FilterRequest filterRequest){
         log.info("Into [StaffServiceImpl] [getStaffDetails]");
 
-        List<StaffResponse> staffResponses = new ArrayList<>();
+        ResultDto<StaffResponse> staffResponses = new ResultDto<>();
 
         try{
             staffResponses = staffCustomRepository.getFilteredStaff(filterRequest);

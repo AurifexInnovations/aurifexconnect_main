@@ -55,6 +55,7 @@ public class LeaveCustomRepository {
                     u.last_name,
                     u.email,
                     u.phone_no
+                
                 FROM leave_request l
                 INNER JOIN users u ON l.user_id = u.id
                 WHERE 1=1
