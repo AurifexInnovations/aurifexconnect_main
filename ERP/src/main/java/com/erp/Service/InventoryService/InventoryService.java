@@ -4,6 +4,7 @@ import com.erp.Dto.Request.CommanParam;
 import com.erp.Dto.Request.FilterRequest;
 import com.erp.Dto.Request.InventoryRequest;
 import com.erp.Dto.Response.InventoryResponse;
+import com.erp.Dto.Response.ResultDto;
 import com.erp.Dto.Response.StockValueResponse;
 import com.erp.Projection.InventoryAndBranchProjection;
 
@@ -105,5 +106,5 @@ public interface InventoryService {
 
     List<InventoryResponse> getLowStockItems();
 
-    List<InventoryAndBranchProjection> getInventoryDetails(FilterRequest filterRequest);
+    ResultDto<InventoryAndBranchProjection> getInventoryDetails(FilterRequest filterRequest);
 }

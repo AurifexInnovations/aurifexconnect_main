@@ -5,6 +5,7 @@ import com.erp.Dto.Request.CommanParam;
 import com.erp.Dto.Request.FilterRequest;
 import com.erp.Dto.Request.InventoryRequest;
 import com.erp.Dto.Response.InventoryResponse;
+import com.erp.Dto.Response.ResultDto;
 import com.erp.Dto.Response.StockValueResponse;
 import com.erp.Exception.Branch_Exception.BranchNotFoundException;
 import com.erp.Exception.Inventory_Exception.InventoryNotFoundException;
@@ -156,13 +157,13 @@ public class InventoryServiceImpl implements InventoryService {
 
 
     @Override
-    public List<InventoryAndBranchProjection> getInventoryDetails(FilterRequest filterRequest){
+    public  ResultDto<InventoryAndBranchProjection>  getInventoryDetails(FilterRequest filterRequest){
         log.info("Into [InventoryServiceImpl] [getInventoryDetails] ");
 
         log.info("[InventoryServiceImpl] [getInventoryDetails] :: Request :: {} " ,
                 ObjectMapperUtils.writeValueAsString(filterRequest));
 
-        List<InventoryAndBranchProjection> inventoryAndBranchProjections = new ArrayList<>();
+        ResultDto<InventoryAndBranchProjection>  inventoryAndBranchProjections = new ResultDto<>();
 
         try{
             inventoryAndBranchProjections = inventoryCustomRepository.getInventoryDetails(filterRequest);
