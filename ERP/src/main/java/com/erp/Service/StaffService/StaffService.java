@@ -1,9 +1,6 @@
 package com.erp.Service.StaffService;
 
-import com.erp.Dto.Request.CommanParam;
-import com.erp.Dto.Request.StaffParam;
-import com.erp.Dto.Request.StaffRequest;
-import com.erp.Dto.Request.PaginationRequest;
+import com.erp.Dto.Request.*;
 import com.erp.Dto.Response.StaffResponse;
 
 import java.util.List;
@@ -27,4 +24,6 @@ public interface StaffService {
 
     // Get staff by Branch Id
     List<StaffResponse> getStaffByBranchId(CommanParam param);
+
+    List<StaffResponse> getStaffDetails(FilterRequest filterRequest);
 }
