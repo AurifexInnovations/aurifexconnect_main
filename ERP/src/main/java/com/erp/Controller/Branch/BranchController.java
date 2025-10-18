@@ -132,7 +132,7 @@ public class BranchController
     }
 
 
-    @PostMapping("/branch")
+    @PostMapping("branch/filter")
     @Operation(description = "API Endpoint to Retrieve Branches ",
             responses = {
                     @ApiResponse(responseCode = "200", description = "Branches Retrieved Successfully"),
