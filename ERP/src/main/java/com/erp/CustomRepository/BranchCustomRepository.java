@@ -68,6 +68,15 @@ public class BranchCustomRepository {
                 sql.append(" AND b.branch_type = :branchType");
             if (filters.containsKey("branchStatus"))
                 sql.append(" AND b.branch_status = :branchStatus");
+
+            // 🔹 Date range filter
+            if (filters.containsKey("startDate") && filters.containsKey("endDate")) {
+                sql.append(" AND b.created_at BETWEEN :startDate AND :endDate");
+            } else if (filters.containsKey("startDate")) {
+                sql.append(" AND b.created_at >= :startDate");
+            } else if (filters.containsKey("endDate")) {
+                sql.append(" AND b.created_at <= :endDate");
+            }
         }
 
         // 🔹 LIKE filters (optional — user can pass one or many)
