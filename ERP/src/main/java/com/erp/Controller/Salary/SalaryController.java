@@ -1,5 +1,6 @@
 package com.erp.Controller.Salary;
 
+import com.erp.Dto.Request.FilterRequest;
 import com.erp.Dto.Request.Param;
 import com.erp.Dto.Request.SalaryRequest;
 import com.erp.Dto.Response.MonthlySalaryResponse;
@@ -136,6 +137,18 @@ public class SalaryController {
 
         Map<String, Object> overview = salaryService.getSalaryOverview(year, startDate, endDate);
         return ResponseBuilder.success(HttpStatus.OK, "Salary overview fetched successfully", overview);
+    }
+
+    @PostMapping("/filter")
+    @Operation(summary = "get Salaries details",
+            description = "API Endpoint to Find Salaries records by month",
+            responses = {
+                    @ApiResponse(responseCode = "201", description = "Salaries records fetched by month"),
+                    @ApiResponse(responseCode = "400", description = "Invalid request data")
+            })
+    public ResponseEntity<ListResponseStructure<SalaryResponse>> getSalaryDetails(@RequestBody FilterRequest filterRequest) {
+        List<SalaryResponse> salaries = salaryService.getSalaryDetails(filterRequest);
+        return ResponseBuilder.success(HttpStatus.OK, "Salary Details Fetched Successfully", salaries);
     }
 
 }

@@ -1,5 +1,7 @@
 package com.erp.Service.SalaryService;
 
+import com.erp.CustomRepository.SalaryCustomRepository;
+import com.erp.Dto.Request.FilterRequest;
 import com.erp.Dto.Request.Param;
 import com.erp.Dto.Request.SalaryRequest;
 import com.erp.Dto.Response.MonthlySalaryResponse;
@@ -15,7 +17,9 @@ import com.erp.Repository.Attendance.AttendanceRepository;
 import com.erp.Repository.Salary.SalaryRepository;
 import com.erp.Repository.User.UserRepository;
 import com.erp.Service.Attendance.AttendanceService;
+import com.erp.Utility.ObjectMapperUtils;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
@@ -27,6 +31,7 @@ import java.util.*;
 
 @Service
 @RequiredArgsConstructor
+@Slf4j
 public class SalaryServiceImpl implements SalaryService {
 
     private final AttendanceService attendanceService;
@@ -34,6 +39,8 @@ public class SalaryServiceImpl implements SalaryService {
     private final UserRepository userRepository;
     private final SalaryMapper salaryMapper;
     private final AttendanceRepository attendanceRepository;
+
+    private final SalaryCustomRepository salaryCustomRepository;
 
     @Override
     public SalaryResponse generateSalaryForMonth(SalaryRequest request) {
@@ -178,5 +185,24 @@ public class SalaryServiceImpl implements SalaryService {
         result.put("totalSalaryPaid", summaryList);
 
         return result;
+    }
+
+    @Override
+    public List<SalaryResponse> getSalaryDetails(FilterRequest filterRequest){
+        log.info("Into [SalaryServiceImpl] [getSalaryDetails] ");
+
+        log.info("[SalaryServiceImpl] [getSalaryDetails]  :: Request {} " , ObjectMapperUtils.writeValueAsString(filterRequest));
+
+        List<SalaryResponse> salaryResponses = new ArrayList<>();
+
+        try{
+            salaryResponses = salaryCustomRepository.getSalaryDetails(filterRequest);
+        }catch (Exception exception){
+            log.error("Error [SalaryServiceImpl] [getSalaryDetails] ");
+        }
+
+        log.info("Exit [SalaryServiceImpl] [getSalaryDetails] ");
+
+        return salaryResponses;
     }
 }
