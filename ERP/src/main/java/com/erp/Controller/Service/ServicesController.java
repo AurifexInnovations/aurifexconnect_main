@@ -2,7 +2,10 @@ package com.erp.Controller.Service;
 
 import com.erp.Dto.Request.CommanParam;
 import com.erp.Dto.Request.ServiceRequest;
+import com.erp.Dto.Request.ServiceTypeGetRequest;
+import com.erp.Dto.Response.ResultDto;
 import com.erp.Dto.Response.ServiceResponse;
+import com.erp.Dto.Response.ServiceTypeResponse;
 import com.erp.Service.ServiceType.ServiceType;
 import com.erp.Utility.ListResponseStructure;
 import com.erp.Utility.ResponseBuilder;
@@ -15,16 +18,19 @@ import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.AllArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
+@Slf4j
 @RestController
 @AllArgsConstructor
 @RequestMapping("/service")
 @Tag(name = "Service Controller", description = "Collection of API Endpoints for Managing Service Types")
+
 public class ServicesController
 {
     private final ServiceType serviceTypeService;
@@ -153,5 +159,18 @@ public class ServicesController
     {
         List<ServiceResponse> serviceResponses = serviceTypeService.findByServiceCategory(serviceRequest);
         return ResponseBuilder.success(HttpStatus.OK,"Service Found By Given Categories", serviceResponses);
+    }
+
+    @PostMapping("/search")
+    @Operation(description = "API to Fetch All Services",
+            responses = {
+                    @ApiResponse(responseCode = "200", description = "All Services Retrieved Successfully")
+            })
+    public ResponseEntity<ResponseStructure<ResultDto<ServiceTypeResponse>>> getAllServices(
+            @RequestBody @Valid  ServiceTypeGetRequest request ) {
+        log.info("[ServiceController]  [getAllServices] into get service data{} ",request.toString());
+        ResultDto<ServiceTypeResponse> records = serviceTypeService.getAllServices(request);
+
+        return ResponseBuilder.success(HttpStatus.OK,"Data fetch successfully ",records);
     }
 }
