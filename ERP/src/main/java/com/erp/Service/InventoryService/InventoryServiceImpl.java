@@ -1,6 +1,8 @@
 package com.erp.Service.InventoryService;
 
+import com.erp.CustomRepository.InventoryCustomRepository;
 import com.erp.Dto.Request.CommanParam;
+import com.erp.Dto.Request.FilterRequest;
 import com.erp.Dto.Request.InventoryRequest;
 import com.erp.Dto.Response.InventoryResponse;
 import com.erp.Dto.Response.StockValueResponse;
@@ -10,10 +12,13 @@ import com.erp.Mapper.Inventory.InventoryMapper;
 import com.erp.Model.Branch;
 import com.erp.Model.Inventory;
 import com.erp.Model.Tax;
+import com.erp.Projection.InventoryAndBranchProjection;
 import com.erp.Repository.Branch.BranchRepository;
 import com.erp.Repository.Inventory.InventoryRepository;
 import com.erp.Repository.Tax.TaxRepository;
+import com.erp.Utility.ObjectMapperUtils;
 import lombok.AllArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
@@ -22,12 +27,15 @@ import java.util.stream.Collectors;
 
 @Service
 @AllArgsConstructor
+@Slf4j
 public class InventoryServiceImpl implements InventoryService {
 
     private final InventoryRepository inventoryRepository;
     private final InventoryMapper inventoryMapper;
     private final BranchRepository branchRepository;
     private final TaxRepository taxRepository;
+
+    private final InventoryCustomRepository inventoryCustomRepository;
 
     @Override
     public InventoryResponse addItem(InventoryRequest inventoryRequest) {
@@ -147,4 +155,23 @@ public class InventoryServiceImpl implements InventoryService {
     }
 
 
+    @Override
+    public List<InventoryAndBranchProjection> getInventoryDetails(FilterRequest filterRequest){
+        log.info("Into [InventoryServiceImpl] [getInventoryDetails] ");
+
+        log.info("[InventoryServiceImpl] [getInventoryDetails] :: Request :: {} " ,
+                ObjectMapperUtils.writeValueAsString(filterRequest));
+
+        List<InventoryAndBranchProjection> inventoryAndBranchProjections = new ArrayList<>();
+
+        try{
+            inventoryAndBranchProjections = inventoryCustomRepository.getInventoryDetails(filterRequest);
+        }catch (Exception exception){
+            log.error("Error [InventoryServiceImpl] [getInventoryDetails] :: {} {} " , exception.getMessage() , exception);
+        }
+
+        log.info("Exit [InventoryServiceImpl] [getInventoryDetails] ");
+
+        return inventoryAndBranchProjections;
+    }
 }

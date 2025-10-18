@@ -1,9 +1,11 @@
 package com.erp.Controller.Inventory;
 
 import com.erp.Dto.Request.CommanParam;
+import com.erp.Dto.Request.FilterRequest;
 import com.erp.Dto.Request.InventoryRequest;
 import com.erp.Dto.Response.InventoryResponse;
 import com.erp.Dto.Response.StockValueResponse;
+import com.erp.Projection.InventoryAndBranchProjection;
 import com.erp.Service.InventoryService.InventoryService;
 import com.erp.Utility.ListResponseStructure;
 import com.erp.Utility.ResponseBuilder;
@@ -129,4 +131,9 @@ public class InventoryController {
         return ResponseBuilder.success(HttpStatus.OK, "Low Stock Items fetched successfully", responses);
     }
 
+    @PostMapping("/inventory/filter")
+    public ResponseEntity<ListResponseStructure<InventoryAndBranchProjection>> getInventoryDetails(@RequestBody FilterRequest filterRequest){
+        List<InventoryAndBranchProjection> inventoryAndBranchProjections = inventoryService.getInventoryDetails(filterRequest);
+        return ResponseBuilder.success(HttpStatus.OK,"Inventories retrieved successfully!",inventoryAndBranchProjections);
+    }
 }
