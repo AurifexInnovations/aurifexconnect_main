@@ -1,8 +1,10 @@
 package com.erp.Controller.Tax;
 
 import com.erp.Dto.Request.CommanParam;
+import com.erp.Dto.Request.FilterRequest;
 import com.erp.Dto.Request.TaxRequest;
 import com.erp.Dto.Response.TaxResponse;
+import com.erp.Projection.TaxProjection;
 import com.erp.Service.Tax.TaxService;
 import com.erp.Utility.ListResponseStructure;
 import com.erp.Utility.ResponseBuilder;
@@ -112,4 +114,16 @@ public class TaxController {
         Map<String, Double> response = taxService.getTaxBreakupAnalytics(startDate, endDate);
         return ResponseBuilder.success(HttpStatus.OK, "Tax breakup chart data fetched", response);
     }
+
+    @PostMapping("/tax/find")
+    public ResponseEntity<ListResponseStructure<TaxProjection>> findTaxes(
+            @RequestBody FilterRequest filterRequest) {
+        List<TaxProjection> projections = taxService.findTaxesByFilter(filterRequest);
+        return ResponseBuilder.success(
+                HttpStatus.OK,
+                "Tax(es) Found Successfully!",
+                projections
+        );
+    }
+
 }

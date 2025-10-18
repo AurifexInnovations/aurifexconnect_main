@@ -8,6 +8,7 @@ import com.erp.Dto.Request.FilterRequest;
 import com.erp.Dto.Request.PaginationRequest;
 import com.erp.Dto.Response.BranchResponse;
 import com.erp.Dto.Response.BranchResponseId;
+import com.erp.Dto.Response.ResultDto;
 import com.erp.Exception.Admin.AdminNotFoundException;
 import com.erp.Exception.Branch_Exception.BranchNotFoundException;
 import com.erp.Exception.Inventory_Exception.InventoryNotFoundException;
@@ -147,13 +148,13 @@ public class BranchServiceImpl implements BranchService
         return branchMapper.mapToBranchResponse(branches);
     }
 
-    public List<BranchResponse> getBranchDetails(FilterRequest filterRequest){
+    public ResultDto<BranchResponse> getBranchDetails(FilterRequest filterRequest){
         log.info("Into [BranchServiceImpl] [getBranchDetails] ");
 
         log.info("[BranchServiceImpl] [getBranchDetails] :: Request {} " ,
                 ObjectMapperUtils.writeValueAsString(filterRequest));
 
-        List<BranchResponse> branchResponses = new ArrayList<>();
+        ResultDto<BranchResponse> branchResponses  = new ResultDto<>();
 
         try {
             branchResponses = branchCustomRepository.getBranchDetails(filterRequest);
