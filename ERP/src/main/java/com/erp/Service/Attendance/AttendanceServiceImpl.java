@@ -7,6 +7,8 @@ import com.erp.Enum.AttendanceStatus;
 import com.erp.Exception.Attendance.AttendanceAlreadyExistsException;
 import com.erp.Exception.Attendance.AttendanceInvalidException;
 import com.erp.Exception.Attendance.AttendanceNotFoundException;
+import com.erp.Exception.ResourceFoundException;
+import com.erp.Exception.ResourceNotFoundException;
 import com.erp.Exception.User.UserNotFoundException;
 import com.erp.Mapper.Attendance.AttendanceMapper;
 import com.erp.Model.Attendance;
@@ -32,18 +34,21 @@ public class AttendanceServiceImpl implements AttendanceService {
     private final Clock clock;
 
     @Override
-    public AttendanceResponse checkIn(Param param) {
+    public AttendanceResponse checkIn(Param param)
+    {
         long userId = param.getUserId();
         LocalDate today = LocalDate.now(clock);
         LocalDateTime now = LocalDateTime.now(clock);
 
         attendanceRepository.findByUser_IdAndDate(userId, today)
                 .ifPresent(a -> {
-                    throw new AttendanceAlreadyExistsException("Already checked in today.");
+                    throw new ResourceFoundException("Already checked in today.");
                 });
 
         User user = userRepository.findById(userId)
-                .orElseThrow(() -> new UserNotFoundException("User not found."));
+                .orElseThrow(() -> new ResourceNotFoundException("User not found."));
+
+        System.out.println("**********************************"+userId);
 
         Attendance attendance = new Attendance();
         attendance.setUser(user);

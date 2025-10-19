@@ -170,7 +170,8 @@ public class SecurityConfig {
     }
 
     @Bean
-    public CorsConfigurationSource corsConfigurationSource() {
+    public CorsConfigurationSource corsConfigurationSource()
+    {
         CorsConfiguration config = new CorsConfiguration();
         config.setAllowCredentials(true); // allow cookies / JWT via headers
         config.setAllowedOrigins(List.of("http://localhost:3000","http://localhost:5174"));

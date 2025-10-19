@@ -24,8 +24,8 @@ import java.util.Map;
 @RestController
 @AllArgsConstructor
 @RequestMapping("/salary")
-public class SalaryController {
-
+public class SalaryController
+{
     private final SalaryService salaryService;
 
     @PostMapping("/add")

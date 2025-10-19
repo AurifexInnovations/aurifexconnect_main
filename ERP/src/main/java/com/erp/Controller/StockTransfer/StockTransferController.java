@@ -89,5 +89,4 @@ public class StockTransferController {
         List<StockTransferResponse> responses = stockTransferService.getTransfersByStatus(param);
         return ResponseBuilder.success(HttpStatus.OK, "Transfers by Status Retrieved Successfully", responses);
     }
-
 }
