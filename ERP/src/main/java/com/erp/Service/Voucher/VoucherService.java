@@ -1,6 +1,7 @@
 package com.erp.Service.Voucher;
 
 import com.erp.Dto.Request.FilterRequest;
+import com.erp.Dto.Response.ResultDto;
 import com.erp.Dto.Response.VoucherResponse;
 import com.erp.Enum.VoucherType;
 import com.erp.Model.Voucher;
@@ -16,6 +17,6 @@ public interface VoucherService {
 
     String getFormattedVoucherId(Voucher voucher);
 
-    List<VoucherProjection> findVouchersByFilter(FilterRequest filterRequest);
+    ResultDto<VoucherProjection> findVouchersByFilter(FilterRequest filterRequest);
 
 }
