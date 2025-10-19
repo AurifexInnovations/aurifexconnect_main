@@ -31,7 +31,7 @@ public class SalaryCustomRepository {
             "userId", "userId",
             "userName", "userName",
             "month", "month",
-            "paymentStatus", "paymentStatus",
+            "amountStatus", "amountStatus",
             "deductions", "deductions",
             "bonus", "bonus",
             "startPaymentDate", "startPaymentDate",
@@ -41,7 +41,9 @@ public class SalaryCustomRepository {
     private final Map<String, String> searchParamMap = Map.of(
             "userSearch", "userName",
             "monthSearch", "month",
-            "paymentStatusSearch", "paymentStatus"
+            "amountStatusSearch", "amountStatus",
+            "bonusSearch", "bonus",
+            "deductionsSearch", "deductions"
     );
 
     public ResultDto<SalaryResponse> getSalaryDetails(FilterRequest filterRequest) {
@@ -100,17 +102,18 @@ public class SalaryCustomRepository {
                     sql.append(" AND s.month = :month");
                     countSql.append(" AND s.month = :month");
                 }
-                if (filters.containsKey("paymentStatus")) {
-                    sql.append(" AND s.amount_status = :paymentStatus");
-                    countSql.append(" AND s.amount_status = :paymentStatus");
+                if (filters.containsKey("amountStatus")) {
+                    sql.append(" AND s.amount_status = :amountStatus");
+                    countSql.append(" AND s.amount_status = :amountStatus");
                 }
                 if (filters.containsKey("deductions")) {
                     sql.append(" AND s.deductions >= :deductions");
                     countSql.append(" AND s.deductions >= :deductions");
                 }
                 if (filters.containsKey("bonus")) {
-                    sql.append(" AND s.bonus >= :bonus");
-                    countSql.append(" AND s.bonus >= :bonus");
+                    // Filter by exact bonus value
+                    sql.append(" AND s.bonus = :bonus");
+                    countSql.append(" AND s.bonus = :bonus");
                 }
                 if (filters.containsKey("startPaymentDate") && filters.containsKey("endPaymentDate")) {
                     sql.append(" AND s.payment_date BETWEEN :startPaymentDate AND :endPaymentDate");
@@ -134,9 +137,17 @@ public class SalaryCustomRepository {
                     sql.append(" AND s.month = :monthSearch");
                     countSql.append(" AND s.month = :monthSearch");
                 }
-                if (search.containsKey("paymentStatusSearch")) {
-                    sql.append(" AND s.amount_status LIKE CONCAT('%', :paymentStatusSearch, '%')");
-                    countSql.append(" AND s.amount_status LIKE CONCAT('%', :paymentStatusSearch, '%')");
+                if (search.containsKey("amountStatusSearch")) {
+                    sql.append(" AND s.amount_status LIKE CONCAT('%', :amountStatusSearch, '%')");
+                    countSql.append(" AND s.amount_status LIKE CONCAT('%', :amountStatusSearch, '%')");
+                }
+                if (search.containsKey("bonusSearch")) {
+                    sql.append(" AND s.bonus >= :bonusSearch");
+                    countSql.append(" AND s.bonus >= :bonusSearch");
+                }
+                if (search.containsKey("deductionsSearch")) {
+                    sql.append(" AND s.deductions >= :deductionsSearch");
+                    countSql.append(" AND s.deductions >= :deductionsSearch");
                 }
             }
 
@@ -160,8 +171,13 @@ public class SalaryCustomRepository {
                     if (value != null && !value.isEmpty()) {
                         try {
                             switch (param) {
-                                case "userId", "deductions", "bonus" -> {
+                                case "userId", "deductions" -> {
                                     long v = Long.parseLong(value);
+                                    dataQuery.setParameter(param, v);
+                                    countQuery.setParameter(param, v);
+                                }
+                                case "bonus" -> {
+                                    double v = Double.parseDouble(value);
                                     dataQuery.setParameter(param, v);
                                     countQuery.setParameter(param, v);
                                 }
@@ -185,8 +201,21 @@ public class SalaryCustomRepository {
                 searchParamMap.forEach((param, key) -> {
                     String value = search.get(key);
                     if (value != null && !value.isEmpty()) {
-                        dataQuery.setParameter(param, value);
-                        countQuery.setParameter(param, value);
+                        try {
+                            switch (param) {
+                                case "deductionsSearch", "bonusSearch" -> {
+                                    double v = Double.parseDouble(value);
+                                    dataQuery.setParameter(param, v);
+                                    countQuery.setParameter(param, v);
+                                }
+                                default -> {
+                                    dataQuery.setParameter(param, value);
+                                    countQuery.setParameter(param, value);
+                                }
+                            }
+                        } catch (Exception e) {
+                            throw new ResourceNotFoundException(e.getMessage());
+                        }
                     }
                 });
             }
@@ -216,10 +245,9 @@ public class SalaryCustomRepository {
                 dto.setNetSalary(((Number) row[6]).longValue());
                 dto.setAmountStatus(row[7] != null ? AmountStatus.valueOf(row[7].toString()) : null);
 
-                // --- FIX: safely handle month and paymentDate ---
-                dto.setMonth(parseYearMonth(row[8]));
-                dto.setPaymentDate(parseYearMonth(row[9]));
-
+                dto.setMonth(row[8] != null ? (row[8].toString().contains("-") ?
+                        YearMonth.parse(row[8].toString().substring(0, 7)) : YearMonth.of(YearMonth.now().getYear(), Integer.parseInt(row[8].toString()))) : null);
+                dto.setPaymentDate((convertToYearMonth(row[9])));
                 dto.setRemarks((String) row[10]);
 
                 UserResponse user = new UserResponse();
@@ -241,41 +269,24 @@ public class SalaryCustomRepository {
         return resultDto;
     }
 
-    /**
-     * Safely convert Object to YearMonth
-     */
-    private YearMonth parseYearMonth(Object obj) {
-        try {
-            if (obj == null) return null;
-            if (obj instanceof YearMonth) return (YearMonth) obj;
-            if (obj instanceof Timestamp ts) return YearMonth.from(ts.toLocalDateTime());
-            if (obj instanceof Date d) return YearMonth.from(d.toLocalDate());
-            if (obj instanceof LocalDate ld) return YearMonth.from(ld);
-            String s = obj.toString();
-            return YearMonth.parse(s.substring(0, 7)); // e.g., "2025-10-17" → "2025-10"
-        } catch (Exception e) {
-            log.warn("Failed to parse YearMonth from: {}", obj);
-            return null;
-        }
-    }
-
     private YearMonth convertToYearMonth(Object obj) {
         if (obj == null) return null;
         try {
             String s = obj.toString().trim();
-
-            // Handle values like "2025-10" or "2025-10-01"
             if (s.matches("\\d{4}-\\d{2}")) {
                 return YearMonth.parse(s);
             } else if (s.matches("\\d{4}-\\d{2}-\\d{2}")) {
-                return YearMonth.parse(s.substring(0, 7)); // take only year and month
-            } else {
-                log.warn("Unexpected month format: {}", s);
+                return YearMonth.parse(s.substring(0, 7));
+            } else if (obj instanceof Timestamp ts) {
+                return YearMonth.from(ts.toLocalDateTime());
+            } else if (obj instanceof Date d) {
+                return YearMonth.from(d.toLocalDate());
+            } else if (obj instanceof LocalDate ld) {
+                return YearMonth.from(ld);
             }
         } catch (Exception e) {
             log.warn("Failed to parse YearMonth from: {}", obj, e);
         }
         return null;
     }
-
 }
