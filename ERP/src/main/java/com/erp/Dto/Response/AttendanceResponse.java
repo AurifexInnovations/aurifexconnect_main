@@ -9,7 +9,7 @@ import java.time.LocalDateTime;
 @Getter
 @Setter
 public class AttendanceResponse {
-    private long id;
+    private long attendanceId;
     private LocalDate date;
     private LocalDateTime checkIn;
     private LocalDateTime checkOut;
@@ -18,5 +18,7 @@ public class AttendanceResponse {
     private long userId;
     private String userName;
     private AttendanceStatus status;
+    private String firstName;
+    private String lastName;
 
 }

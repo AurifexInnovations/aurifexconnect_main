@@ -12,6 +12,7 @@ import org.springframework.stereotype.Repository;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.time.YearMonth;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -36,18 +37,18 @@ public class AttendanceCustomRepository {
                     a.working_hours,
                     a.working_days,
                     u.id AS user_id,
-                    CONCAT(u.first_name, ' ', u.last_name) AS user_name,
+                    u.first_name,
+                    u.last_name,
                     a.status
                 FROM attendance a
-                JOIN users u ON a.userid = u.id
+                JOIN users u ON a.user_id = u.id
                 WHERE 1=1
                 """);
 
-        // ---------- BASE COUNT QUERY ----------
         StringBuilder countSql = new StringBuilder("""
                 SELECT COUNT(*) 
                 FROM attendance a
-                JOIN users u ON a.userid = u.id
+                JOIN users u ON a.user_id = u.id
                 WHERE 1=1
                 """);
 
@@ -69,22 +70,45 @@ public class AttendanceCustomRepository {
                 sql.append(" AND a.status = :status");
                 countSql.append(" AND a.status = :status");
             }
-            if (filters.containsKey("fromDate") && !filters.get("fromDate").isEmpty() &&
-                    filters.containsKey("toDate") && !filters.get("toDate").isEmpty()) {
-                sql.append(" AND a.date BETWEEN :fromDate AND :toDate");
-                countSql.append(" AND a.date BETWEEN :fromDate AND :toDate");
+            if (filters.containsKey("month") && !filters.get("month").isEmpty()) {
+                sql.append(" AND EXTRACT(MONTH FROM a.date) = :month");
+                countSql.append(" AND EXTRACT(MONTH FROM a.date) = :month");
+            }
+            if (filters.containsKey("year") && !filters.get("year").isEmpty()) {
+                sql.append(" AND EXTRACT(YEAR FROM a.date) = :year");
+                countSql.append(" AND EXTRACT(YEAR FROM a.date) = :year");
+            }
+            if (filters.containsKey("workingHours") && !filters.get("workingHours").isEmpty()) {
+                sql.append(" AND a.working_hours = :workingHours");
+                countSql.append(" AND a.working_hours = :workingHours");
             }
         }
 
         // ---------- SEARCH CONDITIONS ----------
         if (search != null) {
-            if (search.containsKey("userName") && !search.get("userName").isEmpty()) {
-                sql.append(" AND (LOWER(u.first_name) LIKE :userNameSearch OR LOWER(u.last_name) LIKE :userNameSearch)");
-                countSql.append(" AND (LOWER(u.first_name) LIKE :userNameSearch OR LOWER(u.last_name) LIKE :userNameSearch)");
+            if (search.containsKey("firstName") && !search.get("firstName").isEmpty()) {
+                sql.append(" AND LOWER(u.first_name) LIKE :firstNameSearch");
+                countSql.append(" AND LOWER(u.first_name) LIKE :firstNameSearch");
+            }
+            if (search.containsKey("lastName") && !search.get("lastName").isEmpty()) {
+                sql.append(" AND LOWER(u.last_name) LIKE :lastNameSearch");
+                countSql.append(" AND LOWER(u.last_name) LIKE :lastNameSearch");
             }
             if (search.containsKey("status") && !search.get("status").isEmpty()) {
                 sql.append(" AND LOWER(a.status) LIKE :statusSearch");
                 countSql.append(" AND LOWER(a.status) LIKE :statusSearch");
+            }
+            if (search.containsKey("month") && !search.get("month").isEmpty()) {
+                sql.append(" AND EXTRACT(MONTH FROM a.date) = :monthSearch");
+                countSql.append(" AND EXTRACT(MONTH FROM a.date) = :monthSearch");
+            }
+            if (search.containsKey("year") && !search.get("year").isEmpty()) {
+                sql.append(" AND EXTRACT(YEAR FROM a.date) = :yearSearch");
+                countSql.append(" AND EXTRACT(YEAR FROM a.date) = :yearSearch");
+            }
+            if (search.containsKey("workingHours") && !search.get("workingHours").isEmpty()) {
+                sql.append(" AND a.working_hours = :workingHoursSearch");
+                countSql.append(" AND a.working_hours = :workingHoursSearch");
             }
         }
 
@@ -96,9 +120,11 @@ public class AttendanceCustomRepository {
                 String column = entry.getKey();
                 String direction = entry.getValue().equalsIgnoreCase("desc") ? "DESC" : "ASC";
                 switch (column) {
-                    case "userName" -> orderClauses.add("u.first_name " + direction + ", u.last_name " + direction);
+                    case "firstName" -> orderClauses.add("u.first_name " + direction);
+                    case "lastName" -> orderClauses.add("u.last_name " + direction);
                     case "status" -> orderClauses.add("a.status " + direction);
                     case "date" -> orderClauses.add("a.date " + direction);
+                    case "workingHours" -> orderClauses.add("a.working_hours " + direction);
                     default -> orderClauses.add("a.id DESC");
                 }
             }
@@ -107,64 +133,13 @@ public class AttendanceCustomRepository {
             sql.append(" ORDER BY a.id DESC");
         }
 
-        log.info("[AttendanceCustomRepository] [getFilteredAttendance] :: Query {}", sql);
+        log.info("[AttendanceCustomRepository] Query: {}", sql);
 
         Query dataQuery = entityManager.createNativeQuery(sql.toString());
         Query countQuery = entityManager.createNativeQuery(countSql.toString());
 
-        // ---------- BIND FILTER PARAMETERS ----------
-        if (filters != null) {
-            filters.forEach((key, value) -> {
-                if (value != null && !value.isEmpty()) {
-                    try {
-                        switch (key) {
-                            case "attendanceId" -> {
-                                dataQuery.setParameter("attendanceId", Long.parseLong(value));
-                                countQuery.setParameter("attendanceId", Long.parseLong(value));
-                            }
-                            case "userId" -> {
-                                dataQuery.setParameter("userId", Long.parseLong(value));
-                                countQuery.setParameter("userId", Long.parseLong(value));
-                            }
-                            case "status" -> {
-                                dataQuery.setParameter("status", value);
-                                countQuery.setParameter("status", value);
-                            }
-                            case "fromDate" -> {
-                                LocalDate from = LocalDate.parse(value);
-                                dataQuery.setParameter("fromDate", from);
-                                countQuery.setParameter("fromDate", from);
-                            }
-                            case "toDate" -> {
-                                LocalDate to = LocalDate.parse(value);
-                                dataQuery.setParameter("toDate", to);
-                                countQuery.setParameter("toDate", to);
-                            }
-                        }
-                    } catch (Exception e) {
-                        log.warn("Invalid filter parameter [{}] with value [{}]", key, value);
-                    }
-                }
-            });
-        }
-
-        // ---------- BIND SEARCH PARAMETERS ----------
-        if (search != null) {
-            search.forEach((key, value) -> {
-                if (value != null && !value.isEmpty()) {
-                    switch (key) {
-                        case "userName" -> {
-                            dataQuery.setParameter("userNameSearch", "%" + value.toLowerCase() + "%");
-                            countQuery.setParameter("userNameSearch", "%" + value.toLowerCase() + "%");
-                        }
-                        case "status" -> {
-                            dataQuery.setParameter("statusSearch", "%" + value.toLowerCase() + "%");
-                            countQuery.setParameter("statusSearch", "%" + value.toLowerCase() + "%");
-                        }
-                    }
-                }
-            });
-        }
+        // ---------- BIND PARAMETERS ----------
+        bindFilterAndSearchParameters(filters, search, dataQuery, countQuery);
 
         // ---------- PAGINATION ----------
         if (filterRequest.getPaginationRequest() != null) {
@@ -174,7 +149,6 @@ public class AttendanceCustomRepository {
             dataQuery.setMaxResults(size);
         }
 
-        // ---------- EXECUTE QUERIES ----------
         long totalCount = ((Number) countQuery.getSingleResult()).longValue();
         List<Object[]> rows = dataQuery.getResultList();
 
@@ -182,24 +156,111 @@ public class AttendanceCustomRepository {
         List<AttendanceResponse> results = new ArrayList<>();
         for (Object[] row : rows) {
             AttendanceResponse dto = new AttendanceResponse();
-            dto.setId(((Number) row[0]).longValue());
-            dto.setDate((LocalDate) row[1]);
-            dto.setCheckIn((LocalDateTime) row[2]);
-            dto.setCheckOut((LocalDateTime) row[3]);
-            dto.setWorkingHours(row[4] != null ? row[4].toString() : null);
-            dto.setWorkingDays(row[5] != null ? row[5].toString() : null);
+            dto.setAttendanceId(((Number) row[0]).longValue());
+
+            // date
+            if (row[1] != null) {
+                if (row[1] instanceof java.sql.Date sqlDate) {
+                    dto.setDate(sqlDate.toLocalDate());
+                } else if (row[1] instanceof LocalDate localDate) {
+                    dto.setDate(localDate);
+                }
+            }
+
+            // checkIn
+            if (row[2] != null) {
+                if (row[2] instanceof java.sql.Timestamp ts) {
+                    dto.setCheckIn(ts.toLocalDateTime());
+                } else if (row[2] instanceof LocalDateTime ldt) {
+                    dto.setCheckIn(ldt);
+                }
+            }
+
+            // checkOut
+            if (row[3] != null) {
+                if (row[3] instanceof java.sql.Timestamp ts) {
+                    dto.setCheckOut(ts.toLocalDateTime());
+                } else if (row[3] instanceof LocalDateTime ldt) {
+                    dto.setCheckOut(ldt);
+                }
+            }
+
+            dto.setWorkingHours(String.valueOf(row[4] != null ? ((Number) row[4]).doubleValue() : null));
+            dto.setWorkingDays(String.valueOf(row[5] != null ? ((Number) row[5]).doubleValue() : null));
             dto.setUserId(((Number) row[6]).longValue());
-            dto.setUserName((String) row[7]);
-            if (row[8] != null) dto.setStatus(AttendanceStatus.valueOf(row[8].toString()));
+            dto.setFirstName((String) row[7]);
+            dto.setLastName((String) row[8]);
+            if (row[9] != null) dto.setStatus(AttendanceStatus.valueOf(row[9].toString()));
+
             results.add(dto);
         }
 
-        // ---------- WRAP INTO ResultDto ----------
         ResultDto<AttendanceResponse> resultDto = new ResultDto<>();
         resultDto.setCount(totalCount);
         resultDto.setResults(results);
 
-        log.info("Exit [AttendanceCustomRepository] [getFilteredAttendance] with count = {}", totalCount);
+        log.info("Exit [AttendanceCustomRepository] with count = {}", totalCount);
         return resultDto;
+    }
+
+    private void bindFilterAndSearchParameters(Map<String, String> filters, Map<String, String> search,
+                                               Query dataQuery, Query countQuery) {
+        if (filters != null) {
+            filters.forEach((key, value) -> {
+                if (value != null && !value.isEmpty()) {
+                    switch (key) {
+                        case "attendanceId", "userId" -> {
+                            dataQuery.setParameter(key, Long.parseLong(value));
+                            countQuery.setParameter(key, Long.parseLong(value));
+                        }
+                        case "status" -> {
+                            dataQuery.setParameter(key, value);
+                            countQuery.setParameter(key, value);
+                        }
+                        case "month", "year" -> {
+                            dataQuery.setParameter(key, Integer.parseInt(value));
+                            countQuery.setParameter(key, Integer.parseInt(value));
+                        }
+                        case "workingHours" -> {
+                            dataQuery.setParameter(key, Double.parseDouble(value));
+                            countQuery.setParameter(key, Double.parseDouble(value));
+                        }
+                    }
+                }
+            });
+        }
+
+        if (search != null) {
+            search.forEach((key, value) -> {
+                if (value != null && !value.isEmpty()) {
+                    switch (key) {
+                        case "firstName" -> {
+                            dataQuery.setParameter("firstNameSearch", "%" + value.toLowerCase() + "%");
+                            countQuery.setParameter("firstNameSearch", "%" + value.toLowerCase() + "%");
+                        }
+                        case "lastName" -> {
+                            dataQuery.setParameter("lastNameSearch", "%" + value.toLowerCase() + "%");
+                            countQuery.setParameter("lastNameSearch", "%" + value.toLowerCase() + "%");
+                        }
+                        case "status" -> {
+                            dataQuery.setParameter("statusSearch", "%" + value.toLowerCase() + "%");
+                            countQuery.setParameter("statusSearch", "%" + value.toLowerCase() + "%");
+                        }
+                        case "month" -> {
+                            dataQuery.setParameter("monthSearch", Integer.parseInt(value));
+                            countQuery.setParameter("monthSearch", Integer.parseInt(value));
+                        }
+                        case "year" -> {
+                            dataQuery.setParameter("yearSearch", Integer.parseInt(value));
+                            countQuery.setParameter("yearSearch", Integer.parseInt(value));
+                        }
+                        case "workingHours" -> {
+                            dataQuery.setParameter("workingHoursSearch", Double.parseDouble(value));
+                            countQuery.setParameter("workingHoursSearch", Double.parseDouble(value));
+                        }
+                    }
+                }
+            });
+        }
     }
 }
