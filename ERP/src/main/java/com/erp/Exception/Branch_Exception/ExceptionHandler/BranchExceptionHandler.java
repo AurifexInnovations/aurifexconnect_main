@@ -9,10 +9,11 @@ import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 
 @RestControllerAdvice
-public class BranchExceptionHandler{
-
+public class BranchExceptionHandler
+{
     @ExceptionHandler
-    ResponseEntity<SimpleErrorResponse> branchNotFoundHandler(BranchNotFoundException e){
+    ResponseEntity<SimpleErrorResponse> branchNotFoundHandler(BranchNotFoundException e)
+    {
         return ResponseBuilder.error(HttpStatus.NOT_FOUND,e.getMessage());
     }
 }

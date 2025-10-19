@@ -1,0 +1,62 @@
+package com.erp.Model;
+
+import com.erp.Enum.TaskCategory;
+import com.erp.Enum.TaskStatus;
+import jakarta.persistence.*;
+import lombok.*;
+import org.springframework.data.annotation.CreatedDate;
+import org.springframework.data.annotation.LastModifiedDate;
+
+
+import java.time.LocalDateTime;
+import java.time.LocalTime;
+
+@Entity
+@Table(name = "task")
+@Data
+@NoArgsConstructor
+@AllArgsConstructor
+@Builder
+public class Task {
+
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Column(name = "task_id")
+    private Long taskId;
+
+    @Column(name = "task_name", nullable = false)
+    private String taskName;
+
+    @Column(name = "customer_id", nullable = false)
+    private Long customerId;
+
+    @Enumerated(EnumType.STRING)
+    @Column(name = "task_category")
+    private TaskCategory taskCategory;
+
+
+
+    @Column(name = "task_details")
+    private String taskDetails;
+
+    @Enumerated(EnumType.STRING)
+    @Column(name = "status", nullable = false)
+    private TaskStatus taskStatus;
+
+    @CreatedDate
+    @Column(name = "created_at", columnDefinition = "TIMESTAMP")
+    private LocalDateTime createdAt;
+
+    @LastModifiedDate
+    @Column(name = "updated_at", columnDefinition = "TIMESTAMP")
+    private LocalDateTime updatedAt;
+
+    @Column(name = "created_by")
+    private Long createdBy;
+
+    @Column(name = "updated_by")
+    private Long updatedBy;
+
+
+
+}
