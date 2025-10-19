@@ -1,5 +1,7 @@
 package com.erp.Model;
 
+import com.erp.Dto.Response.ServiceTypeResponse;
+import com.erp.Enum.ServiceCategory;
 import com.erp.Enum.ServiceStatus;
 import jakarta.persistence.*;
 import lombok.Getter;
@@ -11,6 +13,22 @@ import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 import java.time.LocalDateTime;
 
 @Entity
+@SqlResultSetMapping(
+        name = "ServiceTypeResponseMapping",
+        classes = @ConstructorResult(
+                targetClass = ServiceTypeResponse.class,
+                columns = {
+                        @ColumnResult(name = "service_id", type = Long.class),
+                        @ColumnResult(name = "service_name", type = String.class),
+                        @ColumnResult(name = "service_description", type = String.class),
+                        @ColumnResult(name = "service_price", type = Double.class),
+                        @ColumnResult(name = "service_status", type = String.class),
+                        @ColumnResult(name = "service_category", type = String.class),
+                        @ColumnResult(name = "created_at", type = LocalDateTime.class),
+                        @ColumnResult(name = "last_modified_at", type = LocalDateTime.class)
+                }
+        )
+)
 @Getter
 @Setter
 @EntityListeners(AuditingEntityListener.class)
@@ -34,8 +52,9 @@ public class Service {
     @Column(name = "service_status")
     private ServiceStatus serviceStatus;
 
-    @Column(name = "categories")
-    private String categories;
+    @Enumerated(EnumType.STRING)
+    @Column(name = "service_category")
+    private ServiceCategory serviceCategory;
 
     @CreatedDate
     @Column(name = "created_at")

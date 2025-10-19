@@ -1,6 +1,7 @@
 package com.erp.Security.Config;
 
 import com.erp.Config.AppEnv;
+import com.erp.Exception.GlobalExceptionHandler;
 import com.erp.Meta.MetaAdminRepository;
 import com.erp.Multitenancy.TenantContext;
 import com.erp.Multitenancy.TenantContextHolder;

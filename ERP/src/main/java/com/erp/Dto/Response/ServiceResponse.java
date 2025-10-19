@@ -1,6 +1,7 @@
 package com.erp.Dto.Response;
 
 
+import com.erp.Enum.ServiceCategory;
 import com.erp.Enum.ServiceStatus;
 import lombok.Getter;
 import lombok.Setter;
@@ -11,20 +12,13 @@ import java.time.LocalDateTime;
 
 @Getter
 @Setter
-public class ServiceResponse {
-    private long serviceId;
-
+public class ServiceResponse
+{
     private String serviceName;
-
     private String serviceDescription;
-
     private double servicePrice;
-
     private ServiceStatus serviceStatus;
-
-    private String categories;
-
+    private ServiceCategory serviceCategory;
     private LocalDateTime createdAt;
-
     private LocalDateTime lastModifiedAt;
 }

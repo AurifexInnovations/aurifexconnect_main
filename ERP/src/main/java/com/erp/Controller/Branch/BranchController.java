@@ -1,9 +1,11 @@
 package com.erp.Controller.Branch;
 
+import com.erp.Dto.PaginationResponse;
 import com.erp.Dto.Request.BranchRequest;
 import com.erp.Dto.Request.CommanParam;
 import com.erp.Dto.Request.PaginationRequest;
 import com.erp.Dto.Response.BranchResponse;
+import com.erp.Dto.Response.BranchResponseId;
 import com.erp.Service.BranchService.BranchService;
 import com.erp.Utility.ListResponseStructure;
 import com.erp.Utility.ResponseBuilder;
@@ -14,30 +16,41 @@ import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
 import lombok.AllArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+
+import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 
 @RestController
 @AllArgsConstructor
 @RequestMapping("/")
 @Tag(name = "Branch Controller", description = "Collection of API Endpoints Dealing with Branch Data")
-public class BranchController {
+public class BranchController
+{
 
     private final BranchService branchService;
+
+
 
     @PostMapping("branch")
     @Operation(description = "API Endpoint to Create a New Branch",
             responses = {
                     @ApiResponse(responseCode = "201", description = "Branch Created Successfully"),
             })
-    public ResponseEntity<ResponseStructure<BranchResponse>> createBranch(@Valid @RequestBody BranchRequest branchRequest){
+    public ResponseEntity<ResponseStructure<BranchResponse>> createBranch(@Valid @RequestBody BranchRequest branchRequest)
+    {
         BranchResponse branchResponse = branchService.createBranch(branchRequest);
         return ResponseBuilder.success(HttpStatus.CREATED,"Branch Created", branchResponse);
     }
+
+
 
     @PutMapping("branch/update")
     @Operation(description = "API Endpoint to Update Existing Branch",
@@ -52,6 +65,8 @@ public class BranchController {
         return ResponseBuilder.success(HttpStatus.OK,"Branch Updated Successfully!", branchResponse);
     }
 
+
+
     @DeleteMapping("branch/delete")
     @Operation(description = "API Endpoint to Delete a Branch By ID",
             responses = {
@@ -64,6 +79,8 @@ public class BranchController {
         BranchResponse branchResponse = branchService.deleteBranchById(param);
         return ResponseBuilder.success(HttpStatus.OK,"Branch Deleted Successfully!",branchResponse);
     }
+
+
 
     @PostMapping("branch/byid")
     @Operation(description = "API Endpoint to Retrieve Branch by ID or Name",
@@ -78,20 +95,27 @@ public class BranchController {
         return ResponseBuilder.success(HttpStatus.OK,"Branch Found Successfully",branchResponse);
     }
 
-    @PostMapping("branch/all")
-    @Operation(description = "API Endpoint to Retrieve All Branches with Pagination",
-            responses = {
-                    @ApiResponse(responseCode = "200", description = "All Branches Found Successfully"),
-                    @ApiResponse(responseCode = "400", description = "Invalid Pagination Parameters", content = {
-                            @Content(schema = @Schema(implementation = SimpleErrorResponse.class))
-                    })
-            })
-    public ResponseEntity<ListResponseStructure<BranchResponse>> getAllBranches(
-            @RequestBody PaginationRequest request) {
 
-        List<BranchResponse> branchResponse = branchService.getAllBranches(request);
-        return ResponseBuilder.success(HttpStatus.OK, "Branches fetched successfully!", branchResponse);
+
+    @PostMapping("branch/all")
+    public ResponseEntity<Map<String, Object>> getAllBranches(@RequestBody PaginationRequest request) {
+
+        PaginationResponse<BranchResponse> pagination = branchService.getAllBranches(request);
+
+        Map<String, Object> response = new LinkedHashMap<>();
+        response.put("status", 200);
+        response.put("message", "Branches fetched successfully!");
+        response.put("pagination", Map.of(
+                "pageNumber", pagination.getPageNumber(),
+                "pageSize", pagination.getPageSize(),
+                "totalRecords", pagination.getTotalRecords(),
+                "totalPages", pagination.getTotalPages()
+        ));
+        response.put("data", pagination.getData());
+        return ResponseEntity.ok(response);
     }
+
+
 
     @PostMapping("/branch/by-item")
     @Operation(description = "API Endpoint to Retrieve Branches by Item Name",
@@ -102,7 +126,10 @@ public class BranchController {
                     })
             })
     public ResponseEntity<ListResponseStructure<BranchResponse>> getBranchesByItemName(@RequestBody CommanParam param){
-        List<BranchResponse> branchResponse = branchService.getBranchesByItemName(param);
+        List<BranchResponse> branchResponse = branchService.getByIdOrBranchNameOrLocationOrBranchStatus(param);
         return ResponseBuilder.success(HttpStatus.OK,"Branches retrieved successfully!",branchResponse);
     }
+
+
+
 }
