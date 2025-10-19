@@ -1,5 +1,6 @@
 package com.erp.Service.Attendance;
 
+import com.erp.CustomRepository.AttendanceCustomRepository;
 import com.erp.Dto.Request.AttendanceRequest;
 import com.erp.Dto.Request.FilterRequest;
 import com.erp.Dto.Request.Param;
@@ -32,7 +33,8 @@ public class AttendanceServiceImpl implements AttendanceService {
     private final AttendanceRepository attendanceRepository;
     private final AttendanceMapper attendanceMapper;
     private final UserRepository userRepository;
-    private  final AttendanceRepository attendanceCustomRepository;
+
+    private final  AttendanceCustomRepository attendanceCustomRepository;
     private final Clock clock;
 
     @Override

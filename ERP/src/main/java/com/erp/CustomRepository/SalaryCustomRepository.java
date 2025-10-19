@@ -1,9 +1,11 @@
 package com.erp.CustomRepository;
 
 import com.erp.Dto.Request.FilterRequest;
+import com.erp.Dto.Response.ResultDto;
 import com.erp.Dto.Response.SalaryResponse;
 import com.erp.Dto.Response.UserResponse;
 import com.erp.Enum.AmountStatus;
+import com.erp.Exception.ResourceNotFoundException;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.PersistenceContext;
 import jakarta.persistence.Query;
@@ -11,6 +13,8 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Repository;
 
 import java.sql.Date;
+import java.sql.Timestamp;
+import java.time.LocalDate;
 import java.time.YearMonth;
 import java.util.ArrayList;
 import java.util.List;
@@ -40,156 +44,238 @@ public class SalaryCustomRepository {
             "paymentStatusSearch", "paymentStatus"
     );
 
-    public List<SalaryResponse> getSalaryDetails(FilterRequest filterRequest) {
+    public ResultDto<SalaryResponse> getSalaryDetails(FilterRequest filterRequest) {
         log.info("Into [SalaryCustomRepository] [getSalaryDetails]");
 
-        StringBuilder sql = new StringBuilder("""
-                SELECT 
-                    s.id,
-                    s.base_salary,
-                    s.working_days,
-                    s.paid_days,
-                    s.deductions,
-                    s.bonus,
-                    s.net_salary,
-                    s.amount_status,
-                    s.month,
-                    s.payment_date,
-                    s.remarks,
-                    u.id AS user_id,
-                    CONCAT(u.first_name, ' ', u.last_name) AS full_name,
-                    u.email,
-                    u.phone_no
-                FROM salaries s
-                INNER JOIN users u ON s.user_id = u.id
-                WHERE 1=1
-                """);
+        ResultDto<SalaryResponse> resultDto = new ResultDto<>();
+        List<SalaryResponse> results = new ArrayList<>();
+        long totalCount = 0;
 
-        Map<String, String> filters = filterRequest.getFilterColumns();
-        Map<String, String> search = filterRequest.getSearchColumns();
-        Map<String, String> orderBy = filterRequest.getOrderByColumns();
+        try {
+            // ---------- DATA QUERY ----------
+            StringBuilder sql = new StringBuilder("""
+                    SELECT 
+                        s.id,
+                        s.base_salary,
+                        s.working_days,
+                        s.paid_days,
+                        s.deductions,
+                        s.bonus,
+                        s.net_salary,
+                        s.amount_status,
+                        s.month,
+                        s.payment_date,
+                        s.remarks,
+                        u.id AS user_id,
+                        CONCAT(u.first_name, ' ', u.last_name) AS full_name,
+                        u.email,
+                        u.phone_no
+                    FROM salaries s
+                    INNER JOIN users u ON s.user_id = u.id
+                    WHERE 1=1
+                    """);
 
-        // 🔹 Apply filters
-        if (filters != null && !filters.isEmpty()) {
+            StringBuilder countSql = new StringBuilder("""
+                    SELECT COUNT(*)
+                    FROM salaries s
+                    INNER JOIN users u ON s.user_id = u.id
+                    WHERE 1=1
+                    """);
 
-            if (filters.containsKey("userId"))
-                sql.append(" AND u.id = :userId");
+            Map<String, String> filters = filterRequest.getFilterColumns();
+            Map<String, String> search = filterRequest.getSearchColumns();
+            Map<String, String> orderBy = filterRequest.getOrderByColumns();
 
-            if (filters.containsKey("userName"))
-                sql.append(" AND LOWER(CONCAT(u.first_name, ' ', u.last_name)) LIKE LOWER(CONCAT('%', :userName, '%'))");
-
-            if (filters.containsKey("month"))
-                sql.append(" AND s.month = :month");
-
-            if (filters.containsKey("paymentStatus"))
-                sql.append(" AND s.amount_status = :paymentStatus");
-
-            if (filters.containsKey("deductions"))
-                sql.append(" AND s.deductions >= :deductions");
-
-            if (filters.containsKey("bonus"))
-                sql.append(" AND s.bonus >= :bonus");
-
-            // 🔹 Payment Date Range
-            if (filters.containsKey("startPaymentDate") && filters.containsKey("endPaymentDate")) {
-                sql.append(" AND s.payment_date BETWEEN :startPaymentDate AND :endPaymentDate");
-            } else if (filters.containsKey("startPaymentDate")) {
-                sql.append(" AND s.payment_date >= :startPaymentDate");
-            } else if (filters.containsKey("endPaymentDate")) {
-                sql.append(" AND s.payment_date <= :endPaymentDate");
+            // ---------- FILTER CONDITIONS ----------
+            if (filters != null && !filters.isEmpty()) {
+                if (filters.containsKey("userId")) {
+                    sql.append(" AND u.id = :userId");
+                    countSql.append(" AND u.id = :userId");
+                }
+                if (filters.containsKey("userName")) {
+                    sql.append(" AND LOWER(CONCAT(u.first_name, ' ', u.last_name)) LIKE LOWER(CONCAT('%', :userName, '%'))");
+                    countSql.append(" AND LOWER(CONCAT(u.first_name, ' ', u.last_name)) LIKE LOWER(CONCAT('%', :userName, '%'))");
+                }
+                if (filters.containsKey("month")) {
+                    sql.append(" AND s.month = :month");
+                    countSql.append(" AND s.month = :month");
+                }
+                if (filters.containsKey("paymentStatus")) {
+                    sql.append(" AND s.amount_status = :paymentStatus");
+                    countSql.append(" AND s.amount_status = :paymentStatus");
+                }
+                if (filters.containsKey("deductions")) {
+                    sql.append(" AND s.deductions >= :deductions");
+                    countSql.append(" AND s.deductions >= :deductions");
+                }
+                if (filters.containsKey("bonus")) {
+                    sql.append(" AND s.bonus >= :bonus");
+                    countSql.append(" AND s.bonus >= :bonus");
+                }
+                if (filters.containsKey("startPaymentDate") && filters.containsKey("endPaymentDate")) {
+                    sql.append(" AND s.payment_date BETWEEN :startPaymentDate AND :endPaymentDate");
+                    countSql.append(" AND s.payment_date BETWEEN :startPaymentDate AND :endPaymentDate");
+                } else if (filters.containsKey("startPaymentDate")) {
+                    sql.append(" AND s.payment_date >= :startPaymentDate");
+                    countSql.append(" AND s.payment_date >= :startPaymentDate");
+                } else if (filters.containsKey("endPaymentDate")) {
+                    sql.append(" AND s.payment_date <= :endPaymentDate");
+                    countSql.append(" AND s.payment_date <= :endPaymentDate");
+                }
             }
-        }
 
-        // 🔹 Apply search
-        if (search != null && !search.isEmpty()) {
-            if (search.containsKey("userSearch"))
-                sql.append(" AND LOWER(CONCAT(u.first_name, ' ', u.last_name)) LIKE LOWER(CONCAT('%', :userSearch, '%'))");
+            // ---------- SEARCH ----------
+            if (search != null && !search.isEmpty()) {
+                if (search.containsKey("userSearch")) {
+                    sql.append(" AND LOWER(CONCAT(u.first_name, ' ', u.last_name)) LIKE LOWER(CONCAT('%', :userSearch, '%'))");
+                    countSql.append(" AND LOWER(CONCAT(u.first_name, ' ', u.last_name)) LIKE LOWER(CONCAT('%', :userSearch, '%'))");
+                }
+                if (search.containsKey("monthSearch")) {
+                    sql.append(" AND s.month = :monthSearch");
+                    countSql.append(" AND s.month = :monthSearch");
+                }
+                if (search.containsKey("paymentStatusSearch")) {
+                    sql.append(" AND s.amount_status LIKE CONCAT('%', :paymentStatusSearch, '%')");
+                    countSql.append(" AND s.amount_status LIKE CONCAT('%', :paymentStatusSearch, '%')");
+                }
+            }
 
-            if (search.containsKey("monthSearch"))
-                sql.append(" AND s.month = :monthSearch");
+            // ---------- ORDER BY ----------
+            if (orderBy != null && !orderBy.isEmpty()) {
+                sql.append(" ORDER BY ");
+                orderBy.forEach((column, direction) ->
+                        sql.append("s.").append(column).append(" ").append(direction).append(", "));
+                sql.delete(sql.length() - 2, sql.length());
+            } else {
+                sql.append(" ORDER BY s.id DESC");
+            }
 
-            if (search.containsKey("paymentStatusSearch"))
-                sql.append(" AND s.amount_status LIKE CONCAT('%', :paymentStatusSearch, '%')");
-        }
+            Query dataQuery = entityManager.createNativeQuery(sql.toString());
+            Query countQuery = entityManager.createNativeQuery(countSql.toString());
 
-        // 🔹 Order By
-        if (orderBy != null && !orderBy.isEmpty()) {
-            sql.append(" ORDER BY ");
-            orderBy.forEach((column, direction) -> {
-                sql.append("s.").append(column).append(" ").append(direction).append(", ");
-            });
-            sql.delete(sql.length() - 2, sql.length()); // remove trailing comma
-        }
-
-        log.info("[SalaryCustomRepository] [getSalaryDetails] :: Query = {}", sql);
-
-        Query query = entityManager.createNativeQuery(sql.toString());
-
-        // 🔹 Bind filter params
-        if (filters != null) {
-            filterParamMap.forEach((param, key) -> {
-                String value = filters.get(key);
-                if (value != null && !value.isEmpty()) {
-                    switch (param) {
-                        case "userId" -> query.setParameter(param, Long.parseLong(value));
-                        case "deductions", "bonus" -> query.setParameter(param, Long.parseLong(value));
-                        case "month" -> query.setParameter(param, value); // store as string YYYY-MM
-                        case "startPaymentDate", "endPaymentDate" -> query.setParameter(param, Date.valueOf(value));
-                        default -> query.setParameter(param, value);
+            // ---------- SET PARAMETERS ----------
+            if (filters != null) {
+                filterParamMap.forEach((param, key) -> {
+                    String value = filters.get(key);
+                    if (value != null && !value.isEmpty()) {
+                        try {
+                            switch (param) {
+                                case "userId", "deductions", "bonus" -> {
+                                    long v = Long.parseLong(value);
+                                    dataQuery.setParameter(param, v);
+                                    countQuery.setParameter(param, v);
+                                }
+                                case "startPaymentDate", "endPaymentDate" -> {
+                                    dataQuery.setParameter(param, Date.valueOf(value));
+                                    countQuery.setParameter(param, Date.valueOf(value));
+                                }
+                                default -> {
+                                    dataQuery.setParameter(param, value);
+                                    countQuery.setParameter(param, value);
+                                }
+                            }
+                        } catch (Exception e) {
+                            throw new ResourceNotFoundException(e.getMessage());
+                        }
                     }
-                }
-            });
+                });
+            }
+
+            if (search != null) {
+                searchParamMap.forEach((param, key) -> {
+                    String value = search.get(key);
+                    if (value != null && !value.isEmpty()) {
+                        dataQuery.setParameter(param, value);
+                        countQuery.setParameter(param, value);
+                    }
+                });
+            }
+
+            // ---------- PAGINATION ----------
+            int page = 0, size = 10;
+            if (filterRequest.getPaginationRequest() != null) {
+                page = Math.max(0, filterRequest.getPaginationRequest().getPageNumber());
+                size = Math.max(1, filterRequest.getPaginationRequest().getPageSize());
+            }
+            dataQuery.setFirstResult(page * size);
+            dataQuery.setMaxResults(size);
+
+            // ---------- COUNT ----------
+            totalCount = ((Number) countQuery.getSingleResult()).longValue();
+
+            // ---------- MAP RESULTS ----------
+            List<Object[]> rows = dataQuery.getResultList();
+            for (Object[] row : rows) {
+                SalaryResponse dto = new SalaryResponse();
+                dto.setId(((Number) row[0]).longValue());
+                dto.setBaseSalary(((Number) row[1]).longValue());
+                dto.setWorkingDays(row[2] != null ? ((Number) row[2]).intValue() : null);
+                dto.setPaidDays(row[3] != null ? ((Number) row[3]).intValue() : null);
+                dto.setDeductions(((Number) row[4]).longValue());
+                dto.setBonus(((Number) row[5]).longValue());
+                dto.setNetSalary(((Number) row[6]).longValue());
+                dto.setAmountStatus(row[7] != null ? AmountStatus.valueOf(row[7].toString()) : null);
+
+                // --- FIX: safely handle month and paymentDate ---
+                dto.setMonth(parseYearMonth(row[8]));
+                dto.setPaymentDate(parseYearMonth(row[9]));
+
+                dto.setRemarks((String) row[10]);
+
+                UserResponse user = new UserResponse();
+                user.setId(((Number) row[11]).longValue());
+                user.setFullName((String) row[12]);
+                user.setEmail((String) row[13]);
+                user.setPhoneNo(row[14] != null ? ((Number) row[14]).longValue() : null);
+                dto.setUser(user);
+
+                results.add(dto);
+            }
+
+        } catch (Exception e) {
+            throw new ResourceNotFoundException("Error fetching salary details: " + e.getMessage());
         }
 
-        // 🔹 Bind search params
-        if (search != null) {
-            searchParamMap.forEach((param, key) -> {
-                String value = search.get(key);
-                if (value != null && !value.isEmpty()) {
-                    query.setParameter(param, value);
-                }
-            });
-        }
-
-        // 🔹 Pagination
-        if (filterRequest.getPaginationRequest() != null) {
-            int page = filterRequest.getPaginationRequest().getPageNumber();
-            int size = filterRequest.getPaginationRequest().getPageSize();
-            query.setFirstResult(page * size);
-            query.setMaxResults(size);
-        }
-
-        List<Object[]> rows = query.getResultList();
-        List<SalaryResponse> result = new ArrayList<>();
-
-        for (Object[] row : rows) {
-            SalaryResponse dto = new SalaryResponse();
-            dto.setId(((Number) row[0]).longValue());
-            dto.setBaseSalary(((Number) row[1]).longValue());
-            dto.setWorkingDays(row[2] != null ? ((Number) row[2]).intValue() : null);
-            dto.setPaidDays(row[3] != null ? ((Number) row[3]).intValue() : null);
-            dto.setDeductions(((Number) row[4]).longValue());
-            dto.setBonus(((Number) row[5]).longValue());
-            dto.setNetSalary(((Number) row[6]).longValue());
-            dto.setAmountStatus((AmountStatus) row[7]);
-            dto.setMonth(row[8] != null ? YearMonth.parse(row[8].toString()) : null);
-            dto.setPaymentDate(row[9] != null ? YearMonth.parse(row[9].toString()) : null);
-            dto.setRemarks((String) row[10]);
-
-            // User details
-            UserResponse user = new UserResponse();
-            user.setId(((Number) row[11]).longValue());
-            user.setFullName(((String) row[12]));
-            user.setEmail(((String) row[13]));
-            user.setPhoneNo(((Number) row[14]).longValue());
-
-            dto.setUser(user);
-
-            result.add(dto);
-        }
-
-
-        log.info("Exit [SalaryCustomRepository] [getSalaryDetails]");
-        return result;
+        resultDto.setCount(totalCount);
+        resultDto.setResults(results);
+        return resultDto;
     }
+
+    /**
+     * Safely convert Object to YearMonth
+     */
+    private YearMonth parseYearMonth(Object obj) {
+        try {
+            if (obj == null) return null;
+            if (obj instanceof YearMonth) return (YearMonth) obj;
+            if (obj instanceof Timestamp ts) return YearMonth.from(ts.toLocalDateTime());
+            if (obj instanceof Date d) return YearMonth.from(d.toLocalDate());
+            if (obj instanceof LocalDate ld) return YearMonth.from(ld);
+            String s = obj.toString();
+            return YearMonth.parse(s.substring(0, 7)); // e.g., "2025-10-17" → "2025-10"
+        } catch (Exception e) {
+            log.warn("Failed to parse YearMonth from: {}", obj);
+            return null;
+        }
+    }
+
+    private YearMonth convertToYearMonth(Object obj) {
+        if (obj == null) return null;
+        try {
+            String s = obj.toString().trim();
+
+            // Handle values like "2025-10" or "2025-10-01"
+            if (s.matches("\\d{4}-\\d{2}")) {
+                return YearMonth.parse(s);
+            } else if (s.matches("\\d{4}-\\d{2}-\\d{2}")) {
+                return YearMonth.parse(s.substring(0, 7)); // take only year and month
+            } else {
+                log.warn("Unexpected month format: {}", s);
+            }
+        } catch (Exception e) {
+            log.warn("Failed to parse YearMonth from: {}", obj, e);
+        }
+        return null;
+    }
+
 }

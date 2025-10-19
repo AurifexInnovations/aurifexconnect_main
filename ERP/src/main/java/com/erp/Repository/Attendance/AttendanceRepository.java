@@ -34,7 +34,7 @@ public interface AttendanceRepository extends JpaRepository<Attendance, Long> {
 
     List<Attendance> findByUserIdAndDateBetween(Long userId, LocalDate fromDate, LocalDate toDate);
 
-    ResultDto<AttendanceResponse> getFilteredAttendance(FilterRequest filterRequest);
+
 
 
 }

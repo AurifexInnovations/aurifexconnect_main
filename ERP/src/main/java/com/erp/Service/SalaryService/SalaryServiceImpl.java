@@ -5,9 +5,11 @@ import com.erp.Dto.Request.FilterRequest;
 import com.erp.Dto.Request.Param;
 import com.erp.Dto.Request.SalaryRequest;
 import com.erp.Dto.Response.MonthlySalaryResponse;
+import com.erp.Dto.Response.ResultDto;
 import com.erp.Dto.Response.SalaryResponse;
 import com.erp.Dto.Response.SalarySummaryResponse;
 import com.erp.Enum.AmountStatus;
+import com.erp.Exception.ResourceNotFoundException;
 import com.erp.Exception.Salary.SalaryNotFoundException;
 import com.erp.Exception.User.UserNotFoundException;
 import com.erp.Mapper.Salary.SalaryMapper;
@@ -188,17 +190,17 @@ public class SalaryServiceImpl implements SalaryService {
     }
 
     @Override
-    public List<SalaryResponse> getSalaryDetails(FilterRequest filterRequest){
+    public ResultDto<SalaryResponse> getSalaryDetails(FilterRequest filterRequest){
         log.info("Into [SalaryServiceImpl] [getSalaryDetails] ");
 
         log.info("[SalaryServiceImpl] [getSalaryDetails]  :: Request {} " , ObjectMapperUtils.writeValueAsString(filterRequest));
 
-        List<SalaryResponse> salaryResponses = new ArrayList<>();
+        ResultDto<SalaryResponse> salaryResponses = new ResultDto<>();
 
         try{
             salaryResponses = salaryCustomRepository.getSalaryDetails(filterRequest);
         }catch (Exception exception){
-            log.error("Error [SalaryServiceImpl] [getSalaryDetails] ");
+            throw new ResourceNotFoundException(exception.getMessage());
         }
 
         log.info("Exit [SalaryServiceImpl] [getSalaryDetails] ");

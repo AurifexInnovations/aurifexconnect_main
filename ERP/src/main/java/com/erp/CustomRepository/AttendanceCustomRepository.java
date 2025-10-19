@@ -186,8 +186,8 @@ public class AttendanceCustomRepository {
             dto.setDate((LocalDate) row[1]);
             dto.setCheckIn((LocalDateTime) row[2]);
             dto.setCheckOut((LocalDateTime) row[3]);
-            dto.setWorkingHours(row[4] != null ? row[4].toString() : null); // convert to String
-            dto.setWorkingDays(row[5] != null ? row[5].toString() : null);   // convert to String
+            dto.setWorkingHours(row[4] != null ? row[4].toString() : null);
+            dto.setWorkingDays(row[5] != null ? row[5].toString() : null);
             dto.setUserId(((Number) row[6]).longValue());
             dto.setUserName((String) row[7]);
             if (row[8] != null) dto.setStatus(AttendanceStatus.valueOf(row[8].toString()));

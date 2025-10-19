@@ -20,28 +20,12 @@ import java.util.Map;
 @Slf4j
 public class BranchCustomRepository {
 
-    private final Map<String, String> filterParamMap = Map.of(
-            "branchId", "branchId",
-            "branchName", "branchName",
-            "location", "location",
-            "branchType", "branchType",
-            "branchStatus", "branchStatus"
-    );
-
-    private final Map<String, String> searchParamMap = Map.of(
-            "branchNameSearch", "branchName",
-            "locationSearch", "location",
-            "contactSearch", "contactInfo",
-            "statusSearch", "branchStatus"
-    );
-
     @PersistenceContext
     private EntityManager entityManager;
 
     public ResultDto<BranchResponse> getBranchDetails(FilterRequest filterRequest) {
         log.info("Into [BranchCustomRepository] [getBranchDetails]");
 
-        // ---------- BASE QUERY ----------
         StringBuilder sql = new StringBuilder("""
                 SELECT 
                     b.branch_id AS branchId,
@@ -60,14 +44,14 @@ public class BranchCustomRepository {
                 WHERE 1=1
         """);
 
-        StringBuilder countSql = new StringBuilder("SELECT COUNT(*) FROM branch b WHERE 1=1 ");
+        StringBuilder countSql = new StringBuilder("SELECT COUNT(*) FROM branch b WHERE 1=1");
 
         Map<String, String> filters = filterRequest.getFilterColumns();
         Map<String, String> search = filterRequest.getSearchColumns();
         Map<String, String> orderBy = filterRequest.getOrderByColumns();
 
-        // ---------- FILTER CONDITIONS ----------
-        if (filters != null && !filters.isEmpty()) {
+        // ----- FILTER CONDITIONS -----
+        if (filters != null) {
             if (filters.containsKey("branchId")) {
                 sql.append(" AND b.branch_id = :branchId");
                 countSql.append(" AND b.branch_id = :branchId");
@@ -88,7 +72,6 @@ public class BranchCustomRepository {
                 sql.append(" AND b.branch_status = :branchStatus");
                 countSql.append(" AND b.branch_status = :branchStatus");
             }
-
             if (filters.containsKey("startDate") && filters.containsKey("endDate")) {
                 sql.append(" AND b.created_at BETWEEN :startDate AND :endDate");
                 countSql.append(" AND b.created_at BETWEEN :startDate AND :endDate");
@@ -101,10 +84,9 @@ public class BranchCustomRepository {
             }
         }
 
-        // ---------- SEARCH CONDITIONS (Postgres-friendly ILIKE and concat) ----------
-        if (search != null && !search.isEmpty()) {
+        // ----- SEARCH CONDITIONS -----
+        if (search != null) {
             if (search.containsKey("branchName")) {
-                // Use ILIKE with Postgres concatenation for case-insensitive search
                 sql.append(" AND b.branch_name ILIKE '%' || :branchNameSearch || '%'");
                 countSql.append(" AND b.branch_name ILIKE '%' || :branchNameSearch || '%'");
             }
@@ -122,72 +104,82 @@ public class BranchCustomRepository {
             }
         }
 
-        // ---------- ORDER BY ----------
+        // ----- ORDER BY -----
         if (orderBy != null && !orderBy.isEmpty()) {
             sql.append(" ORDER BY ");
             List<String> orderClauses = new ArrayList<>();
-            for (Map.Entry<String, String> entry : orderBy.entrySet()) {
-                String column = entry.getKey();
-                String direction = entry.getValue().equalsIgnoreCase("desc") ? "DESC" : "ASC";
-
+            orderBy.forEach((column, direction) -> {
+                String dir = direction.equalsIgnoreCase("desc") ? "DESC" : "ASC";
                 switch (column) {
-                    case "createdAt" -> orderClauses.add("b.created_at " + direction);
-                    case "branchName" -> orderClauses.add("b.branch_name " + direction);
-                    case "location" -> orderClauses.add("b.location " + direction);
-                    case "branchId" -> orderClauses.add("b.branch_id " + direction);
+                    case "createdAt" -> orderClauses.add("b.created_at " + dir);
+                    case "branchName" -> orderClauses.add("b.branch_name " + dir);
+                    case "location" -> orderClauses.add("b.location " + dir);
+                    case "branchId" -> orderClauses.add("b.branch_id " + dir);
                 }
-            }
+            });
             if (!orderClauses.isEmpty()) {
                 sql.append(String.join(", ", orderClauses));
             }
         }
 
-        log.info("[BranchCustomRepository] [getBranchDetails] :: Query = {}", sql);
-
         Query dataQuery = entityManager.createNativeQuery(sql.toString());
         Query countQuery = entityManager.createNativeQuery(countSql.toString());
 
-        // ---------- SET FILTER PARAMETERS ----------
+        // ----- SET FILTER PARAMETERS -----
         if (filters != null) {
-            filterParamMap.forEach((paramName, mapKey) -> {
-                String value = filters.get(mapKey);
+            filters.forEach((key, value) -> {
                 if (value != null && !value.isEmpty()) {
-                    if ("branchId".equals(paramName)) {
-                        dataQuery.setParameter(paramName, Long.parseLong(value));
-                        countQuery.setParameter(paramName, Long.parseLong(value));
-                    } else {
-                        dataQuery.setParameter(paramName, value);
-                        countQuery.setParameter(paramName, value);
+                    switch (key) {
+                        case "branchId" -> {
+                            dataQuery.setParameter("branchId", Long.parseLong(value));
+                            countQuery.setParameter("branchId", Long.parseLong(value));
+                        }
+                        case "branchName" -> {
+                            dataQuery.setParameter("branchName", value);
+                            countQuery.setParameter("branchName", value);
+                        }
+                        case "location" -> {
+                            dataQuery.setParameter("location", value);
+                            countQuery.setParameter("location", value);
+                        }
+                        case "branchType" -> {
+                            dataQuery.setParameter("branchType", value);
+                            countQuery.setParameter("branchType", value);
+                        }
+                        case "branchStatus" -> {
+                            dataQuery.setParameter("branchStatus", value);
+                            countQuery.setParameter("branchStatus", value);
+                        }
+                        case "startDate", "endDate" -> {
+                            dataQuery.setParameter(key, value);
+                            countQuery.setParameter(key, value);
+                        }
                     }
                 }
             });
         }
 
-        // ---------- SET SEARCH PARAMETERS (explicit, matching the SQL param names) ----------
-        if (search != null && !search.isEmpty()) {
+        // ----- SET SEARCH PARAMETERS -----
+        if (search != null) {
             if (search.containsKey("branchName")) {
-                String v = search.get("branchName");
-                dataQuery.setParameter("branchNameSearch", v);
-                countQuery.setParameter("branchNameSearch", v);
+                dataQuery.setParameter("branchNameSearch", search.get("branchName"));
+                countQuery.setParameter("branchNameSearch", search.get("branchName"));
             }
             if (search.containsKey("location")) {
-                String v = search.get("location");
-                dataQuery.setParameter("locationSearch", v);
-                countQuery.setParameter("locationSearch", v);
+                dataQuery.setParameter("locationSearch", search.get("location"));
+                countQuery.setParameter("locationSearch", search.get("location"));
             }
             if (search.containsKey("contactInfo")) {
-                String v = search.get("contactInfo");
-                dataQuery.setParameter("contactSearch", v);
-                countQuery.setParameter("contactSearch", v);
+                dataQuery.setParameter("contactSearch", search.get("contactInfo"));
+                countQuery.setParameter("contactSearch", search.get("contactInfo"));
             }
             if (search.containsKey("branchStatus")) {
-                String v = search.get("branchStatus");
-                dataQuery.setParameter("statusSearch", v);
-                countQuery.setParameter("statusSearch", v);
+                dataQuery.setParameter("statusSearch", search.get("branchStatus"));
+                countQuery.setParameter("statusSearch", search.get("branchStatus"));
             }
         }
 
-        // ---------- PAGINATION ----------
+        // ----- PAGINATION -----
         if (filterRequest.getPaginationRequest() != null) {
             int pageNumber = filterRequest.getPaginationRequest().getPageNumber();
             int pageSize = filterRequest.getPaginationRequest().getPageSize();
@@ -195,12 +187,12 @@ public class BranchCustomRepository {
             dataQuery.setMaxResults(pageSize);
         }
 
-        // ---------- EXECUTE QUERIES ----------
+        // ----- EXECUTE QUERIES -----
         long totalCount = ((Number) countQuery.getSingleResult()).longValue();
         @SuppressWarnings("unchecked")
         List<Object[]> rows = dataQuery.getResultList();
 
-        // ---------- MAP RESULTS ----------
+        // ----- MAP RESULTS -----
         List<BranchResponse> resultList = new ArrayList<>();
         for (Object[] row : rows) {
             BranchResponse br = new BranchResponse();
@@ -219,7 +211,7 @@ public class BranchCustomRepository {
             resultList.add(br);
         }
 
-        // ---------- WRAP INTO ResultDto ----------
+        // ----- WRAP INTO RESULT -----
         ResultDto<BranchResponse> resultDto = new ResultDto<>();
         resultDto.setCount(totalCount);
         resultDto.setResults(resultList);

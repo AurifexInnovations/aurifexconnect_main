@@ -3,9 +3,8 @@ package com.erp.Controller.Salary;
 import com.erp.Dto.Request.FilterRequest;
 import com.erp.Dto.Request.Param;
 import com.erp.Dto.Request.SalaryRequest;
-import com.erp.Dto.Response.MonthlySalaryResponse;
+import com.erp.Dto.Response.ResultDto;
 import com.erp.Dto.Response.SalaryResponse;
-import com.erp.Dto.Response.SalarySummaryResponse;
 import com.erp.Service.SalaryService.SalaryService;
 import com.erp.Utility.ListResponseStructure;
 import com.erp.Utility.ResponseBuilder;
@@ -146,8 +145,8 @@ public class SalaryController {
                     @ApiResponse(responseCode = "201", description = "Salaries records fetched by month"),
                     @ApiResponse(responseCode = "400", description = "Invalid request data")
             })
-    public ResponseEntity<ListResponseStructure<SalaryResponse>> getSalaryDetails(@RequestBody FilterRequest filterRequest) {
-        List<SalaryResponse> salaries = salaryService.getSalaryDetails(filterRequest);
+    public ResponseEntity<ResponseStructure<ResultDto<SalaryResponse>>> getSalaryDetails(@RequestBody FilterRequest filterRequest) {
+        ResultDto<SalaryResponse> salaries = salaryService.getSalaryDetails(filterRequest);
         return ResponseBuilder.success(HttpStatus.OK, "Salary Details Fetched Successfully", salaries);
     }
 
