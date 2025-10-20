@@ -20,7 +20,7 @@ public class SubscriptionDto {
     private String branchCode;
     private String companyCode;
     private String paymentStatus;
-    private Long paymentId;
+    private String transactionPaymentId;
     private String activeYn;
 //    private String createdBy;
 //    private Timestamp createdOn;

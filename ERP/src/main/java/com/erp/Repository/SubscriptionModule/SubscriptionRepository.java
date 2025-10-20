@@ -9,4 +9,6 @@ public interface SubscriptionRepository extends JpaRepository<SubscriptionEntity
     Optional<SubscriptionEntity> findBySubscriptionId(Long subscriptionId);
 
     Optional<SubscriptionEntity> findByUserId(String userId);
+
+    Optional<SubscriptionEntity> findByUserIdAndActiveYn(String userId, String activeYn);
 }

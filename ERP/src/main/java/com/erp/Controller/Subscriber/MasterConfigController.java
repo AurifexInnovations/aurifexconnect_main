@@ -23,13 +23,13 @@ public class MasterConfigController {
     @Autowired
     IMasterConfigService masterConfigService;
 
-    @GetMapping("/configname/{configname}")
+    @GetMapping("/configmap/{serviceName}")
     @Operation(description = "API to fetch a User-Subscription by user id",
             responses = {
                     @ApiResponse(responseCode = "201", description = "User Subscription Request Created")
             })
-    public ResponseEntity<ResponseStructure<MasterConfigDTO>> fetchUserSubscription(@PathVariable String configname) {
-        MasterConfigDTO response = masterConfigService.fetchMasterConfigDataByConfigName(configname);
+    public ResponseEntity<ResponseStructure<MasterConfigDTO>> fetchUserSubscription(@PathVariable String serviceName) {
+        MasterConfigDTO response = masterConfigService.fetchMasterConfigDataByConfigName(serviceName);
         return ResponseBuilder.success(HttpStatus.CREATED, "Retreived Master Config.", response);
     }
 
