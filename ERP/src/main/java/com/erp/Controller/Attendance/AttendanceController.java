@@ -23,7 +23,7 @@ import org.springframework.web.bind.annotation.*;
 
 @RestController
 @AllArgsConstructor
-@RequestMapping("/api/attendance")
+@RequestMapping("/api/v1/attendance")
 public class AttendanceController {
 
     private final AttendanceService attendanceService;
