@@ -16,7 +16,7 @@ public class SubscriptionMapper {
         dto.setBranchCode(entity.getBranchCode());
         dto.setCompanyCode(entity.getCompanyCode());
         dto.setPaymentStatus(entity.getPaymentStatus());
-        dto.setPaymentId(entity.getPaymentId());
+        dto.setTransactionPaymentId(entity.getPaymentTransactionId());
         dto.setActiveYn(entity.getActiveYn());
 //        dto.setCreatedBy(entity.getCreatedBy());
 //        dto.setCreatedOn(entity.getCreatedOn());
@@ -38,7 +38,7 @@ public class SubscriptionMapper {
         entity.setBranchCode(dto.getBranchCode());
         entity.setCompanyCode(dto.getCompanyCode());
         entity.setPaymentStatus(dto.getPaymentStatus());
-        entity.setPaymentId(dto.getPaymentId());
+        entity.setPaymentTransactionId(dto.getTransactionPaymentId());
         entity.setActiveYn(dto.getActiveYn());
 //        entity.setCreatedBy(dto.getCreatedBy());
 //        entity.setCreatedOn(dto.getCreatedOn());

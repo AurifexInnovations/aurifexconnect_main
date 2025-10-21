@@ -14,10 +14,10 @@ public class MasterConfigServiceImpl implements IMasterConfigService {
     MasterConfigRepository masterConfigRepository;
 
     @Override
-    public MasterConfigDTO fetchMasterConfigDataByConfigName(String configname) {
+    public MasterConfigDTO fetchMasterConfigDataByConfigName(String serviceName) {
 
         try {
-            MasterConfig m = masterConfigRepository.getByServiceName(configname);
+            MasterConfig m = masterConfigRepository.getByServiceName(serviceName);
 
             MasterConfigMapper m1 = new MasterConfigMapper();
             if (m != null) {
