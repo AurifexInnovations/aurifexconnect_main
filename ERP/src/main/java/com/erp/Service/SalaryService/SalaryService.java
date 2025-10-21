@@ -1,7 +1,9 @@
 package com.erp.Service.SalaryService;
 
+import com.erp.Dto.Request.FilterRequest;
 import com.erp.Dto.Request.Param;
 import com.erp.Dto.Request.SalaryRequest;
+import com.erp.Dto.Response.ResultDto;
 import com.erp.Dto.Response.SalaryResponse;
 import java.time.YearMonth;
 import java.util.List;
@@ -17,4 +19,5 @@ public interface SalaryService {
     List<SalaryResponse> getSalariesByMonth(SalaryRequest request);
     SalaryResponse deleteSalaryByUserAndMonth(SalaryRequest request);
     Map<String, Object> getSalaryOverview(int year, YearMonth startMonth, YearMonth endMonth);
+    ResultDto<SalaryResponse> getSalaryDetails(FilterRequest filterRequest);
 }

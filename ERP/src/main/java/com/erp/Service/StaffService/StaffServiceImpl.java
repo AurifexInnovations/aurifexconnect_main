@@ -1,9 +1,8 @@
 package com.erp.Service.StaffService;
 
-import com.erp.Dto.Request.CommanParam;
-import com.erp.Dto.Request.PaginationRequest;
-import com.erp.Dto.Request.StaffParam;
-import com.erp.Dto.Request.StaffRequest;
+import com.erp.CustomRepository.StaffCustomRepository;
+import com.erp.Dto.Request.*;
+import com.erp.Dto.Response.ResultDto;
 import com.erp.Dto.Response.StaffResponse;
 import com.erp.Exception.Staff_Exception.StaffNotFoundException;
 import com.erp.Mapper.Staff.StaffMapper;
@@ -12,20 +11,26 @@ import com.erp.Model.Staff;
 import com.erp.Repository.Branch.BranchRepository;
 import com.erp.Repository.Staff.StaffRepository;
 import lombok.AllArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
+import java.util.ArrayList;
 import java.util.List;
 
 @Service
 @AllArgsConstructor
+@Slf4j
 public class StaffServiceImpl implements StaffService {
 
     private final StaffRepository staffRepository;
     private final StaffMapper staffMapper;
     private final BranchRepository branchRepository;
+
+    private final StaffCustomRepository staffCustomRepository;
+
 
     @Override
     public StaffResponse createStaff(StaffRequest staffRequest) {
@@ -95,4 +100,21 @@ public class StaffServiceImpl implements StaffService {
 
         return staffMapper.mapToStaffResponse(staffList);
     }
+
+    @Override
+    public ResultDto<StaffResponse> getStaffDetails(FilterRequest filterRequest){
+        log.info("Into [StaffServiceImpl] [getStaffDetails]");
+
+        ResultDto<StaffResponse> staffResponses = new ResultDto<>();
+
+        try{
+            staffResponses = staffCustomRepository.getFilteredStaff(filterRequest);
+        }catch (Exception exception){
+            log.error("Error [StaffServiceImpl] [getStaffDetails] :: {} :: {}" , exception.getMessage() , exception);
+        }
+        log.info("Exit [StaffServiceImpl] [getStaffDetails]");
+
+        return staffResponses;
+    }
+
 }

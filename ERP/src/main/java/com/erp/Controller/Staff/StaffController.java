@@ -1,9 +1,7 @@
 package com.erp.Controller.Staff;
 
-import com.erp.Dto.Request.CommanParam;
-import com.erp.Dto.Request.PaginationRequest;
-import com.erp.Dto.Request.StaffParam;
-import com.erp.Dto.Request.StaffRequest;
+import com.erp.Dto.Request.*;
+import com.erp.Dto.Response.ResultDto;
 import com.erp.Dto.Response.StaffResponse;
 import com.erp.Service.StaffService.StaffService;
 import com.erp.Utility.ListResponseStructure;
@@ -104,4 +102,18 @@ public class StaffController {
         List<StaffResponse> staffResponses = staffService.getStaffByBranchId(param);
         return ResponseBuilder.success(HttpStatus.OK, "Staff retrieved successfully!", staffResponses);
     }
+
+    @PostMapping("staff/filter")
+    @Operation(description = "API Endpoint to Retrieve Staff details",
+            responses = {
+                    @ApiResponse(responseCode = "200", description = "Staff Retrieved Successfully"),
+                    @ApiResponse(responseCode = "404", description = "No Staff Found for Given Branch", content = {
+                            @Content(schema = @Schema(implementation = SimpleErrorResponse.class))
+                    })
+            })
+    public ResponseEntity<ResponseStructure<ResultDto<StaffResponse>>> getStaffDetails(@RequestBody FilterRequest filterRequest){
+        ResultDto<StaffResponse> staffResponses = staffService.getStaffDetails(filterRequest);
+        return ResponseBuilder.success(HttpStatus.OK, "Staff retrieved successfully!", staffResponses);
+    }
+
 }

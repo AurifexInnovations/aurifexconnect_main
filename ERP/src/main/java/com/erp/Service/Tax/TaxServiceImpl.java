@@ -1,13 +1,17 @@
 package com.erp.Service.Tax;
 
+import com.erp.CustomRepository.TaxCustomRepository;
 import com.erp.Dto.Request.CommanParam;
+import com.erp.Dto.Request.FilterRequest;
 import com.erp.Dto.Request.TaxRequest;
 import com.erp.Dto.Response.TaxResponse;
 import com.erp.Exception.Tax.TaxNotFoundException;
 import com.erp.Mapper.Tax.TaxMapper;
 import com.erp.Model.Tax;
+import com.erp.Projection.TaxProjection;
 import com.erp.Repository.Tax.TaxRepository;
 import lombok.AllArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -15,10 +19,12 @@ import java.util.*;
 
 @Service
 @AllArgsConstructor
+@Slf4j
 public class TaxServiceImpl implements TaxService {
 
     private final TaxRepository taxRepository;
     private final TaxMapper taxMapper;
+    private final TaxCustomRepository taxCustomRepository;
 
     @Override
     public TaxResponse addTax(TaxRequest taxRequest) {
@@ -99,5 +105,34 @@ public class TaxServiceImpl implements TaxService {
 
         return result;
     }
+
+
+    @Override
+    public List<TaxProjection> findTaxesByFilter(FilterRequest filterRequest) {
+        log.info("Into [TaxServiceImpl] [findTaxesByFilter]");
+
+        try {
+            if (filterRequest == null) {
+                throw new TaxNotFoundException("Filter data is required!");
+            }
+
+            List<TaxProjection> projections = taxCustomRepository.getTaxDetails(filterRequest);
+
+            if (projections == null || projections.isEmpty()) {
+                throw new TaxNotFoundException("No taxes found for the given filter!");
+            }
+
+            log.info("Exit [TaxServiceImpl] [findTaxesByFilter] with count = {}", projections.size());
+            return projections;
+
+        } catch (TaxNotFoundException e) {
+            log.warn("TaxNotFoundException in [TaxServiceImpl] [findTaxesByFilter]: {}", e.getMessage());
+            throw e;
+        } catch (Exception e) {
+            log.error("Unexpected exception in [TaxServiceImpl] [findTaxesByFilter]: {}", e.getMessage(), e);
+            throw new RuntimeException("Failed to fetch tax details due to an internal error", e);
+        }
+    }
+
 }
 

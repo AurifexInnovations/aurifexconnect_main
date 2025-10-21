@@ -1,9 +1,12 @@
 package com.erp.Service.InventoryService;
 
 import com.erp.Dto.Request.CommanParam;
+import com.erp.Dto.Request.FilterRequest;
 import com.erp.Dto.Request.InventoryRequest;
 import com.erp.Dto.Response.InventoryResponse;
+import com.erp.Dto.Response.ResultDto;
 import com.erp.Dto.Response.StockValueResponse;
+import com.erp.Projection.InventoryAndBranchProjection;
 
 import java.util.List;
 
@@ -103,4 +106,5 @@ public interface InventoryService {
 
     List<InventoryResponse> getLowStockItems();
 
+    ResultDto<InventoryAndBranchProjection> getInventoryDetails(FilterRequest filterRequest);
 }

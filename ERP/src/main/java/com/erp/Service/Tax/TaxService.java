@@ -1,8 +1,10 @@
 package com.erp.Service.Tax;
 
 import com.erp.Dto.Request.CommanParam;
+import com.erp.Dto.Request.FilterRequest;
 import com.erp.Dto.Request.TaxRequest;
 import com.erp.Dto.Response.TaxResponse;
+import com.erp.Projection.TaxProjection;
 
 import java.time.LocalDate;
 import java.util.List;
@@ -16,4 +18,6 @@ public interface TaxService {
     TaxResponse deleteTax(CommanParam param);
     List<Map<String, Object>> getTotalTaxAnalytics(LocalDate startDate, LocalDate endDate);
     Map<String, Double> getTaxBreakupAnalytics(LocalDate startDate, LocalDate endDate);
+    List<TaxProjection> findTaxesByFilter(FilterRequest filterRequest);
+
 }

@@ -1,8 +1,11 @@
 package com.erp.Service.LeaveService;
 
+import com.erp.CustomRepository.LeaveCustomRepository;
+import com.erp.Dto.Request.FilterRequest;
 import com.erp.Dto.Request.LeaveRequest;
 import com.erp.Dto.Request.Param;
 import com.erp.Dto.Response.LeaveResponse;
+import com.erp.Dto.Response.ResultDto;
 import com.erp.Enum.LeaveStatus;
 import com.erp.Enum.LeaveType;
 import com.erp.Exception.Leave.LeaveNotFoundException;
@@ -13,12 +16,15 @@ import com.erp.Model.User;
 import com.erp.Repository.Leave.LeaveRepository;
 import com.erp.Repository.User.UserRepository;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import java.time.LocalDate;
+import java.util.ArrayList;
 import java.util.List;
 
 @Service
 @RequiredArgsConstructor
+@Slf4j
 public class LeaveServiceImpl implements LeaveService {
 
     private final LeaveRepository leaveRepository;
@@ -26,6 +32,7 @@ public class LeaveServiceImpl implements LeaveService {
     private final UserRepository userRepository;
     private final int ANNUAL_PAID_LEAVE_ALLOWANCE = 12;
 
+    private final LeaveCustomRepository leaveCustomRepository;
     @Override
     public LeaveResponse createLeaveRequest(LeaveRequest request) {
         validateLeaveDates(request.getStartDate(), request.getEndDate());
@@ -186,5 +193,24 @@ public class LeaveServiceImpl implements LeaveService {
 
     private boolean isValidStatus(LeaveStatus status) {
         return status == LeaveStatus.PENDING || status == LeaveStatus.APPROVED || status == LeaveStatus.REJECTED;
+    }
+
+    @Override
+    public ResultDto<LeaveResponse> getLeaveDetails(FilterRequest filterRequest){
+        log.info("Into [LeaveServiceImpl] [getLeaveDetails]");
+
+        log.info("[LeaveServiceImpl] [getLeaveDetails]");
+
+        ResultDto<LeaveResponse> leaveResponses = new ResultDto<>();
+
+        try{
+             leaveResponses = leaveCustomRepository.getFilteredLeaves(filterRequest);
+        }catch (Exception exception){
+            log.error("Error [LeaveServiceImpl] [getLeaveDetails] :: {} :: {} " , exception.getMessage() ,exception);
+        }
+
+        log.info("Into [LeaveServiceImpl] [getLeaveDetails]");
+
+        return leaveResponses;
     }
 }

@@ -28,6 +28,7 @@ public class UserResponse {
     private LocalDate lastModifiedAt;
 
     private List<String> roleNames;
+    private String fullName;
 
 
 }

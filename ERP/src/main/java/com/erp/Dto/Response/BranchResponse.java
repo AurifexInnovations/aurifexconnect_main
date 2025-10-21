@@ -11,6 +11,7 @@ import java.time.LocalDateTime;
 @Setter
 public class BranchResponse
 {
+    private Long branchId;
     private String branchName;
     private String contactInfo;
     private String phoneNumber;

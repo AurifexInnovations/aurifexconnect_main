@@ -1,6 +1,8 @@
 package com.erp.Service.Attendance;
 
+import com.erp.CustomRepository.AttendanceCustomRepository;
 import com.erp.Dto.Request.AttendanceRequest;
+import com.erp.Dto.Request.FilterRequest;
 import com.erp.Dto.Request.Param;
 import com.erp.Dto.Response.*;
 import com.erp.Enum.AttendanceStatus;
@@ -14,6 +16,7 @@ import com.erp.Model.User;
 import com.erp.Repository.Attendance.AttendanceRepository;
 import com.erp.Repository.User.UserRepository;
 import lombok.AllArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import java.time.*;
@@ -22,6 +25,7 @@ import java.util.*;
 @Transactional
 @Service
 @AllArgsConstructor
+@Slf4j
 public class AttendanceServiceImpl implements AttendanceService {
 
     private static final double FIXED_WORKING_HOURS = 8.0;
@@ -29,6 +33,8 @@ public class AttendanceServiceImpl implements AttendanceService {
     private final AttendanceRepository attendanceRepository;
     private final AttendanceMapper attendanceMapper;
     private final UserRepository userRepository;
+
+    private final  AttendanceCustomRepository attendanceCustomRepository;
     private final Clock clock;
 
     @Override
@@ -338,5 +344,22 @@ public class AttendanceServiceImpl implements AttendanceService {
         response.setPresentDays(presentDays);
         response.setAbsentDays(absentDays);
         return response;
+    }
+
+
+    @Override
+    public ResultDto<AttendanceResponse> getFilteredAttendance(FilterRequest filterRequest) {
+        log.info("Into [AttendanceServiceImpl] [getAttendanceDetails]");
+
+        ResultDto<AttendanceResponse> attendanceResponses = new ResultDto<>();
+
+        try {
+            attendanceResponses = attendanceCustomRepository.getFilteredAttendance(filterRequest);
+        } catch (Exception exception) {
+            log.error("Error [AttendanceServiceImpl] [getAttendanceDetails] :: {} :: {}", exception.getMessage(), exception);
+        }
+
+        log.info("Exit [AttendanceServiceImpl] [getAttendanceDetails]");
+        return attendanceResponses;
     }
 }

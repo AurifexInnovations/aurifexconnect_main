@@ -3,9 +3,10 @@ package com.erp.Controller.Branch;
 import com.erp.Dto.PaginationResponse;
 import com.erp.Dto.Request.BranchRequest;
 import com.erp.Dto.Request.CommanParam;
+import com.erp.Dto.Request.FilterRequest;
 import com.erp.Dto.Request.PaginationRequest;
 import com.erp.Dto.Response.BranchResponse;
-import com.erp.Dto.Response.BranchResponseId;
+import com.erp.Dto.Response.ResultDto;
 import com.erp.Service.BranchService.BranchService;
 import com.erp.Utility.ListResponseStructure;
 import com.erp.Utility.ResponseBuilder;
@@ -16,14 +17,12 @@ import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.tags.Tag;
-import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
 import lombok.AllArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -131,5 +130,16 @@ public class BranchController
     }
 
 
-
+    @PostMapping("branch/filter")
+    @Operation(description = "API Endpoint to Retrieve Branches ",
+            responses = {
+                    @ApiResponse(responseCode = "200", description = "Branches Retrieved Successfully"),
+                    @ApiResponse(responseCode = "404", description = "No Branches Found for Given Item", content = {
+                            @Content(schema = @Schema(implementation = SimpleErrorResponse.class))
+                    })
+            })
+    public ResponseEntity<ResponseStructure<ResultDto<BranchResponse>>> getBranchesDetails(@RequestBody FilterRequest filterRequest){
+        ResultDto<BranchResponse> branchResponse = branchService.getBranchDetails(filterRequest);
+        return ResponseBuilder.success(HttpStatus.OK,"Branches retrieved successfully!",branchResponse);
+    }
 }
