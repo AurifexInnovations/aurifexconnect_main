@@ -6,6 +6,7 @@ import com.erp.Dto.Request.StockTransferRequest;
 import com.erp.Dto.Request.TransferActionRequest;
 import com.erp.Dto.Response.StockTransferResponse;
 import com.erp.Enum.StockTransferStatus;
+import com.erp.Exception.ResourceNotFoundException;
 import com.erp.Exception.StockTransfer_Exception.StockTransferNotFoundException;
 import com.erp.Exception.Inventory_Exception.InventoryNotFoundException;
 import com.erp.Exception.Branch_Exception.BranchNotFoundException;
@@ -36,13 +37,13 @@ public class StockTransferServiceImpl implements StockTransferService {
     @Override
     public StockTransferResponse createStockTransfer(StockTransferRequest request) {
         Branch fromBranch = branchRepository.findById(request.getFromBranchId())
-                .orElseThrow(() -> new BranchNotFoundException("From Branch not found!"));
+                .orElseThrow(() -> new ResourceNotFoundException("From Branch not found!"));
 
         Branch toBranch = branchRepository.findById(request.getToBranchId())
-                .orElseThrow(() -> new BranchNotFoundException("To Branch not found!"));
+                .orElseThrow(() -> new ResourceNotFoundException("To Branch not found!"));
 
         Inventory inventory = inventoryRepository.findById(request.getInventoryId())
-                .orElseThrow(() -> new InventoryNotFoundException("Inventory item not found!"));
+                .orElseThrow(() -> new ResourceNotFoundException("Inventory item not found!"));
 
         StockTransfer transfer = stockTransferMapper.mapToStockTransfer(request);
         transfer.setFromBranch(fromBranch);

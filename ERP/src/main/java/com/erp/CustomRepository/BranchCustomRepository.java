@@ -18,8 +18,8 @@ import java.util.Map;
 
 @Repository
 @Slf4j
-public class BranchCustomRepository {
-
+public class BranchCustomRepository
+{
     private final Map<String, String> filterParamMap = Map.of(
             "branchId", "branchId",
             "branchName", "branchName",

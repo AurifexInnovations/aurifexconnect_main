@@ -53,7 +53,8 @@ public class TaxServiceImpl implements TaxService {
     }
 
     @Override
-    public TaxResponse deleteTax(CommanParam param) {
+    public TaxResponse deleteTax(CommanParam param)
+    {
         Tax tax = taxRepository.findById(param.getId())
                 .orElseThrow(() -> new TaxNotFoundException("Tax not found with Id: " + param.getId()));
         taxRepository.deleteById(param.getId());
