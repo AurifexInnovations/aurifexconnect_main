@@ -32,6 +32,7 @@ public class Ledger {
 
     @Column(name = "address")
     private String address;
+
     private String GSTno;
 
     @CreatedDate
@@ -48,9 +49,14 @@ public class Ledger {
     @OneToMany(mappedBy = "ledger")
     private List<AgainstRefMap> againstRefMaps;
 
+
+
+    @Column(name = "creditlimit", nullable = false)
     private double creditLimit = 0.00;
 
+    @Column(name = "debitlimit", nullable = false)
     private double debitLimit = 0.00;
+
 
 //    @OneToOne(mappedBy = "ledger")
 //    private  InvoiceGenerator invoiceGenerator;

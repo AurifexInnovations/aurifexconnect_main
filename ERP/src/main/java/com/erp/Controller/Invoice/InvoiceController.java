@@ -32,7 +32,7 @@ public class InvoiceController {
                                  Model model){
         InvoiceGenerator invoiceGenerator = invoiceService.createInvoice(request);
 
-        model.addAttribute("invoice",invoiceGenerator);
+//        model.addAttribute("invoice",invoiceGenerator);
         return "invoice-preview";
     }
 
