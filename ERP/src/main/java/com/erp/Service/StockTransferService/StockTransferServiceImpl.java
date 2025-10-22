@@ -1,9 +1,8 @@
 package com.erp.Service.StockTransferService;
 
-import com.erp.Dto.Request.PaginationRequest;
-import com.erp.Dto.Request.StockTransferParam;
-import com.erp.Dto.Request.StockTransferRequest;
-import com.erp.Dto.Request.TransferActionRequest;
+import com.erp.Dto.Request.*;
+import com.erp.CustomRepository.StockTransferCustomRepository;
+import com.erp.Dto.Response.ResultDto;
 import com.erp.Dto.Response.StockTransferResponse;
 import com.erp.Enum.StockTransferStatus;
 import com.erp.Exception.ResourceNotFoundException;
@@ -18,6 +17,7 @@ import com.erp.Repository.Branch.BranchRepository;
 import com.erp.Repository.Inventory.InventoryRepository;
 import com.erp.Repository.StockTransfer.StockTransferRepository;
 import lombok.AllArgsConstructor;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -27,8 +27,9 @@ import java.util.List;
 
 @Service
 @AllArgsConstructor
-public class StockTransferServiceImpl implements StockTransferService {
-
+public class StockTransferServiceImpl implements StockTransferService
+{
+    private final StockTransferCustomRepository stockTransferCustomRepository;
     private final StockTransferRepository stockTransferRepository;
     private final StockTransferMapper stockTransferMapper;
     private final BranchRepository branchRepository;
@@ -49,6 +50,10 @@ public class StockTransferServiceImpl implements StockTransferService {
         transfer.setFromBranch(fromBranch);
         transfer.setToBranch(toBranch);
         transfer.setInventory(inventory);
+
+        // note it
+        transfer.setApprovedBy("Aryan"); // This Field's values changes After Role Based Authentication
+
         transfer.setStatus(StockTransferStatus.PENDING);
 
         stockTransferRepository.save(transfer);
@@ -81,6 +86,8 @@ public class StockTransferServiceImpl implements StockTransferService {
                     newInventory.setItemCost(fromInventory.getItemCost());
                     newInventory.setCategories(fromInventory.getCategories());
                     newInventory.setBranch(toBranch);
+                    newInventory.setItemDescription(fromInventory.getItemDescription());
+                    newInventory.setLowStockThreshold(fromInventory.getLowStockThreshold());
                     newInventory.setItemQuantity(0.0);
                     return newInventory;
                 });
@@ -135,6 +142,20 @@ public class StockTransferServiceImpl implements StockTransferService {
         }
 
         return stockTransferMapper.mapToStockTransferResponse(transfers);
+    }
+
+
+    @Override
+    public ResultDto<StockTransferResponse> getStockTransferDetails(FilterRequest filterRequest)
+    {
+        ResultDto<StockTransferResponse> transferResponses = stockTransferCustomRepository.getStockTransferDetails(filterRequest);
+
+        if(transferResponses.getResults().isEmpty())
+        {
+            throw new StockTransferNotFoundException("No Transfer Found With Status");
+        }
+
+        return transferResponses;
     }
 
 }
