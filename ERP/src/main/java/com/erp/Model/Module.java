@@ -28,4 +28,7 @@ public class Module {
 
     @Column(name = "created_at")
     private LocalDateTime createdAt;
+
+    @Column(name = "active")
+    private boolean isActive;
 }
