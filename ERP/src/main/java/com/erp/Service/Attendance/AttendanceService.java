@@ -1,10 +1,13 @@
 package com.erp.Service.Attendance;
 
 import com.erp.Dto.Request.AttendanceRequest;
+import com.erp.Dto.Request.FilterRequest;
 import com.erp.Dto.Request.Param;
 import com.erp.Dto.Response.AttendanceChartResponse;
 import com.erp.Dto.Response.AttendanceResponse;
 import com.erp.Dto.Response.AttendanceSummaryChartResponse;
+import com.erp.Dto.Response.ResultDto;
+
 import java.time.LocalDate;
 import java.time.YearMonth;
 import java.util.List;
@@ -38,4 +41,6 @@ public interface AttendanceService {
     List<AttendanceChartResponse> getMonthlyAttendanceAnalytics(AttendanceRequest request);
 
     AttendanceSummaryChartResponse getAttendanceSummaryAnalytics(AttendanceRequest request);
+
+    ResultDto<AttendanceResponse> getFilteredAttendance(FilterRequest filterRequest);
 }

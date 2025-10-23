@@ -16,12 +16,14 @@ import com.erp.Projection.BankAccountProjection;
 import com.erp.Repository.BankAccount.BankAccountRepository;
 import com.erp.Repository.Ledger.LedgerRepository;
 import lombok.AllArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import java.util.List;
 import java.util.stream.Collectors;
 
 @Service
 @AllArgsConstructor
+@Slf4j
 public class BankAccountServiceImpl implements BankAccountService{
 
     private final BankAccountRepository bankAccountRepository;
@@ -63,18 +65,29 @@ public class BankAccountServiceImpl implements BankAccountService{
 
     @Override
     public List<BankAccountProjection> findByBankAccountId(FilterRequest filterRequest) {
-        if (filterRequest == null) {
-            throw new BankAccountNotFoundException("Filter data is required!");
+        log.info("Into [BankServiceImpl] [findByBankAccountId]");
+
+        try {
+            if (filterRequest == null) {
+                throw new BankAccountNotFoundException("Filter data is required!");
+            }
+
+            List<BankAccountProjection> projections = bankCustomRepository.getBankAccounts(filterRequest);
+
+            if (projections == null || projections.isEmpty()) {
+                throw new BankAccountNotFoundException("No bank accounts found for the given filter!");
+            }
+
+            log.info("Exit [BankServiceImpl] [findByBankAccountId] with count = {}", projections.size());
+            return projections;
+
+        } catch (BankAccountNotFoundException e) {
+            log.warn("BankAccountNotFoundException in [BankServiceImpl] [findByBankAccountId]: {}", e.getMessage());
+            throw e;
+        } catch (Exception e) {
+            log.error("Unexpected exception in [BankServiceImpl] [findByBankAccountId]: {}", e.getMessage(), e);
+            throw new RuntimeException("Failed to fetch bank account details due to an internal error", e);
         }
-
-        // Call custom repository to fetch list by filter
-        List<BankAccountProjection> projections = bankCustomRepository.getBankAccounts(filterRequest);
-
-        if (projections == null || projections.isEmpty()) {
-            throw new BankAccountNotFoundException("Bank Account Not Found! Invalid filter criteria");
-        }
-
-        return projections; // Return list of projections
     }
 
     @Override

@@ -1,14 +1,17 @@
 package com.erp.Controller.Voucher;
 
 import com.erp.Dto.Request.FilterRequest;
+import com.erp.Dto.Response.ResultDto;
 import com.erp.Dto.Response.VoucherResponse;
 import com.erp.Enum.VoucherType;
 import com.erp.Projection.VoucherProjection;
 import com.erp.Service.Voucher.VoucherService;
 import com.erp.Utility.ListResponseStructure;
+import com.erp.Utility.ObjectMapperUtils;
 import com.erp.Utility.ResponseBuilder;
 import com.erp.Utility.ResponseStructure;
 import lombok.AllArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -17,7 +20,8 @@ import java.util.List;
 
 @RestController
 @AllArgsConstructor
-@RequestMapping("/")
+@RequestMapping("/vouchers")
+@Slf4j
 public class VoucherController {
 
     private final VoucherService voucherService;
@@ -35,17 +39,18 @@ public class VoucherController {
 //        return ResponseBuilder.success(HttpStatus.OK,"VoucherIndex Found Successfully", voucherResponse);
 //    }
 
-    @PostMapping("/vouchers/find")
-    public ResponseEntity<ListResponseStructure<VoucherProjection>> findVouchers(
+    @PostMapping("/find")
+    public ResponseEntity<ResultDto<VoucherProjection>> findVouchers(
             @RequestBody FilterRequest filterRequest) {
 
-        List<VoucherProjection> projections = voucherService.findVouchersByFilter(filterRequest);
+        log.info("Into [VoucherController] [findVouchers] :: Request {}",
+                ObjectMapperUtils.writeValueAsString(filterRequest));
 
-        return ResponseBuilder.success(
-                HttpStatus.OK,
-                "Voucher(s) Found Successfully!",
-                projections
-        );
+        ResultDto<VoucherProjection> resultDto = voucherService.findVouchersByFilter(filterRequest);
+
+        log.info("Exit [VoucherController] [findVouchers] with {} result(s)",
+                resultDto.getResults() != null ? resultDto.getResults().size() : 0);
+
+        return ResponseEntity.ok(resultDto);
     }
-
 }

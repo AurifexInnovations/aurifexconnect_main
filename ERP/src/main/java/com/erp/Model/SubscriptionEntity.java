@@ -45,7 +45,7 @@ public class SubscriptionEntity {
     private String paymentStatus;
 
     @Column(name = "paymentid")
-    private Long paymentId;
+    private String paymentTransactionId;
 
     @Column(name = "activeYn", length = 1)
     private String activeYn;

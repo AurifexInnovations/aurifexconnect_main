@@ -1,5 +1,6 @@
 package com.erp.Dto.Response;
 
+import com.erp.Enum.AttendanceStatus;
 import lombok.*;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -8,10 +9,16 @@ import java.time.LocalDateTime;
 @Getter
 @Setter
 public class AttendanceResponse {
-    private long id;
+    private long attendanceId;
     private LocalDate date;
     private LocalDateTime checkIn;
     private LocalDateTime checkOut;
     private String workingHours;
     private String workingDays;
+    private long userId;
+    private String userName;
+    private AttendanceStatus status;
+    private String firstName;
+    private String lastName;
+
 }

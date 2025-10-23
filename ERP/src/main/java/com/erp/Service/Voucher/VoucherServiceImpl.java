@@ -2,6 +2,7 @@ package com.erp.Service.Voucher;
 
 import com.erp.CustomRepository.VoucherCustomRepository;
 import com.erp.Dto.Request.FilterRequest;
+import com.erp.Dto.Response.ResultDto;
 import com.erp.Dto.Response.VoucherResponse;
 import com.erp.Enum.VoucherType;
 import com.erp.Exception.Voucher.VoucherNotFound;
@@ -9,14 +10,18 @@ import com.erp.Mapper.Voucher.VoucherMapper;
 import com.erp.Model.Voucher;
 import com.erp.Projection.VoucherProjection;
 import com.erp.Repository.Voucher.VoucherRepository;
+import com.erp.Utility.ObjectMapperUtils;
 import jakarta.transaction.Transactional;
 import lombok.AllArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import java.time.LocalDate;
+import java.util.ArrayList;
 import java.util.List;
 
 @Service
 @AllArgsConstructor
+@Slf4j
 public class VoucherServiceImpl implements VoucherService{
 
     private final VoucherRepository voucherRepository;
@@ -70,18 +75,37 @@ public class VoucherServiceImpl implements VoucherService{
     }
 
     @Override
-    public List<VoucherProjection> findVouchersByFilter(FilterRequest filterRequest) {
+    public ResultDto<VoucherProjection> findVouchersByFilter(FilterRequest filterRequest) {
+        log.info("Into [VoucherServiceImpl] [findVouchersByFilter]");
+        log.info("[VoucherServiceImpl] [findVouchersByFilter] :: Request {}",
+                ObjectMapperUtils.writeValueAsString(filterRequest));
+
+        ResultDto<VoucherProjection> resultDto = new ResultDto<>();
+
         if (filterRequest == null) {
             throw new VoucherNotFound("Filter data is required!");
         }
 
-        List<VoucherProjection> projections = voucherCustomRepository.getVoucherDetails(filterRequest);
+        try {
+            // Fetch data from repository
+            resultDto = voucherCustomRepository.getVoucherDetails(filterRequest);
 
-        if (projections == null || projections.isEmpty()) {
-            throw new VoucherNotFound("No vouchers found for the given filter!");
+            if (resultDto == null || resultDto.getResults() == null || resultDto.getResults().isEmpty()) {
+                throw new VoucherNotFound("No vouchers found for the given filter!");
+            }
+
+        } catch (VoucherNotFound e) {
+            log.warn("VoucherNotFound in [findVouchersByFilter]: {}", e.getMessage());
+            throw e;
+
+        } catch (Exception e) {
+            log.error("Error [VoucherServiceImpl] [findVouchersByFilter] :: {} :: {}", e.getMessage(), e);
+            throw new VoucherNotFound("Error while fetching vouchers: " + e.getMessage());
         }
 
-        return projections;
+        log.info("Exit [VoucherServiceImpl] [findVouchersByFilter] with {} result(s)",
+                resultDto.getResults().size());
+        return resultDto;
     }
 
 

@@ -23,7 +23,7 @@ public class SubscriptionController {
     @Autowired
     private ISubscriptionService subscriptionService;
 
-    @GetMapping("/id/{subscriptionId}")
+    @GetMapping("/id/{userId}")
     @Operation(description = "Fetch subscription details by subscription ID",
             responses = {
                     @ApiResponse(responseCode = "200", description = "Subscription details retrieved")
