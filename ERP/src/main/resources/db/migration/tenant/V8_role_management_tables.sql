@@ -1,31 +1,26 @@
 CREATE TABLE modules (
-    id BIGINT AUTO_INCREMENT PRIMARY KEY,
-    name VARCHAR(100) NOT NULL,
+    id BIGSERIAL PRIMARY KEY,
+    name VARCHAR(100),
     description VARCHAR(255),
     created_by BIGINT,
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    created_at TIMESTAMP ,
+    active BOOLEAN
 );
 
 CREATE TABLE actions (
-    id BIGINT AUTO_INCREMENT PRIMARY KEY,
-    name VARCHAR(100) NOT NULL,
+    id BIGSERIAL PRIMARY KEY,
+    name VARCHAR(100),
     description VARCHAR(255),
     created_by BIGINT,
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    created_at TIMESTAMP,
+    active BOOLEAN
 );
 
 CREATE TABLE roles_action_permission (
-    id BIGINT AUTO_INCREMENT PRIMARY KEY,
+    id BIGSERIAL PRIMARY KEY,
     role_id BIGINT NOT NULL,
     module_id BIGINT NOT NULL,
     action_id BIGINT NOT NULL,
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-);
-
-CREATE TABLE user_permissions (
-    id BIGINT AUTO_INCREMENT PRIMARY KEY,
-    user_id BIGINT NOT NULL,
-    role_action_id BIGINT NOT NULL,
-    created_by BIGINT NOT NULL,
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    active BOOLEAN
 );
