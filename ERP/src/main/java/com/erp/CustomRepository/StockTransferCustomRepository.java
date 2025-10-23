@@ -37,7 +37,7 @@ public class StockTransferCustomRepository {
     private EntityManager entityManager;
 
     public ResultDto<StockTransferResponse> getStockTransferDetails(FilterRequest filterRequest) {
-        log.info("Into [StockTransferCustomRepositoryJPQL] [getStockTransferDetails]");
+        log.info("Into [StockTransferCustomRepository] [getStockTransferDetails]");
 
         StringBuilder jpql = new StringBuilder("SELECT s FROM StockTransfer s WHERE 1=1 ");
 

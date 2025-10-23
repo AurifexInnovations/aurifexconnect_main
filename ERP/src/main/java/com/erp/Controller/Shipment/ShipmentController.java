@@ -1,12 +1,17 @@
 package com.erp.Controller.Shipment;
 
+import com.erp.Dto.Request.FilterRequest;
 import com.erp.Dto.Request.ShipmentDetailsRequestDto;
+import com.erp.Dto.Response.ResultDto;
 import com.erp.Dto.Response.ShipmentResponseDto;
 import com.erp.Model.ShipmentDetails;
 import com.erp.Service.Shipment.ShipmentService;
+import com.erp.Utility.ResponseBuilder;
+import com.erp.Utility.ResponseStructure;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -52,5 +57,14 @@ public class ShipmentController
         log.info("Controller: deleteShipmentById called for shipmentId={}", id);
         String message = shipmentService.deleteShipmentById(id);
         return ResponseEntity.ok(message);
+    }
+
+
+    @PostMapping("/pagination")
+    public ResponseEntity<ResponseStructure<ResultDto<ShipmentDetails>>> getShipmentPagination(@RequestBody FilterRequest filterRequest)
+    {
+        ResultDto<ShipmentDetails> list = shipmentService.getAllShipments(filterRequest);
+
+        return ResponseBuilder.success(HttpStatus.OK, "All Shipments Are Retrieved", list);
     }
 }

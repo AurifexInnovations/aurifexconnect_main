@@ -1,6 +1,9 @@
 package com.erp.Service.Shipment;
 
+import com.erp.CustomRepository.ShipmentCustomRepository;
+import com.erp.Dto.Request.FilterRequest;
 import com.erp.Dto.Request.ShipmentDetailsRequestDto;
+import com.erp.Dto.Response.ResultDto;
 import com.erp.Dto.Response.ShipmentResponseDto;
 import com.erp.Enum.ShipmentStatus;
 import com.erp.Exception.ResourceNotFoundException;
@@ -23,8 +26,9 @@ import java.util.Optional;
 @Slf4j
 @Service
 @RequiredArgsConstructor
-public class ShipmentServiceImpl implements ShipmentService {
-
+public class ShipmentServiceImpl implements ShipmentService
+{
+    private final ShipmentCustomRepository shipmentCustomRepository;
     private final ShipmentRepository shipmentRepository;
     private final ShipmentMapper shipmentMapper;
     private final UserIdentity userIdentity;
@@ -126,6 +130,19 @@ public class ShipmentServiceImpl implements ShipmentService {
         shipmentRepository.save(shipmentDetails1);
         log.info("Shipment deleted successfully with ID: {}", id);
         return "Shipment deleted successfully";
+    }
+
+    @Override
+    public ResultDto<ShipmentDetails> getAllShipments(FilterRequest filterRequest)
+    {
+        ResultDto<ShipmentDetails> list = shipmentCustomRepository.getShipmentsPagination(filterRequest);
+
+        if(list.getResults().isEmpty())
+        {
+            throw new ResourceNotFoundException("No Data Found For Shipments");
+        }
+
+        return list;
     }
 
 }
