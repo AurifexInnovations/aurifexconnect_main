@@ -16,8 +16,8 @@ import java.util.List;
 @RestController
 @RequestMapping("/api/v1/shipment")
 @RequiredArgsConstructor
-public class ShipmentController {
-
+public class ShipmentController
+{
     private final ShipmentService shipmentService;
 
 

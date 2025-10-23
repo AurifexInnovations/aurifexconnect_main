@@ -64,7 +64,9 @@ public class ShipmentServiceImpl implements ShipmentService {
             log.info("Shipment updated successfully with ID: {}", updatedShipment.getShipmentId());
             return response;
 
-        } else {
+        }
+        else
+        {
             log.info("Creating new shipment with reference ID: {}", requestDto.getReferenceId());
 
             ShipmentDetails newShipment = shipmentMapper.map(requestDto);
