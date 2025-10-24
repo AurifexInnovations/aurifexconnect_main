@@ -23,6 +23,7 @@ import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -116,7 +117,23 @@ public class RoleActionPermissionService {
 
         return roleModleActionPermisisonResponseResultDto;
     }
+
+    public void deleteRoleModulePermission(List<Long> roleModulePermissionIds){
+        log.info("Into [RoleActionPermissionService] [deleteRoleModulePermission]");
+
+        List<RolesActionPermission> rolesActionPermissions =
+                roleActionPermissionRepository.findByIds(roleModulePermissionIds);
+
+        List<Long> roleModuleActionPermissionIds =
+                rolesActionPermissions.stream().map(e1 -> e1.getId()).collect(Collectors.toList());
+
+        roleActionPermissionRepository.deactivateRoleModulePermissionByIds(roleModuleActionPermissionIds);
+
+        log.info("Exit [RoleActionPermissionService] [deleteRoleModulePermission]");
+    }
     private List<RoleModleActionPermisisonResponse> createRoleModleActionPermisisonResponse(List<RolesActionPermission> rolesActionPermissions){
+
+        log.info("Into [RoleActionPermissionService] [createRoleModleActionPermisisonResponse] ");
 
         List<RoleModleActionPermisisonResponse> roleModleActionPermisisonResponses = new ArrayList<>(rolesActionPermissions.size());
 
@@ -139,6 +156,8 @@ public class RoleActionPermissionService {
 
             roleModleActionPermisisonResponses.add(roleModleActionPermisisonResponse);
         }
+
+        log.info("Exit [RoleActionPermissionService] [createRoleModleActionPermisisonResponse] ");
 
         return roleModleActionPermisisonResponses;
     }

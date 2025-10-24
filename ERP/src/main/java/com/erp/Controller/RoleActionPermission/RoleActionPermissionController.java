@@ -33,10 +33,17 @@ public class RoleActionPermissionController {
         return ResponseBuilder.success(HttpStatus.OK, "role module action permission updated Successfully", roleModleActionPermisisonResponses);
     }
 
-    @PostMapping
+    @PostMapping("/filter")
     public ResponseEntity<ResultDto<RoleModleActionPermisisonResponse>> getRoleModulePermissions(@RequestBody FilterRequest filterRequest) {
         ResultDto<RoleModleActionPermisisonResponse>  roleModleActionPermisisonResponses  =
                 roleActionPermissionService.getAllPermissionWithFilters(filterRequest);
         return ResponseEntity.ok(roleModleActionPermisisonResponses);
+    }
+
+    @DeleteMapping
+    public ResponseEntity<?> deleteRoleModulePermission(
+            @RequestBody List<Long> roleModulePermissionIds) {
+        roleActionPermissionService.deleteRoleModulePermission(roleModulePermissionIds);
+        return new ResponseEntity<>(HttpStatus.OK);
     }
 }
