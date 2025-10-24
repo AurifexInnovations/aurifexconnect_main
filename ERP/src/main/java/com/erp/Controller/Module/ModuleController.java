@@ -47,7 +47,7 @@ public class ModuleController {
         return ResponseBuilder.success(HttpStatus.OK, "module details", modules);
     }
 
-    @PutMapping("/id/{mId}")
+    @DeleteMapping("/id/{mId}")
     public ResponseEntity<ResponseStructure<ModuleDto>> deleteModuleById(@PathVariable("mId") long moduleId) {
         ModuleDto moduleDto=  moduleService.deleteModule(moduleId);
         return ResponseBuilder.success(HttpStatus.OK, "module deleted successfully" , moduleDto);
