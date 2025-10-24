@@ -64,7 +64,7 @@ public class ModuleService {
         log.info("Exit [ModuleService] [validate]");
     }
 
-    private Module getModule(long moduleId){
+    public Module getModule(long moduleId){
         log.info("Into [ModuleService] [getModuleById]");
 
         log.info("[ModuleService] [getModuleById] :: moduleId :: {} " , moduleId);

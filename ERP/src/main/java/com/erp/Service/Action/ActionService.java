@@ -15,6 +15,7 @@ import org.springframework.stereotype.Service;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Objects;
+import java.util.stream.Collectors;
 
 @Service
 @Slf4j
@@ -115,6 +116,25 @@ public class ActionService {
             throw new ResourceFoundException("Action with this name is already present");
         }
 
+    }
+    public List<ActionDto> getActionsByIds(List<Long> actionsIds){
+        List<Action> actions =
+                actionRepository.findByIds(actionsIds);
+
+        if(actionsIds.size() != actions.size()){
+            for (long actionId : actionsIds){
+                boolean isExist =  actions.stream().map(action -> action.getId())
+                        .filter(e -> actionId == e)
+                        .collect(Collectors.toList())
+                        .size() == 1 ? true : false;
+
+                if(!isExist){
+                    throw new ResourceNotFoundException("this " + actionId + " action id not found ");
+                }
+            }
+        }
+
+        return actionMapper.map(actions);
     }
 
 }

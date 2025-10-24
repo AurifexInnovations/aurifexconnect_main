@@ -25,8 +25,11 @@ public class RolesActionPermission {
     private Long moduleId;
 
     @Column(name = "action_id")
-    private Long action;
+    private Long actionId;
 
     @Column(name = "created_at")
     private LocalDateTime createdAt;
+
+    @Column(name = "active")
+    private boolean active;
 }

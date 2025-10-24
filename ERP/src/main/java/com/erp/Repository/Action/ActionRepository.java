@@ -18,4 +18,6 @@ public interface ActionRepository extends JpaRepository<Action , Long> {
     @Query(value =  "select * from actions where active = true " , nativeQuery = true)
     List<Action> findAll();
 
+    @Query(value = "select * from actions where id in (:ids) and active = true" , nativeQuery = true)
+    List<Action> findByIds(List<Long> ids);
 }
