@@ -4,9 +4,11 @@ import com.erp.Model.RolesActionPermission;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
+import java.util.Optional;
 
 public interface RoleActionPermissionRepository extends JpaRepository<RolesActionPermission , Long> {
 
@@ -22,4 +24,17 @@ public interface RoleActionPermissionRepository extends JpaRepository<RolesActio
             value = "UPDATE roles_action_permissions SET active = false WHERE id IN (:ids) and active = true ",
             nativeQuery = true
     )    int deactivateRoleModulePermissionByIds(List<Long> ids);
+
+
+
+    @Query("SELECT rap FROM RolesActionPermission rap " +
+            "WHERE rap.roleId = :roleId AND rap.moduleId = :moduleId AND rap.actionId = :actionId")
+    Optional<RolesActionPermission> findByRoleIdAndModuleIdAndActionId(Long roleId, Long moduleId, Long actionId);
+
+
+    @Query("SELECT m.id FROM Module m WHERE m.name = :moduleName")
+    Optional<Long> findModuleIdByName(@Param("moduleName") String moduleName);
+
+    @Query("SELECT a.id FROM Action a WHERE a.name = :actionName")
+    Optional<Long> findActionIdByName(@Param("actionName") String actionName);
 }

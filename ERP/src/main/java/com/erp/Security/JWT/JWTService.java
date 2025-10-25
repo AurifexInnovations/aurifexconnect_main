@@ -38,4 +38,16 @@ public class JWTService {
         }
     }
 
+    /**
+     * Checks if the token is expired.
+     */
+    public boolean isTokenExpired(String token) {
+        Claims claims = parseToken(token);
+        Date expiration = claims.getExpiration();
+        if (expiration == null) {
+            throw new InvalidJWTException("Token does not have an expiration");
+        }
+        return expiration.before(new Date());
+    }
+
 }
