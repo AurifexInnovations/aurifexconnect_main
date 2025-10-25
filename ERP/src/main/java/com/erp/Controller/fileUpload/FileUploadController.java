@@ -1,31 +1,46 @@
 package com.erp.Controller.fileUpload;
 
-import com.erp.Service.FileService.FileService;
+import com.erp.Dto.Request.FileRequestDto;
+import com.erp.Dto.Response.FileUploadResponse;
+import com.erp.Utility.inerfaces.S3StorageService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.util.MultiValueMap;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
-import java.io.IOException;
+import java.util.HashMap;
+import java.util.Map;
 
 @RequiredArgsConstructor
 @RestController
 public class FileUploadController {
+    private final S3StorageService storageService;
 
-    private FileService fileService;
+    @PostMapping("/{tenant}/files")
+    public ResponseEntity<FileUploadResponse> uploadFile(@PathVariable("tenant") final String tenant,
+                                                         @RequestPart("file") final MultipartFile file,
+                                                         @RequestParam final MultiValueMap<String, String> params) {
+        // optional additional metadata as request params; adapt as needed
+        Map<String, String> metadata = new HashMap<>();
+        params.forEach((k, v) -> metadata.put(k, v.get(0)));
 
-    @PostMapping("/upload")
-    public ResponseEntity<String> uploadFile(@RequestParam("file") MultipartFile file) throws IOException {
-        String fileUrl = fileService.uploadFile(file);
-        return ResponseEntity.ok("File uploaded: " + fileUrl);
+        FileUploadResponse resp = storageService.uploadFile(file, tenant, metadata);
+        return ResponseEntity.ok(resp);
     }
 
-    @GetMapping("/download/{fileName}")
-    public ResponseEntity<byte[]> downloadFile(@PathVariable String fileName) {
-        byte[] fileContent = fileService.downloadFile(fileName);
-        if (fileContent != null) {
-            return ResponseEntity.ok().body(fileContent);
+
+    @GetMapping("/{tenant}")
+    public ResponseEntity<byte[]> downloadFile(@PathVariable("tenant") final String tenant,
+                                               @RequestBody final FileRequestDto requestDto) {
+        byte[] data = storageService.downloadFile(tenant, requestDto.file());
+        if (data == null) {
+            return ResponseEntity.notFound().build();
         }
-        return ResponseEntity.notFound().build();
+        return ResponseEntity.ok().header(HttpHeaders.CONTENT_DISPOSITION,
+                        "attachment; filename=\"" + requestDto.file() + "\"").contentType(MediaType.APPLICATION_OCTET_STREAM)
+                .contentLength(data.length).body(data);
     }
 }

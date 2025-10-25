@@ -11,8 +11,6 @@ import lombok.ToString;
 @Table(name = "document_details")
 @Getter
 @Setter
-@ToString(exclude = "documentDetails")
-@EqualsAndHashCode(onlyExplicitlyIncluded = true)
 public class DocumentDetails {
 
     @Id
@@ -28,9 +26,5 @@ public class DocumentDetails {
 
     @ManyToOne
     @JoinColumn(name = "company_details_id")
-    @JsonBackReference
     private CompanyDetails companyDetails;
-
-
-
 }
