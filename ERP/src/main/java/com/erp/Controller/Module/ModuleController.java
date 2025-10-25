@@ -41,7 +41,7 @@ public class ModuleController {
         return ResponseBuilder.success(HttpStatus.OK, "get module by id", moduleDto);
     }
 
-    @PostMapping
+    @GetMapping
     public ResponseEntity<ListResponseStructure<ModuleDto>> getAllModules() {
         List<ModuleDto> modules  = moduleService.getModules();
         return ResponseBuilder.success(HttpStatus.OK, "module details", modules);

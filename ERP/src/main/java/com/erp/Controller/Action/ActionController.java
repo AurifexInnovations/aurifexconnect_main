@@ -38,7 +38,7 @@ public class ActionController {
         return ResponseBuilder.success(HttpStatus.OK, "get action by id", actionDto);
     }
 
-    @PostMapping
+    @GetMapping
     public ResponseEntity<ListResponseStructure<ActionDto>> getAllActions() {
         List<ActionDto> actions  = actionService.getActions();
         return ResponseBuilder.success(HttpStatus.OK, "action details", actions);

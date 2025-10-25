@@ -19,7 +19,7 @@ public interface RoleActionPermissionRepository extends JpaRepository<RolesActio
     @Modifying
     @Transactional
     @Query(
-            value = "UPDATE roles_action_permissions SET active = false WHERE id IN (:ids)",
+            value = "UPDATE roles_action_permissions SET active = false WHERE id IN (:ids) and active = true ",
             nativeQuery = true
     )    int deactivateRoleModulePermissionByIds(List<Long> ids);
 }

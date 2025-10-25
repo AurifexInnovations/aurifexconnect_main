@@ -8,6 +8,7 @@ import com.erp.Dto.Request.RoleModleActionPermissionDto;
 import com.erp.Dto.Response.ResultDto;
 import com.erp.Dto.Response.RoleModleActionPermisisonResponse;
 import com.erp.Dto.Response.RoleResponse;
+import com.erp.Exception.DBReltedException;
 import com.erp.Exception.ResourceNotFoundException;
 import com.erp.Model.RolesActionPermission;
 import com.erp.Repository.RoleActionPermission.RoleActionPermissionRepository;
@@ -17,6 +18,7 @@ import com.erp.Service.Role.RoleServices;
 import com.erp.Utility.ObjectMapperUtils;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
@@ -62,7 +64,12 @@ public class RoleActionPermissionService {
             rolesActionPermissions.add(rolesActionPermission);
         }
 
-        rolesActionPermissions = roleActionPermissionRepository.saveAll(rolesActionPermissions);
+        try {
+            rolesActionPermissions = roleActionPermissionRepository.saveAll(rolesActionPermissions);
+        } catch (DataIntegrityViolationException e) {
+            throw new DBReltedException("Duplicate Entry not allowed ");
+        }
+
 
         log.info("Exit [RoleActionPermissionService] [addRoleModuleActionPermission]");
 
@@ -97,7 +104,11 @@ public class RoleActionPermissionService {
             rolesActionPermissions.add(rolesActionPermission);
         }
 
-        rolesActionPermissions = roleActionPermissionRepository.saveAll(rolesActionPermissions);
+        try {
+            rolesActionPermissions = roleActionPermissionRepository.saveAll(rolesActionPermissions);
+        } catch (DataIntegrityViolationException e) {
+            throw new DBReltedException("Duplicate Entry not allowed ");
+        }
 
         List<RoleModleActionPermisisonResponse> roleModleActionPermisisonResponses =
                 createRoleModleActionPermisisonResponse(rolesActionPermissions);
@@ -121,14 +132,13 @@ public class RoleActionPermissionService {
     public void deleteRoleModulePermission(List<Long> roleModulePermissionIds){
         log.info("Into [RoleActionPermissionService] [deleteRoleModulePermission]");
 
-        List<RolesActionPermission> rolesActionPermissions =
-                roleActionPermissionRepository.findByIds(roleModulePermissionIds);
 
-        List<Long> roleModuleActionPermissionIds =
-                rolesActionPermissions.stream().map(e1 -> e1.getId()).collect(Collectors.toList());
 
-        roleActionPermissionRepository.deactivateRoleModulePermissionByIds(roleModuleActionPermissionIds);
+     int numberOfUpdatedRow =    roleActionPermissionRepository.deactivateRoleModulePermissionByIds(roleModulePermissionIds);
 
+     if(numberOfUpdatedRow==0){
+         throw new ResourceNotFoundException("Resource not found with provided ids "+ roleModulePermissionIds);
+     }
         log.info("Exit [RoleActionPermissionService] [deleteRoleModulePermission]");
     }
     private List<RoleModleActionPermisisonResponse> createRoleModleActionPermisisonResponse(List<RolesActionPermission> rolesActionPermissions){
