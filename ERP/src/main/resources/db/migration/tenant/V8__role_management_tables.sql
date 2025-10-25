@@ -16,11 +16,13 @@ CREATE TABLE actions (
     active BOOLEAN
 );
 
-CREATE TABLE roles_action_permission (
+CREATE TABLE roles_action_permissions (
     id BIGSERIAL PRIMARY KEY,
     role_id BIGINT NOT NULL,
     module_id BIGINT NOT NULL,
     action_id BIGINT NOT NULL,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    active BOOLEAN
+    active BOOLEAN,
+    CONSTRAINT unique_role_module_action UNIQUE (role_id, module_id, action_id)
+
 );
