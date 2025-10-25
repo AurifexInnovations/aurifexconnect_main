@@ -15,7 +15,7 @@ import org.springframework.web.bind.annotation.*;
 import java.util.List;
 
 @RestController
-@RequestMapping("api/v1/role/module/action/permission")
+@RequestMapping("api/v1/admin/role/module/action/permission")
 @RequiredArgsConstructor
 public class RoleActionPermissionController {
 

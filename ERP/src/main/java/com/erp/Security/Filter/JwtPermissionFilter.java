@@ -53,6 +53,10 @@ public class JwtPermissionFilter extends OncePerRequestFilter {
         log.info("JwtPermissionFilter invoked for: {}", request.getRequestURI());
 
         try {
+            String moduleId = request.getHeader("moduleId");
+            String actionId = request.getHeader("actionId");
+
+
             String token = extractToken(request);
             if (token == null) {
                 response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
@@ -76,25 +80,27 @@ public class JwtPermissionFilter extends OncePerRequestFilter {
                 return;
             }
 
-            TenantContext.setCurrentTenant("tenant_1_palak_gmail_com");
+
 
             // Fetch user for permission check
             var user = userRepository.findByEmail(email)
                     .orElseThrow(() -> new RuntimeException("User not found: " + email));
             Long userId = user.getId();
 
-            String module = resolveModuleFromRequest(request);
-            String action = resolveActionFromRequest(request);
+            TenantContext.setCurrentTenant(user.getSchemaName());
 
-            Long moduleId = roleActionPermissionRepository.findModuleIdByName(module)
-                    .orElseThrow(() -> new RuntimeException("Module not found: " + module));
-            Long actionId = roleActionPermissionRepository.findActionIdByName(action)
-                    .orElseThrow(() -> new RuntimeException("Action not found: " + action));
+//            String module = resolveModuleFromRequest(request);
+//            String action = resolveActionFromRequest(request);
 
-            boolean hasPermission = userPermissionRepository.hasUserPermission(userId, moduleId, actionId);
+//            Long moduleId = roleActionPermissionRepository.findModuleIdByName(module)
+//                    .orElseThrow(() -> new RuntimeException("Module not found: " + module));
+//            Long actionId = roleActionPermissionRepository.findActionIdByName(action)
+//                    .orElseThrow(() -> new RuntimeException("Action not found: " + action));
+
+            boolean hasPermission = userPermissionRepository.hasUserPermission(userId, Long.parseLong(moduleId), Long.parseLong(actionId));
             if (!hasPermission) {
                 response.setStatus(HttpServletResponse.SC_FORBIDDEN);
-                response.getWriter().write("You do not have permission: " + module + " / " + action);
+                response.getWriter().write("You do not have permission: " + Long.parseLong(moduleId) + " / " + Long.parseLong(actionId));
                 return;
             }
 
@@ -128,23 +134,23 @@ public class JwtPermissionFilter extends OncePerRequestFilter {
         return null;
     }
 
-    private String resolveModuleFromRequest(HttpServletRequest request) {
-        String path = request.getRequestURI().toLowerCase();
-        if (path.startsWith("/api/v1/users")) return "USER";
-        if (path.startsWith("/api/v1/customers")) return "CUSTOMER";
-        if (path.startsWith("/api/v1/orders")) return "ORDER";
-        if (path.startsWith("/api/v1/module")) return "TEST";
-
-        return "DEFAULT";
-    }
-
-    private String resolveActionFromRequest(HttpServletRequest request) {
-        return switch (request.getMethod()) {
-            case "GET" -> "READ";
-            case "POST" -> "CREATE";
-            case "PUT" -> "UPDATE";
-            case "DELETE" -> "DELETE";
-            default -> "UNKNOWN";
-        };
-    }
+//    private String resolveModuleFromRequest(HttpServletRequest request) {
+//        String path = request.getRequestURI().toLowerCase();
+//        if (path.startsWith("/api/v1/users")) return "USER";
+//        if (path.startsWith("/api/v1/customers")) return "CUSTOMER";
+//        if (path.startsWith("/api/v1/orders")) return "ORDER";
+//        if (path.startsWith("/api/v1/module")) return "TEST";
+//
+//        return "DEFAULT";
+//    }
+//
+//    private String resolveActionFromRequest(HttpServletRequest request) {
+//        return switch (request.getMethod()) {
+//            case "GET" -> "READ";
+//            case "POST" -> "CREATE";
+//            case "PUT" -> "UPDATE";
+//            case "DELETE" -> "DELETE";
+//            default -> "UNKNOWN";
+//        };
+//    }
 }

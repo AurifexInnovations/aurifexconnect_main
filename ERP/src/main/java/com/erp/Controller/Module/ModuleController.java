@@ -14,7 +14,7 @@ import org.springframework.web.bind.annotation.*;
 import java.util.List;
 
 @RestController
-@RequestMapping("api/v1/module")
+@RequestMapping("api/v1/admin/module")
 @RequiredArgsConstructor
 public class ModuleController {
 

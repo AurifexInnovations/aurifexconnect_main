@@ -2,6 +2,7 @@ package com.erp.Service.User;
 
 import com.erp.Dto.Request.*;
 import com.erp.Dto.Response.UserResponse;
+import com.erp.Exception.ResourceNotFoundException;
 import com.erp.Exception.SameEmail.SameEmailFoundException;
 import com.erp.Exception.User.UserNotFoundException;
 import com.erp.Mapper.User.UserMapper;
@@ -18,10 +19,7 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
-import java.util.Collections;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 
 @Service
 @AllArgsConstructor
@@ -40,7 +38,7 @@ public class UserServiceImpl implements UserServices {
     UserPermissionRepository userPermissionRepository;
 
     @Override
-   // @Transactional
+    @Transactional
     public UserResponse createUser(UserRequest userRequest) {
         Admin currentAdmin = (Admin) userIdentity.getCurrentUser();
         String schemaName = currentAdmin.getSchemaName();
@@ -109,7 +107,7 @@ public class UserServiceImpl implements UserServices {
             return userMapper.mapToUserResponse(user);
 
         } catch (Exception e) {
-            throw new RuntimeException("Error occurred while creating user", e);
+            throw new ResourceNotFoundException( e.getMessage());
         } finally {
             TenantContext.clear();
         }
@@ -129,7 +127,10 @@ public class UserServiceImpl implements UserServices {
 
         Admin currentAdmin = (Admin) userIdentity.getCurrentUser();
 
-        User user = (User) userIdentity.getCurrentUser();
+//        User user = (User) userIdentity.getCurrentUser();
+
+        User user
+                = userRepository.findByIdAndIsActiveTrue(userUpdateRequest.getId());
 
         if(user.getId() == userUpdateRequest.getId()){
             userMapper.mapTOUserEntity(userUpdateRequest,user);
@@ -227,6 +228,7 @@ public class UserServiceImpl implements UserServices {
             }
         }
     }
+
 
 
     @Override
