@@ -17,15 +17,7 @@ import java.util.List;
 @EntityListeners(AuditingEntityListener.class)
 @Getter
 @Setter
-@ToString(exclude = "documentDetails")
-@EqualsAndHashCode(onlyExplicitlyIncluded = true)
-public class CompanyDetails extends AbstractAuditable<Admin, Long> {
-
-    @Id
-    @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "company_details_seq_gen")
-    @SequenceGenerator(name = "company_details_seq_gen", sequenceName = "company_details_seq", allocationSize = 1)
-    @Column(name = "id")
-    private Long id;
+public class CompanyDetails extends BaseEntity {
 
     @Column(name = "name")
     private String name;
@@ -57,7 +49,6 @@ public class CompanyDetails extends AbstractAuditable<Admin, Long> {
     private String reviewedBy;
 
     @OneToMany(mappedBy = "companyDetails")
-    @JsonIgnore
     private List<DocumentDetails> documentDetails;
 
 }
