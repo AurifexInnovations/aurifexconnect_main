@@ -88,8 +88,8 @@ otp:
 # AWS / S3
 aws:
   region: 'us-east-1'
-  accessKeyId: 'AKIAY6AK4OWGFME6JMOE'
-  secretKey: 'T7njxOfAV2tgbaIG1uWOIUMtNxqgnJD9In7by7YV'
+  accessKeyId: 'Dummy'
+  secretKey: 'Test'
   s3:
     bucket: 'demobuchetbm'
 
