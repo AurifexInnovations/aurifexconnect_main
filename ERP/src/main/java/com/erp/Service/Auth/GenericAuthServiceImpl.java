@@ -78,7 +78,7 @@ public class GenericAuthServiceImpl implements AuthService {
         GenericUser user = userRepositoryRegistry.findUserByEmail(email)
                 .orElseThrow(() -> new UsernameNotFoundException("User not found in tenant: " + currentTenant));
 
-        return authenticateAndBuildRecord(user, email, password, currentTenant);
+        return authenticateAndBuildRecord(user, email, password, user.getSchemaName());
     }
 
     private AuthRecord authenticateAndBuildRecord(GenericUser user, String email, String password, String schemaName) {
