@@ -133,6 +133,8 @@ public class JwtPermissionFilter extends OncePerRequestFilter {
         if (path.startsWith("/api/v1/users")) return "USER";
         if (path.startsWith("/api/v1/customers")) return "CUSTOMER";
         if (path.startsWith("/api/v1/orders")) return "ORDER";
+        if (path.startsWith("/api/v1/module")) return "TEST";
+
         return "DEFAULT";
     }
 
