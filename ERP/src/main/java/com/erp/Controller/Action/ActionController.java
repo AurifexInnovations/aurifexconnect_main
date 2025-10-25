@@ -14,7 +14,7 @@ import java.util.List;
 
 @RestController
 @RequiredArgsConstructor
-@RequestMapping("api/v1/action")
+@RequestMapping("api/v1/admin/action")
 public class ActionController {
 
     private final ActionService actionService;
