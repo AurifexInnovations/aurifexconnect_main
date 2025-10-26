@@ -189,4 +189,16 @@ public class RoleActionPermissionService {
         return rolesActionPermission;
     }
 
+    public List<RolesActionPermission> getRoleActionPermissionByRoleName(String roleName){
+        log.info("Into [RoleActionPermissionService] [getRoleActionPermissionByRoleName]");
+
+        log.info("[RoleActionPermissionService] [getRoleActionPermissionByRoleName] :: RoleName :: {} " , roleName);
+
+        List<RolesActionPermission> rolesActionPermissions =
+                roleActionPermissionRepository.findByRoleName(roleName);
+
+        log.info("Exit [RoleActionPermissionService] [getRoleActionPermissionByRoleName]");
+
+        return  rolesActionPermissions;
+    }
 }

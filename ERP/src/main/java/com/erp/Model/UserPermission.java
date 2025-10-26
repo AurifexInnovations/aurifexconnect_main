@@ -29,4 +29,7 @@ public class UserPermission {
 
     @Column(name = "created_at")
     private LocalDateTime createdAt;
+
+    @Column(name = "active")
+    private boolean active;
 }

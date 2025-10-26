@@ -37,4 +37,14 @@ public interface RoleActionPermissionRepository extends JpaRepository<RolesActio
 
     @Query("SELECT a.id FROM Action a WHERE a.name = :actionName")
     Optional<Long> findActionIdByName(@Param("actionName") String actionName);
+
+    @Query(value = "" +
+            " select rap from roles_action_permissions as rap " +
+            " inner join roles as r " +
+            " on rap.role_id = r.role_id  " +
+            " where rap.active = true " +
+            " and r.role_name = :roleName " , nativeQuery = true)
+    List<RolesActionPermission> findByRoleName(String roleName);
+
+
 }

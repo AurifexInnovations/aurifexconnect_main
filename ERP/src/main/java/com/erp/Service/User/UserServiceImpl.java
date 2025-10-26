@@ -13,6 +13,7 @@ import com.erp.Repository.RoleActionPermission.RoleActionPermissionRepository;
 import com.erp.Repository.User.UserRepository;
 import com.erp.Repository.UserPermission.UserPermissionRepository;
 import com.erp.Security.util.UserIdentity;
+import com.erp.Service.UserPermission.UserPermissionService;
 import jakarta.transaction.Transactional;
 import lombok.AllArgsConstructor;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -36,6 +37,8 @@ public class UserServiceImpl implements UserServices {
     RoleActionPermissionRepository roleActionPermissionRepository;
 
     UserPermissionRepository userPermissionRepository;
+
+    private final UserPermissionService userPermissionService;
 
     @Override
     @Transactional
@@ -80,28 +83,8 @@ public class UserServiceImpl implements UserServices {
             user.setRoles(attachedRoles);
             user = userRepository.save(user);
 
-            // Step 4: Assign module–action permissions
-            for (PermissionRequest permission : userRequest.getPermissions()) {
-                Long moduleId = permission.getModuleId();
-
-                for (Long actionId : permission.getActionId()) {
-                    RolesActionPermission rap = RolesActionPermission.builder()
-                            .roleId(attachedRoles.iterator().next().getRoleId())
-                            .moduleId(moduleId)
-                            .actionId(actionId)
-                            .createdAt(LocalDateTime.now())
-                            .active(true)
-                            .build();
-                    rap = roleActionPermissionRepository.save(rap);
-
-                    UserPermission userPermission = UserPermission.builder()
-                            .userId(user.getId())
-                            .roleActionPermission(rap.getId())
-                            .createdBy(currentAdmin.getId())
-                            .createdAt(LocalDateTime.now())
-                            .build();
-                    userPermissionRepository.save(userPermission);
-                }
+            for (Role role  : user.getRoles()){
+                userPermissionService.addUserPermisionBasedOnRole(user.getId() ,  role.getRoleName());
             }
 
             return userMapper.mapToUserResponse(user);
