@@ -1,5 +1,9 @@
 package com.erp.Security.Filter;
 
+import com.erp.Exception.ResourceFoundException;
+import com.erp.Exception.ResourceNotFoundException;
+import com.erp.Model.Action;
+import com.erp.Model.Module;
 import com.erp.Multitenancy.TenantContext;
 import com.erp.Repository.RoleActionPermission.RoleActionPermissionRepository;
 import com.erp.Repository.User.UserRepository;
@@ -17,12 +21,12 @@ import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
 
 import java.io.IOException;
-import java.util.List;
+import java.util.Objects;
 
 @Component
 @RequiredArgsConstructor
 @Slf4j
-public class JwtPermissionFilter extends OncePerRequestFilter {
+public class RolePermissionFilter extends OncePerRequestFilter {
 
     private final JWTService jwtService;
     private final UserPermissionRepository userPermissionRepository;
@@ -44,30 +48,57 @@ public class JwtPermissionFilter extends OncePerRequestFilter {
         return false; // otherwise filter runs normally
     }
 
+    private String getHttpStatusText(int status) {
+        switch (status) {
+            case HttpServletResponse.SC_UNAUTHORIZED:
+                return "UNAUTHORIZED";
+            case HttpServletResponse.SC_FORBIDDEN:
+                return "FORBIDDEN";
+            case HttpServletResponse.SC_NOT_FOUND:
+                return "NOT_FOUND";
+            case HttpServletResponse.SC_INTERNAL_SERVER_ERROR:
+                return "INTERNAL_SERVER_ERROR";
+            default:
+                return "ERROR";
+        }
+    }
+
+
+    private void writeJsonError(HttpServletResponse response, int status, String message) throws IOException {
+        response.setStatus(status);
+        response.setContentType("application/json");
+        response.setCharacterEncoding("UTF-8");
+
+        String jsonResponse = String.format(
+                "{\"status\": %d, \"error\": \"%s\", \"message\": \"%s\"}",
+                status,
+                getHttpStatusText(status),
+                message.replace("\"", "'")
+        );
+
+        response.getWriter().write(jsonResponse);
+    }
+
 
     @Override
     protected void doFilterInternal(HttpServletRequest request,
                                     HttpServletResponse response,
-                                    FilterChain filterChain) throws ServletException, IOException {
+                                    FilterChain filterChain) throws  IOException {
 
         log.info("JwtPermissionFilter invoked for: {}", request.getRequestURI());
 
         try {
-            String moduleId = request.getHeader("moduleId");
-            String actionId = request.getHeader("actionId");
 
 
             String token = extractToken(request);
             if (token == null) {
-                response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
-                response.getWriter().write("No token provided");
+                writeJsonError(response, HttpServletResponse.SC_UNAUTHORIZED, "No token provided");
                 return;
             }
 
             var claims = jwtService.parseToken(token);
             if (jwtService.isTokenExpired(token)) {
-                response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
-                response.getWriter().write("Token expired, please login again");
+                writeJsonError(response, HttpServletResponse.SC_UNAUTHORIZED, "Token expired, please login again");
                 return;
             }
 
@@ -75,48 +106,62 @@ public class JwtPermissionFilter extends OncePerRequestFilter {
             String schemaName = claims.get(ClaimName.SCHEMA_NAME, String.class);
 
             if (email == null || schemaName == null || email.isBlank() || schemaName.isBlank()) {
-                response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
-                response.getWriter().write("Invalid token");
+                writeJsonError(response, HttpServletResponse.SC_UNAUTHORIZED, "Invalid token");
                 return;
             }
 
-
-
-            // Fetch user for permission check
             var user = userRepository.findByEmail(email)
-                    .orElseThrow(() -> new RuntimeException("User not found: " + email));
-            Long userId = user.getId();
+                    .orElseThrow(() -> new ResourceNotFoundException("User not found: " + email));
 
+            Long userId = user.getId();
             TenantContext.setCurrentTenant(user.getSchemaName());
 
-//            String module = resolveModuleFromRequest(request);
-//            String action = resolveActionFromRequest(request);
+            String moduleIdHeader = request.getHeader("moduleId");
+            String actionIdHeader = request.getHeader("actionId");
 
-//            Long moduleId = roleActionPermissionRepository.findModuleIdByName(module)
-//                    .orElseThrow(() -> new RuntimeException("Module not found: " + module));
-//            Long actionId = roleActionPermissionRepository.findActionIdByName(action)
-//                    .orElseThrow(() -> new RuntimeException("Action not found: " + action));
+            long moduleId = (moduleIdHeader != null && !moduleIdHeader.isBlank())
+                    ? Long.parseLong(moduleIdHeader)
+                    : 0L;
 
-            boolean hasPermission = userPermissionRepository.hasUserPermission(userId, Long.parseLong(moduleId), Long.parseLong(actionId));
+            long actionId = (actionIdHeader != null && !actionIdHeader.isBlank())
+                    ? Long.parseLong(actionIdHeader)
+                    : 0L;
+
+
+            Module module = roleActionPermissionRepository.findModuleId((moduleId));
+            if (Objects.isNull(module)) {
+                writeJsonError(response, HttpServletResponse.SC_NOT_FOUND, "Module not found for this user");
+                return;
+            }
+
+            Action action = roleActionPermissionRepository.findActionId((actionId));
+            if (Objects.isNull(action)) {
+                writeJsonError(response, HttpServletResponse.SC_NOT_FOUND, "Action not found for this user");
+                return;
+            }
+
+            boolean hasPermission = userPermissionRepository
+                    .hasUserPermission(userId, moduleId, (actionId));
+
             if (!hasPermission) {
-                response.setStatus(HttpServletResponse.SC_FORBIDDEN);
-                response.getWriter().write("You do not have permission: " + Long.parseLong(moduleId) + " / " + Long.parseLong(actionId));
+                writeJsonError(response, HttpServletResponse.SC_FORBIDDEN,
+                        "You do not have permission: " + module.getName() + " / " + action.getName());
                 return;
             }
 
             filterChain.doFilter(request, response);
         } catch (RuntimeException e) {
             log.error("Runtime exception in JwtPermissionFilter: {}", e.getMessage(), e);
-            response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
-            response.getWriter().write("Internal Server Error: " + e.getMessage());
+            writeJsonError(response, HttpServletResponse.SC_INTERNAL_SERVER_ERROR,
+                    "Internal Server Error: " + e.getMessage());
         } catch (Exception e) {
             log.error("Unexpected error in JwtPermissionFilter: {}", e.getMessage(), e);
-            response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
-            response.getWriter().write("Unexpected error occurred");
+            writeJsonError(response, HttpServletResponse.SC_INTERNAL_SERVER_ERROR, "Unexpected error occurred");
         } finally {
             TenantContext.clear();
         }
     }
+
 
     private String extractToken(HttpServletRequest request) {
         String authHeader = request.getHeader("Authorization");

@@ -5,7 +5,7 @@ import com.erp.Meta.MetaAdminRepository;
 import com.erp.Multitenancy.TenantContextHolder;
 import com.erp.Repository.Rootuser.RootUserRepository;
 import com.erp.Security.Filter.AuthFilter;
-import com.erp.Security.Filter.JwtPermissionFilter;
+import com.erp.Security.Filter.RolePermissionFilter;
 import com.erp.Security.Filter.RefreshAuthFilter;
 import com.erp.Security.Filter.TokenBlackListService;
 import com.erp.Security.JWT.JWTService;
@@ -53,7 +53,7 @@ public class SecurityConfig {
     private final UserRepositoryRegistry userRepositoryRegistry;
     private final MetaAdminRepository metaAdminRepository;
     private final RootUserRepository rootUserRepository;
-    private final JwtPermissionFilter jwtPermissionFilter; // ✅ Injected
+    private final RolePermissionFilter jwtPermissionFilter; // ✅ Injected
 
     @Bean
     public PasswordEncoder passwordEncoder() {
