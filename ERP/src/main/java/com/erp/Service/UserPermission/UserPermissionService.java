@@ -1,5 +1,6 @@
 package com.erp.Service.UserPermission;
 
+import com.erp.Exception.ResourceNotFoundException;
 import com.erp.Model.RolesActionPermission;
 import com.erp.Model.UserPermission;
 import com.erp.Repository.UserPermission.UserPermissionRepository;
@@ -8,6 +9,7 @@ import com.erp.Service.RoleActionPermission.RoleActionPermissionService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
 import java.util.ArrayList;
@@ -19,9 +21,7 @@ import java.util.List;
 public class UserPermissionService {
 
     private final RoleActionPermissionService roleActionPermissionService;
-
     private final UserPermissionRepository userPermissionRepository;
-
     private final UserIdentity userIdentity;
 
     public void addUserPermisionBasedOnRole(long userId, String roleName){
@@ -36,6 +36,22 @@ public class UserPermissionService {
         log.info("Exit [UserPermissionService] [addUserPermisionBasedOnRole]");
     }
 
+    @Transactional
+    public void deleteUserPermissionByIds(List<Long> userPermissionIds){
+        log.info("Into [UserPermissionService] [deleteUserPermissionByIds]");
+
+        log.info("[UserPermissionService] [deleteUserPermissionByIds] :: UserPermissionIds :: {} " , userPermissionIds);
+
+        int noOfRowsUpdated =  userPermissionRepository.deactiveUserPermissionByIds(userPermissionIds);
+
+        if(noOfRowsUpdated != userPermissionIds.size()){
+            throw new ResourceNotFoundException("Some data is not able to deactivate please check it");
+        }
+
+        log.info("Exit [UserPermissionService] [deleteUserPermissionByIds]");
+
+
+    }
 
     private void saveUserPermissionData(List<RolesActionPermission> rolesActionPermissions , long userId){
         log.info("Into [UserPermissionService] [saveUserPermissionData] ");
