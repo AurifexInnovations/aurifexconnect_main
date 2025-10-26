@@ -1,6 +1,7 @@
 package com.erp.Repository.RoleActionPermission;
 
 import com.erp.Model.Action;
+import com.erp.Model.Module;
 import com.erp.Model.RolesActionPermission;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Modifying;
@@ -33,14 +34,14 @@ public interface RoleActionPermissionRepository extends JpaRepository<RolesActio
     Optional<RolesActionPermission> findByRoleIdAndModuleIdAndActionId(Long roleId, Long moduleId, Long actionId);
 
 
-    @Query("select *  from modules  where id =:moduleId and active = true")
+    @Query(value = "select *  from modules  where id =:moduleId and active = true",nativeQuery = true)
     Module findModuleId(@Param("moduleId") Long moduleId);
 
-    @Query("select *  from actions where id =:actionId and active = true")
+    @Query(value = "select *  from actions where id =:actionId and active = true",nativeQuery = true)
     Action findActionId(@Param("actionId") Long actionId);
 
     @Query(value = "" +
-            " select rap from roles_action_permissions as rap " +
+            " select  rap.* from roles_action_permissions as rap " +
             " inner join roles as r " +
             " on rap.role_id = r.role_id  " +
             " where rap.active = true " +

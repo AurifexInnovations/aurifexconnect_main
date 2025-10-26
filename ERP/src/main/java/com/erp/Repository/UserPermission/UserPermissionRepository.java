@@ -11,7 +11,7 @@ import java.util.List;
 
 public interface UserPermissionRepository extends JpaRepository<UserPermission, Long> {
 
-    @Query("SELECT up FROM UserPermission up WHERE up.userId = :userId and " )
+    @Query("SELECT up FROM UserPermission up WHERE up.userId = :userId ")
     List<UserPermission> findByUserId(Long userId);
 
 
