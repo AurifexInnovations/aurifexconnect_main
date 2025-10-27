@@ -1,8 +1,13 @@
 package com.erp.Service.UserPermission;
 
+import com.erp.Dto.Request.ActionDto;
+import com.erp.Dto.Request.ModuleDto;
+import com.erp.Dto.Response.RoleModleActionPermisisonResponse;
+import com.erp.Dto.Response.RoleResponse;
 import com.erp.Exception.ResourceNotFoundException;
 import com.erp.Model.RolesActionPermission;
 import com.erp.Model.UserPermission;
+import com.erp.Projection.RoleModuleActionProjection;
 import com.erp.Repository.UserPermission.UserPermissionRepository;
 import com.erp.Security.util.UserIdentity;
 import com.erp.Service.RoleActionPermission.RoleActionPermissionService;
@@ -78,6 +83,81 @@ public class UserPermissionService {
         log.info("Exit [UserPermissionService] [saveUserPermissionData]");
     }
 
+
+    public List<RoleModleActionPermisisonResponse> getUserPermissions() {
+        List<RoleModleActionPermisisonResponse> responseList = new ArrayList<>();
+
+        try {
+            Long userId = userIdentity.getCurrentUser().getId();
+            log.info("Fetching permissions for userId: {}", userId);
+
+            List<RoleModuleActionProjection> results = userPermissionRepository.findRoleModuleActionPermissionsByUserId(userId);
+            log.info("Fetched {} permission records for userId: {}", results.size(), userId);
+
+            responseList = results.stream()
+                    .map(this::mapToResponse)
+                    .toList();
+
+            log.info("Mapped all permissions successfully for userId: {}", userId);
+        } catch (Exception e) {
+            log.error("Error while fetching or mapping user permissions: {}", e.getMessage(), e);
+        }
+
+        return responseList;
+    }
+
+    private RoleModleActionPermisisonResponse mapToResponse(RoleModuleActionProjection p) {
+        try {
+            RoleModleActionPermisisonResponse response = new RoleModleActionPermisisonResponse();
+            response.setUserPermissonId(p.getUserPermissionId());
+            response.setRoleModulePermissionId(p.getRoleModulePermissionId());
+            response.setRole(mapRole(p));
+            response.setModule(mapModule(p));
+            response.setAction(mapAction(p));
+
+            log.info("Mapped RoleModuleActionProjection with ID: {}", p.getUserPermissionId());
+            return response;
+        } catch (Exception e) {
+            log.error("Error mapping RoleModuleActionProjection: {}", e.getMessage(), e);
+            return null;
+        }
+    }
+
+    private RoleResponse mapRole(RoleModuleActionProjection p) {
+        try {
+            RoleResponse role = new RoleResponse();
+            role.setRoleId(p.getRoleId());
+            role.setRoleName(p.getRoleName());
+            return role;
+        } catch (Exception e) {
+            log.error("Error mapping Role for projection ID {}: {}", p.getUserPermissionId(), e.getMessage(), e);
+            return null;
+        }
+    }
+
+    private ModuleDto mapModule(RoleModuleActionProjection p) {
+        try {
+            ModuleDto module = new ModuleDto();
+            module.setId(p.getModule().getId());
+            module.setName(p.getModule().getName());
+            return module;
+        } catch (Exception e) {
+            log.error("Error mapping Module for projection ID {}: {}", p.getUserPermissionId(), e.getMessage(), e);
+            return null;
+        }
+    }
+
+    private ActionDto mapAction(RoleModuleActionProjection p) {
+        try {
+            ActionDto action = new ActionDto();
+            action.setId(p.getAction().getId());
+            action.setName(p.getAction().getName());
+            return action;
+        } catch (Exception e) {
+            log.error("Error mapping Action for projection ID {}: {}", p.getUserPermissionId(), e.getMessage(), e);
+            return null;
+        }
+    }
 
 
 }

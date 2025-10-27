@@ -1,6 +1,7 @@
 package com.erp.Repository.UserPermission;
 
 import com.erp.Model.UserPermission;
+import com.erp.Projection.RoleModuleActionProjection;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
@@ -33,4 +34,25 @@ public interface UserPermissionRepository extends JpaRepository<UserPermission, 
             nativeQuery = true
     )
     int deactiveUserPermissionByIds(@Param("ids") List<Long> ids);
+
+
+    @Query(value = """
+    SELECT 
+        up.id AS userPermissionId,
+        rpm.id AS roleModulePermissionId,
+        r.id AS roleId,
+        r.role_name AS roleName,
+        m.id AS moduleId,
+        m.module_name AS moduleName,
+        a.id AS actionId,
+        a.action_name AS actionName
+    FROM user_permissions up
+    JOIN role_module_permission rpm ON up.role_action_id = rpm.id
+    JOIN roles r ON rpm.role_id = r.id
+    JOIN modules m ON rpm.module_id = m.id
+    JOIN actions a ON rpm.action_id = a.id
+    WHERE up.user_id = :userId
+""", nativeQuery = true)
+    List<RoleModuleActionProjection> findRoleModuleActionPermissionsByUserId(@Param("userId") Long userId);
+
 }
