@@ -19,6 +19,7 @@ import org.springframework.transaction.annotation.Transactional;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 
 @Service
 @RequiredArgsConstructor
@@ -96,6 +97,7 @@ public class UserPermissionService {
 
             responseList = results.stream()
                     .map(this::mapToResponse)
+                    .filter(Objects::nonNull)
                     .toList();
 
             log.info("Mapped all permissions successfully for userId: {}", userId);
@@ -107,56 +109,38 @@ public class UserPermissionService {
     }
 
     private RoleModleActionPermisisonResponse mapToResponse(RoleModuleActionProjection p) {
-        try {
-            RoleModleActionPermisisonResponse response = new RoleModleActionPermisisonResponse();
-            response.setUserPermissonId(p.getUserPermissionId());
-            response.setRoleModulePermissionId(p.getRoleModulePermissionId());
-            response.setRole(mapRole(p));
-            response.setModule(mapModule(p));
-            response.setAction(mapAction(p));
+        if (p == null) return null;
 
-            log.info("Mapped RoleModuleActionProjection with ID: {}", p.getUserPermissionId());
-            return response;
-        } catch (Exception e) {
-            log.error("Error mapping RoleModuleActionProjection: {}", e.getMessage(), e);
-            return null;
-        }
+        RoleModleActionPermisisonResponse response = new RoleModleActionPermisisonResponse();
+        response.setUserPermissonId(p.getUserPermissionId());
+        response.setRoleModulePermissionId(p.getRoleModulePermissionId());
+        response.setRole(mapRole(p));
+        response.setModule(mapModule(p));
+        response.setAction(mapAction(p));
+
+        return response;
     }
 
     private RoleResponse mapRole(RoleModuleActionProjection p) {
-        try {
-            RoleResponse role = new RoleResponse();
-            role.setRoleId(p.getRoleId());
-            role.setRoleName(p.getRoleName());
-            return role;
-        } catch (Exception e) {
-            log.error("Error mapping Role for projection ID {}: {}", p.getUserPermissionId(), e.getMessage(), e);
-            return null;
-        }
+        RoleResponse role = new RoleResponse();
+        role.setRoleId(p.getRoleId());
+        role.setRoleName(p.getRoleName());
+        return role;
     }
 
     private ModuleDto mapModule(RoleModuleActionProjection p) {
-        try {
-            ModuleDto module = new ModuleDto();
-            module.setId(p.getModule().getId());
-            module.setName(p.getModule().getName());
-            return module;
-        } catch (Exception e) {
-            log.error("Error mapping Module for projection ID {}: {}", p.getUserPermissionId(), e.getMessage(), e);
-            return null;
-        }
+        ModuleDto module = new ModuleDto();
+        module.setId(p.getModuleId());      // ✅ Changed
+        module.setName(p.getModuleName());  // ✅ Changed
+        return module;
     }
 
     private ActionDto mapAction(RoleModuleActionProjection p) {
-        try {
-            ActionDto action = new ActionDto();
-            action.setId(p.getAction().getId());
-            action.setName(p.getAction().getName());
-            return action;
-        } catch (Exception e) {
-            log.error("Error mapping Action for projection ID {}: {}", p.getUserPermissionId(), e.getMessage(), e);
-            return null;
-        }
+        ActionDto action = new ActionDto();
+        action.setId(p.getActionId());      // ✅ Changed
+        action.setName(p.getActionName());
+        action.setDescription(p.getDescription());// ✅ Changed
+        return action;
     }
 
 

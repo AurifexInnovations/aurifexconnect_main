@@ -34,7 +34,7 @@ CREATE TABLE user_permissions (
     role_action_id BIGINT NOT NULL,
     created_by BIGINT,
      active BOOLEAN,
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-    CONSTRAINT unique_role_module_action UNIQUE (user_id, role_action_id)
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    CONSTRAINT unique_user_permissions UNIQUE (user_id, role_action_id)
 
 );

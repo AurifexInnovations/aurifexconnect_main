@@ -13,7 +13,7 @@ import java.util.List;
 
 @RestController
 @RequiredArgsConstructor
-@RequestMapping("/api/v1/user/permission")
+@RequestMapping("/api/v1/admin/user/permission")
 @Slf4j
 public class UserPermissionController {
 

@@ -37,21 +37,21 @@ public interface UserPermissionRepository extends JpaRepository<UserPermission, 
 
 
     @Query(value = """
-    SELECT 
-        up.id AS userPermissionId,
-        rpm.id AS roleModulePermissionId,
-        r.id AS roleId,
-        r.role_name AS roleName,
-        m.id AS moduleId,
-        m.module_name AS moduleName,
-        a.id AS actionId,
-        a.action_name AS actionName
-    FROM user_permissions up
-    JOIN role_module_permission rpm ON up.role_action_id = rpm.id
-    JOIN roles r ON rpm.role_id = r.id
-    JOIN modules m ON rpm.module_id = m.id
-    JOIN actions a ON rpm.action_id = a.id
-    WHERE up.user_id = :userId
+            SELECT 
+                up.id AS userPermissionId,
+                rpm.id AS roleModulePermissionId,
+                r.role_id AS roleId,
+                r.role_name AS roleName,
+                m.id AS moduleId,
+                m.name AS moduleName,
+                a.id AS actionId,
+                a.name AS actionName,a.description as description
+            FROM user_permissions up
+            JOIN roles_action_permissions rpm ON up.role_action_id = rpm.id
+            JOIN roles r ON rpm.role_id = r.role_id
+            JOIN modules m ON rpm.module_id = m.id
+            JOIN actions a ON rpm.action_id = a.id
+            WHERE up.user_id =:userId 
 """, nativeQuery = true)
     List<RoleModuleActionProjection> findRoleModuleActionPermissionsByUserId(@Param("userId") Long userId);
 
