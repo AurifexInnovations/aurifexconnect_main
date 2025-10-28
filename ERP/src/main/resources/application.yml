@@ -95,3 +95,7 @@ aws:
   secretKey: 'T7njxOfAV2tgbaIG1uWOIUMtNxqgnJD9In7by7YV'
   s3:
     bucket: 'demobuchetbm'
+
+razorpay:
+  key_id: "your_key_id_here"
+  key_secret: "your_key_secret_here"
