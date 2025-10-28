@@ -1,22 +1,22 @@
 package com.erp.Model;
 
+import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 import com.erp.Enum.IndustryType;
 import com.erp.Enum.ReviewStatus;
-import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
-import lombok.*;
-import org.springframework.data.jpa.domain.AbstractAuditable;
-import org.springframework.data.jpa.domain.support.AuditingEntityListener;
-
+import lombok.AllArgsConstructor;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
 import java.util.List;
 
 @NoArgsConstructor
 @AllArgsConstructor
 @Entity
-@Table(name = "company_details")
-@EntityListeners(AuditingEntityListener.class)
 @Getter
 @Setter
+@Table(name = "company_details")
+@EntityListeners(AuditingEntityListener.class)
 public class CompanyDetails extends BaseEntity {
 
     @Column(name = "name")
@@ -48,7 +48,9 @@ public class CompanyDetails extends BaseEntity {
     @Column(name = "reviewed_by")
     private String reviewedBy;
 
-    @OneToMany(mappedBy = "companyDetails")
+    @OneToMany(mappedBy = "companyDetails",
+            cascade = CascadeType.ALL,
+            orphanRemoval = true)
     private List<DocumentDetails> documentDetails;
 
 }

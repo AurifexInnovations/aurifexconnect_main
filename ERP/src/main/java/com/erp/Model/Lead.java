@@ -11,18 +11,11 @@ import java.time.LocalDateTime;
 @NoArgsConstructor
 @AllArgsConstructor
 @Entity
-@Table(name = "lead_details")
-@EntityListeners(AuditingEntityListener.class)
 @Getter
 @Setter
-@EqualsAndHashCode(onlyExplicitlyIncluded = true)
-public class Lead extends AbstractAuditable<Admin, Long> {
-
-    @Id
-    @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "lead_details_seq_gen")
-    @SequenceGenerator(name = "lead_details_seq_gen", sequenceName = "lead_details_seq", allocationSize = 1)
-    @Column(name = "id")
-    private Long id;
+@Table(name = "lead_details")
+@EntityListeners(AuditingEntityListener.class)
+public class Lead extends BaseEntity {
 
     @Column(name = "name")
     private String name;
