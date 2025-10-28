@@ -10,8 +10,8 @@ CREATE TABLE IF NOT EXISTS lead_details (
     engagement VARCHAR(255),
     next_follow_up_date TIMESTAMP,
     comments TEXT,
-    createdby_id BIGINT,
-    createddate TIMESTAMP,
-    lastmodifiedby_id BIGINT,
-    lastmodifieddate TIMESTAMP
+    created_by BIGINT,
+    created_date TIMESTAMP,
+    last_modified_by BIGINT,
+    last_modified_date TIMESTAMP
 );

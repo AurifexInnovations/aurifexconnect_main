@@ -24,7 +24,7 @@ public class DocumentDetails {
     @Column(name = "document_url", columnDefinition = "TEXT")
     private String documentUrl;
 
-    @ManyToOne
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "company_details_id")
     private CompanyDetails companyDetails;
 }

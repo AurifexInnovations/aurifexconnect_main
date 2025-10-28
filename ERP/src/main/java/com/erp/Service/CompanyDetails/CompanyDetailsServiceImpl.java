@@ -18,11 +18,8 @@ import java.util.Optional;
 @Slf4j
 public class CompanyDetailsServiceImpl implements CompanyDetailsService {
 
-    private static final String COMPANY_DETAILS_NOT_FOUND = "CompanyDetails not found with id: ";
-
     private final CompanyDetailsRepository companyDetailsRepository;
     private final CompanyDetailsMapper companyDetailsMapper;
-    private final DocumentDetailsService documentDetailsService;
 
     @Override
     public Optional<CompanyDetailsResponseDto> findById(final Long id) {
@@ -34,9 +31,12 @@ public class CompanyDetailsServiceImpl implements CompanyDetailsService {
     @Override
     public CompanyDetailsResponseDto saveAndUpdate(final CompanyDetailsRequestDto companyDetailsDto) {
         log.info("Into [CompanyDetailsService] [saveAndUpdate] - Starting to add/update company details");
-
         try {
             CompanyDetails newEntity = companyDetailsMapper.toEntity(companyDetailsDto);
+            if (newEntity.getDocumentDetails() != null) {
+                newEntity.getDocumentDetails().
+                        forEach(doc -> doc.setCompanyDetails(newEntity));
+            }
             CompanyDetails savedEntity = companyDetailsRepository.save(newEntity);
             return companyDetailsMapper.toResponseDto(savedEntity);
         } catch (Exception e) {
