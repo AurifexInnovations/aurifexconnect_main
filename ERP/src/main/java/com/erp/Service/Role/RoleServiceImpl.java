@@ -54,5 +54,10 @@ public class RoleServiceImpl implements RoleServices{
         return new RoleResponse(role.get().getRoleId() , role.get().getRoleName());
     }
 
+    @Override
+    public List<Long> getRoleByRoleName(List<String> roleNames) {
+        return roleRepository.findIdByRoleNames(roleNames);
+    }
+
 
 }

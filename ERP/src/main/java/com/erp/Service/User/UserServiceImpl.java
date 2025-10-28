@@ -21,6 +21,7 @@ import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
 import java.util.*;
+import java.util.stream.Collectors;
 
 @Service
 @AllArgsConstructor
@@ -105,6 +106,7 @@ public class UserServiceImpl implements UserServices {
         return userMapper.mapToListOfUserResponse(users);
     }
 
+    @Transactional
     @Override
     public UserResponse updateUserById(UserUpdateRequest userUpdateRequest) throws Exception{
 
@@ -146,7 +148,12 @@ public class UserServiceImpl implements UserServices {
         user.setRoles(updatedRoles);
         userRepository.save(user);
 
-        updateUserModuleActionPermissions(user, updatedRoles, userUpdateRequest.getPermissions(), currentAdmin);
+        List<String> roleNames =
+            userUpdateRequest.getRoles().stream().map(RoleRequest::getRoleName).collect(Collectors.toList());
+
+        userPermissionService.updateUserRolePermissionByRoleName(roleNames , user.getId());
+
+//        updateUserModuleActionPermissions(user, updatedRoles, userUpdateRequest.getPermissions(), currentAdmin);
         return userMapper.mapToUserResponse(user);
 
     }

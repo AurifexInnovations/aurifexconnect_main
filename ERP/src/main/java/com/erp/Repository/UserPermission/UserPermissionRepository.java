@@ -55,4 +55,38 @@ public interface UserPermissionRepository extends JpaRepository<UserPermission, 
 """, nativeQuery = true)
     List<RoleModuleActionProjection> findRoleModuleActionPermissionsByUserId(@Param("userId") Long userId);
 
+    @Modifying
+    @Transactional
+    @Query(value = "UPDATE user_permissions up " +
+            "SET active = false " +
+            "FROM roles_action_permissions rap " +
+            "WHERE up.role_action_id = rap.id " +
+            "  AND rap.role_id = :roleId           " +
+            "  AND up.user_id = :userId           " +
+            "  AND rap.active = false " +
+            "  AND up.active = true; " , nativeQuery = true)
+    void updateUserPermissionByUserRoleIdAndRoleId(long roleId , long userId);
+
+    @Modifying
+    @Transactional
+    @Query(value =
+            "INSERT INTO user_permissions " +
+            "    (user_id, role_action_id, created_by, active, created_at) " +
+            "SELECT  " +
+            "    :userId , " +
+            "    rap.id, " +
+            "    :createdBy ,  " +
+            "    true, " +
+            "    NOW() " +
+            "FROM roles_action_permissions rap\n" +
+            "WHERE rap.role_id = :roleId " +
+            "  AND rap.active = true " +
+            "  AND rap.id NOT IN ( " +
+            "      SELECT up.role_action_id" +
+            "      FROM user_permissions up " +
+            "      WHERE up.user_id = :userId " +
+            "       AND up.active = true " +
+            "  ) " +
+            "ON CONFLICT (user_id, role_action_id) DO NOTHING; " , nativeQuery = true)
+    void insertUserPermission(long roleId , long userId , long createdBY);
 }

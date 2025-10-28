@@ -10,6 +10,7 @@ import com.erp.Model.UserPermission;
 import com.erp.Projection.RoleModuleActionProjection;
 import com.erp.Repository.UserPermission.UserPermissionRepository;
 import com.erp.Security.util.UserIdentity;
+import com.erp.Service.Role.RoleServices;
 import com.erp.Service.RoleActionPermission.RoleActionPermissionService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -29,6 +30,8 @@ public class UserPermissionService {
     private final RoleActionPermissionService roleActionPermissionService;
     private final UserPermissionRepository userPermissionRepository;
     private final UserIdentity userIdentity;
+
+    private final RoleServices roleServices;
 
     public void addUserPermisionBasedOnRole(long userId, String roleName){
         log.info("Into [UserPermissionService] [addUserPermisionBasedOnRole]");
@@ -106,6 +109,48 @@ public class UserPermissionService {
         }
 
         return responseList;
+    }
+
+    public void updateUserRolePermissionByRoleName(List<String> roleNames , long userId){
+        log.info("Into [UserPermissionService] [updateUserRolePermissionByRoleName]");
+
+        log.info("[UserPermissionService] [updateUserRolePermissionByRoleName] :: roleNames {} :: userId :: {}  "
+                , roleNames , userId );
+
+        if(roleNames.isEmpty()){
+            return;
+        }
+
+        List<Long> roleIds = roleServices.getRoleByRoleName(roleNames);
+
+        for (Long roleId : roleIds){
+            updateUserByUserIdAndRoleId(roleId  , userId);
+            insertUserPermissionByUserIdAndRoleId(roleId , userId , userIdentity.getCurrentUser().getId());
+        }
+
+        log.info("Exit [UserPermissionService] [updateUserRolePermissionByRoleName]");
+    }
+
+    private void updateUserByUserIdAndRoleId(long roleId , long userId){
+        log.info("Into [UserPermissionService] [updateUserByUserIdAndRoleId]");
+
+        log.info("[UserPermissionService] [updateUserByUserIdAndRoleId] :: roleId {} :: userId {} :: " ,
+                    roleId , userId);
+
+        userPermissionRepository.updateUserPermissionByUserRoleIdAndRoleId(roleId , userId);
+
+        log.info("Exit [UserPermissionService] [updateUserByUserIdAndRoleId]");
+
+    }
+    private void insertUserPermissionByUserIdAndRoleId(long roleId , long userId , long createdBy){
+        log.info("Into [UserPermissionService] [insertUserPermissionByUserIdAndRoleId]");
+
+        log.info("[UserPermissionService] [insertUserPermissionByUserIdAndRoleId] :: roleId {} ::  userId {} :: createdBy {} ::  ",
+                    roleId , userId , createdBy);
+
+        userPermissionRepository.insertUserPermission(roleId , userId , createdBy);
+
+        log.info("Exit [UserPermissionService] [insertUserPermissionByUserIdAndRoleId]");
     }
 
     private RoleModleActionPermisisonResponse mapToResponse(RoleModuleActionProjection p) {
