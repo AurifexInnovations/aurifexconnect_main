@@ -13,6 +13,7 @@ import java.time.LocalDateTime;
 @Getter
 @Setter
 @EntityListeners(AuditingEntityListener.class)
+@Table(name = "stocktransfer")
 public class StockTransfer {
 
     @Id
@@ -21,10 +22,13 @@ public class StockTransfer {
     private long id;
 
     @ManyToOne
+    @JoinColumn(name = "from_branch_id")  // match your DB column
     private Branch fromBranch;
 
     @ManyToOne
+    @JoinColumn(name = "to_branch_id")    // match your DB column
     private Branch toBranch;
+
 
     @ManyToOne
     private Inventory inventory;

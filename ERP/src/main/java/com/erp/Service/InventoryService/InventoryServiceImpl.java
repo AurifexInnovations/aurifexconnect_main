@@ -9,6 +9,7 @@ import com.erp.Dto.Response.ResultDto;
 import com.erp.Dto.Response.StockValueResponse;
 import com.erp.Exception.Branch_Exception.BranchNotFoundException;
 import com.erp.Exception.Inventory_Exception.InventoryNotFoundException;
+import com.erp.Exception.ResourceNotFoundException;
 import com.erp.Mapper.Inventory.InventoryMapper;
 import com.erp.Model.Branch;
 import com.erp.Model.Inventory;
@@ -41,7 +42,7 @@ public class InventoryServiceImpl implements InventoryService {
     @Override
     public InventoryResponse addItem(InventoryRequest inventoryRequest) {
         Branch branch = branchRepository.findById(inventoryRequest.getBranchAndInventoryId())
-                .orElseThrow(() -> new BranchNotFoundException("Branch Not Found, Invalid Id"));
+                .orElseThrow(() -> new ResourceNotFoundException("Branch Not Found, Invalid Id"));
 
         Inventory inventory = inventoryMapper.mapToInventory(inventoryRequest);
         List<Tax> taxes = inventoryRequest.getApplicableTaxNames().stream()

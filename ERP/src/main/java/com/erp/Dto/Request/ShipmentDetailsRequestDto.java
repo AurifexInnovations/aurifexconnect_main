@@ -11,8 +11,8 @@ import java.time.LocalDateTime;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-public class ShipmentDetailsRequestDto {
-
+public class ShipmentDetailsRequestDto
+{
     private Long shipmentId;
     private ShipmentReferenceType referenceType;
     private Long referenceId;
@@ -28,5 +28,4 @@ public class ShipmentDetailsRequestDto {
     private LocalDateTime actualDeliveryDate;
     private ShipmentStatus shipmentStatus;
     private String remarks;
-
 }
