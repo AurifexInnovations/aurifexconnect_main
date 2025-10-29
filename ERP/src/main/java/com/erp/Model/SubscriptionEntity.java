@@ -13,8 +13,8 @@ import java.time.LocalDate;
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-public class SubscriptionEntity {
-
+public class SubscriptionEntity
+{
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "subscriptionid")
@@ -32,6 +32,9 @@ public class SubscriptionEntity {
     @Column(name = "planstartdate")
     private LocalDate planStartDate;
 
+    @Column(name = "accountuser")
+    private String accountUser;
+
     @Column(name = "planenddate")
     private LocalDate planEndDate;
 
@@ -44,29 +47,13 @@ public class SubscriptionEntity {
     @Column(name = "paymentstatus", length = 20)
     private String paymentStatus;
 
+//    @Column(name = "paymentid")
+//    private String paymentTransactionId;
     @Column(name = "paymentid")
-    private String paymentTransactionId;
+    private String paymentId;
 
     @Column(name = "activeYn", length = 1)
     private String activeYn;
-
-    @Column(name = "createdby", length = 100)
-    private String createdBy;
-
-    @Column(name = "createdon")
-    private Timestamp createdOn;
-
-    @Column(name = "updatedby", length = 100)
-    private String updatedBy;
-
-    @Column(name = "updatedon")
-    private Timestamp updatedOn;
-
-    @Column(name = "deletedby", length = 100)
-    private String deletedBy;
-
-    @Column(name = "deletedon")
-    private Timestamp deletedOn;
 
 //    @ManyToOne
 //    @JoinColumn(name = "branchcode", referencedColumnName = "branchcode", insertable = false, updatable = false)

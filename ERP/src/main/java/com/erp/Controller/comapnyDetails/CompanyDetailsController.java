@@ -19,7 +19,8 @@ import org.springframework.web.bind.annotation.*;
 @AllArgsConstructor
 @RequestMapping("/company")
 @Tag(name = "Company Creation", description = "API Endpoints for Company Creation")
-public class CompanyDetailsController {
+public class CompanyDetailsController
+{
     private final CompanyDetailsService service;
 
     @GetMapping
@@ -31,7 +32,8 @@ public class CompanyDetailsController {
                     @ApiResponse(responseCode = "400", description = "Invalid request data")
             }
     )
-    public ResponseEntity<CompanyDetailsResponseDto> getById(@RequestParam final String id) {
+    public ResponseEntity<CompanyDetailsResponseDto> getById(@RequestParam final String id)
+    {
         return service.findById(Long.valueOf(id))
                 .map(ResponseEntity::ok)
                 .orElse(ResponseEntity.notFound().build());

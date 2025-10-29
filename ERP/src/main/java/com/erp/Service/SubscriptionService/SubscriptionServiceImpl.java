@@ -13,8 +13,8 @@ import org.springframework.stereotype.Service;
 import java.time.LocalDate;
 
 @Service
-public class SubscriptionServiceImpl implements ISubscriptionService {
-
+public class SubscriptionServiceImpl implements ISubscriptionService
+{
     @Autowired
     private SubscriptionRepository subscriptionRepository;
 
@@ -92,10 +92,12 @@ public class SubscriptionServiceImpl implements ISubscriptionService {
             // Default to year if plan period is unrecognized
             subscriptionEntity.setPlanEndDate(LocalDate.now().plusYears(1));
         }
+
+        subscriptionEntity.setAccountUser(String.valueOf(request.getAccountUser()));
         subscriptionEntity.setBranchCode(request.getBranchCode());
         subscriptionEntity.setCompanyCode(request.getCompanyCode());
         subscriptionEntity.setPaymentStatus(request.getPaymentStatus());
-        subscriptionEntity.setPaymentTransactionId(request.getPaymentTransactionId());
+        subscriptionEntity.setPaymentId(request.getPaymentTransactionId());
         subscriptionEntity.setActiveYn("Y");
 
         SubscriptionEntity savedEntity = subscriptionRepository.save(subscriptionEntity);

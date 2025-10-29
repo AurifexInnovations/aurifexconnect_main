@@ -9,8 +9,8 @@ import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.services.s3.S3Client;
 
 @Configuration
-public class AmazonS3Config {
-
+public class AmazonS3Config
+{
     @Value("${aws.accessKeyId}")
     private String accessKey;
 

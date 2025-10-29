@@ -3,8 +3,8 @@ package com.erp.Mapper.SubscriptionModule;
 import com.erp.Dto.SubscriptionsDto.SubscriptionDto;
 import com.erp.Model.SubscriptionEntity;
 
-public class SubscriptionMapper {
-
+public class SubscriptionMapper
+{
     public static SubscriptionDto toDto(SubscriptionEntity entity) {
         SubscriptionDto dto = new SubscriptionDto();
         dto.setSubscriptionId(entity.getSubscriptionId());
@@ -16,7 +16,7 @@ public class SubscriptionMapper {
         dto.setBranchCode(entity.getBranchCode());
         dto.setCompanyCode(entity.getCompanyCode());
         dto.setPaymentStatus(entity.getPaymentStatus());
-        dto.setTransactionPaymentId(entity.getPaymentTransactionId());
+        dto.setPaymentId(entity.getPaymentId());
         dto.setActiveYn(entity.getActiveYn());
 //        dto.setCreatedBy(entity.getCreatedBy());
 //        dto.setCreatedOn(entity.getCreatedOn());
@@ -38,7 +38,7 @@ public class SubscriptionMapper {
         entity.setBranchCode(dto.getBranchCode());
         entity.setCompanyCode(dto.getCompanyCode());
         entity.setPaymentStatus(dto.getPaymentStatus());
-        entity.setPaymentTransactionId(dto.getTransactionPaymentId());
+        entity.setPaymentId(dto.getPaymentId());
         entity.setActiveYn(dto.getActiveYn());
 //        entity.setCreatedBy(dto.getCreatedBy());
 //        entity.setCreatedOn(dto.getCreatedOn());

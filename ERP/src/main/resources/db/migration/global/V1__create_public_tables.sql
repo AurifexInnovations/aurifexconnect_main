@@ -21,3 +21,18 @@ CREATE TABLE IF NOT EXISTS public.token_black_list (
     token TEXT NOT NULL UNIQUE,
     expiration BIGINT NOT NULL
 );
+
+CREATE TABLE subscription (
+    subscriptionid BIGSERIAL PRIMARY KEY,
+    userid VARCHAR(255) NOT NULL,
+    accountuser VARCHAR(255),
+    subscriptionplan VARCHAR(100) NOT NULL,
+    planperiod VARCHAR(50),
+    planstartdate DATE,
+    planenddate DATE,
+    branchcode VARCHAR(50),
+    companycode VARCHAR(50),
+    paymentstatus VARCHAR(20),
+    paymentid VARCHAR(255),
+    activeYn CHAR(1)
+);

@@ -9,18 +9,19 @@ import java.time.LocalDate;
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-public class SubscriptionDto {
-
+public class SubscriptionDto
+{
     private Long subscriptionId;
     private String userId;
     private String subscriptionPlan;
     private String planPeriod;
     private LocalDate planStartDate;
     private LocalDate planEndDate;
+    private String accountUser;
     private String branchCode;
     private String companyCode;
     private String paymentStatus;
-    private String transactionPaymentId;
+    private String paymentId;
     private String activeYn;
 //    private String createdBy;
 //    private Timestamp createdOn;

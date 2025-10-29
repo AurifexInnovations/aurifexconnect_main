@@ -37,6 +37,10 @@ public class CompanyDetailsServiceImpl implements CompanyDetailsService {
                 newEntity.getDocumentDetails().
                         forEach(doc -> doc.setCompanyDetails(newEntity));
             }
+
+            newEntity.setCreatedBy(Long.valueOf(1));               // Change according to Logged in User
+            newEntity.setLastModifiedBy(Long.valueOf(1));          // Change according to Logged in User
+
             CompanyDetails savedEntity = companyDetailsRepository.save(newEntity);
             return companyDetailsMapper.toResponseDto(savedEntity);
         } catch (Exception e) {

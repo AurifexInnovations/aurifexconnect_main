@@ -1,6 +1,6 @@
 package com.erp.Enum;
 
-public enum IndustryType {
-
+public enum IndustryType
+{
     PestControl
 }

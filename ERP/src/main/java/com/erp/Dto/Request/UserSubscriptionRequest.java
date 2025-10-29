@@ -5,14 +5,15 @@ import lombok.Setter;
 
 @Getter
 @Setter
-public class UserSubscriptionRequest {
-
+public class UserSubscriptionRequest
+{
     private String userId; // it can be anything like email or username
     private String companyCode; //its compulsory
     private String branchCode; //its optional
     private Integer totalBranches;   //---
     private Integer totalTechnicians;  //--
     private Integer totalAmount;  //--
+    private Integer accountUser;  //--
     private String paymentStatus; //--
     private String paymentMethod; //--
     private String paymentTransactionId; //--
