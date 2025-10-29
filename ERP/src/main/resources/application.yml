@@ -1,8 +1,8 @@
 spring:
   datasource:
-    url: jdbc:postgresql://c5cqb8h0eop3g3.cluster-czrs8kj4isg7.us-east-1.rds.amazonaws.com:5432/dap1rtb8vg5ktv
-    username: u75ij9h5s75m8j
-    password: p6c6add3653f5b9174fbf2b141a6fb365b7bd0d54e9564d46269dcd0e9bd7bce1
+    url: jdbc:postgresql://cee3ebbhveeoab.cluster-czrs8kj4isg7.us-east-1.rds.amazonaws.com:5432/d64jaa7o132p88
+    username: u1ucm8ohiu9dkg
+    password: p040a7e06d7c21395a6389990c402c97f91137f5704b8a6c507e97f1b25488593
     driver-class-name: org.postgresql.Driver
     hikari:
       connection-timeout: 30000
