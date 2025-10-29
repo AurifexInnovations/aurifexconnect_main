@@ -1,1 +1,1 @@
-web: java $JAVA_OPTS -Dserver.port=$PORT -jar target/seravion.jar
+web: java $JAVA_OPTS -Dserver.port=$PORT -jar target/app.jar
