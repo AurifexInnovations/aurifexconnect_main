@@ -1,6 +1,8 @@
 package com.erp.Service.ServiceType;
 
+import com.erp.CustomRepository.ServiceCustomRepository;
 import com.erp.Dto.Request.CommanParam;
+import com.erp.Dto.Request.FilterRequest;
 import com.erp.Dto.Request.ServiceRequest;
 import com.erp.Dto.Request.ServiceTypeGetRequest;
 import com.erp.Dto.Response.ResultDto;
@@ -25,6 +27,7 @@ import java.util.List;
 @Slf4j
 public class ServiceTypeImpl implements ServiceType
 {
+    private final ServiceCustomRepository serviceCustomRepository;
     private final ServiceRepository repository;
     private final ServiceMapper serviceMapper;
     private final ServiceTypeRepo serviceTypeRepo;
@@ -146,5 +149,16 @@ public class ServiceTypeImpl implements ServiceType
         ResultDto<ServiceTypeResponse>  serviceTypeResponses = serviceTypeRepo.getAllServices(request);
         log.info("[ServiceTypeImpl]  [getAllServices]  exit get all services data " );
         return serviceTypeResponses;
+    }
+
+
+    @Override
+    public ResultDto<ServiceResponse> getAllServicesByFilter(FilterRequest filterRequest)
+    {
+        ResultDto<ServiceResponse>  serviceResponses = serviceCustomRepository.getServiceDetailsFilter(filterRequest);
+
+        log.info("[ServiceTypeImpl]  [getAllServicesByFilter]  exit get all services data " );
+
+        return serviceResponses;
     }
 }

@@ -1,6 +1,7 @@
 package com.erp.Service.ServiceType;
 
 import com.erp.Dto.Request.CommanParam;
+import com.erp.Dto.Request.FilterRequest;
 import com.erp.Dto.Request.ServiceRequest;
 import com.erp.Dto.Request.ServiceTypeGetRequest;
 import com.erp.Dto.Response.ResultDto;
@@ -32,4 +33,5 @@ public interface ServiceType {
 
     public ResultDto<ServiceTypeResponse> getAllServices(ServiceTypeGetRequest request) ;
 
+    ResultDto<ServiceResponse> getAllServicesByFilter(FilterRequest filterRequest);
 }

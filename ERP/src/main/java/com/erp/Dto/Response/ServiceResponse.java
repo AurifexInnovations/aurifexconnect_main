@@ -14,11 +14,10 @@ import java.time.LocalDateTime;
 @Setter
 public class ServiceResponse
 {
+    private Long serviceId;
     private String serviceName;
     private String serviceDescription;
     private double servicePrice;
     private ServiceStatus serviceStatus;
     private ServiceCategory serviceCategory;
-    private LocalDateTime createdAt;
-    private LocalDateTime lastModifiedAt;
 }
