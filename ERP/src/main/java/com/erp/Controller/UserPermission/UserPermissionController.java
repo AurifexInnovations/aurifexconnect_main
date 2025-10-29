@@ -20,14 +20,15 @@ public class UserPermissionController {
     private final UserPermissionService userPermissionService;
 
     @DeleteMapping
-    public ResponseEntity<?> deleteUserPermission(
+    public ResponseEntity<?> deleteUserPermission(@RequestParam(required = false) Long roleId,
+                                                  @RequestParam(required = false) Long userId,
             @RequestBody List<Long> userPermissionIds) {
-        userPermissionService.deleteUserPermissionByIds(userPermissionIds);
+        userPermissionService.deleteUserPermissionByIds(roleId,userId,userPermissionIds);
         return new ResponseEntity<>(HttpStatus.OK);
     }
 
 
-    @GetMapping("/my")
+    @GetMapping
     public ResponseEntity<List<RoleModleActionPermisisonResponse>> getMyPermissions() {
         List<RoleModleActionPermisisonResponse> permissions = userPermissionService.getUserPermissions();
         return ResponseEntity.ok(permissions);

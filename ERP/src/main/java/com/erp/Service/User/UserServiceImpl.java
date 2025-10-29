@@ -164,7 +164,7 @@ public class UserServiceImpl implements UserServices {
                                                    Admin currentAdmin) {
 
         // Fetch existing user permissions
-        List<UserPermission> existingPermissions = userPermissionRepository.findByUserId(user.getId());
+        List<UserPermission> existingPermissions = userPermissionRepository. findByUserId(user.getId());
         Set<Long> newPermissionIds = new HashSet<>();
 
         for (PermissionRequest permission : permissionRequests) {

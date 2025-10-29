@@ -4,6 +4,7 @@ import com.erp.Dto.Request.ActionDto;
 import com.erp.Dto.Request.ModuleDto;
 import com.erp.Dto.Response.RoleModleActionPermisisonResponse;
 import com.erp.Dto.Response.RoleResponse;
+import com.erp.Exception.DBReltedException;
 import com.erp.Exception.ResourceNotFoundException;
 import com.erp.Model.RolesActionPermission;
 import com.erp.Model.UserPermission;
@@ -46,9 +47,13 @@ public class UserPermissionService {
     }
 
     @Transactional
-    public void deleteUserPermissionByIds(List<Long> userPermissionIds){
+    public void deleteUserPermissionByIds(Long roleId ,Long userId, List<Long> userPermissionIds){
         log.info("Into [UserPermissionService] [deleteUserPermissionByIds]");
 
+        if(Objects.nonNull(roleId) && Objects.nonNull(userId)){
+            deleteUserPermissionByRoleId(roleId,userId);
+            return;
+        }
         log.info("[UserPermissionService] [deleteUserPermissionByIds] :: UserPermissionIds :: {} " , userPermissionIds);
 
         int noOfRowsUpdated =  userPermissionRepository.deactiveUserPermissionByIds(userPermissionIds);
@@ -61,6 +66,25 @@ public class UserPermissionService {
 
 
     }
+
+    @Transactional
+    public void deleteUserPermissionByRoleId( Long roleId,Long userId){
+        log.info("Into [UserPermissionService] [deleteUserPermissionByRoleId]");
+
+        log.info("[UserPermissionService] [deleteUserPermissionByRoleId] :: UserPermissionIds :: {} " , roleId);
+
+        int noOfRowsUpdated =  userPermissionRepository.deactiveUserPermissionByRoleId(roleId,userId);
+
+        if(noOfRowsUpdated==0){
+            throw new ResourceNotFoundException(" data is not able to deactivate please check it");
+        }
+
+        log.info("Exit [UserPermissionService] [deleteUserPermissionByRoleId]");
+
+
+    }
+
+
 
     private void saveUserPermissionData(List<RolesActionPermission> rolesActionPermissions , long userId){
         log.info("Into [UserPermissionService] [saveUserPermissionData] ");
@@ -148,7 +172,13 @@ public class UserPermissionService {
         log.info("[UserPermissionService] [insertUserPermissionByUserIdAndRoleId] :: roleId {} ::  userId {} :: createdBy {} ::  ",
                     roleId , userId , createdBy);
 
-        userPermissionRepository.insertUserPermission(roleId , userId , createdBy);
+        try {
+
+            userPermissionRepository.insertUserPermission(roleId , userId , createdBy);
+
+        } catch (Exception e) {
+            throw new DBReltedException(e.getMessage());
+        }
 
         log.info("Exit [UserPermissionService] [insertUserPermissionByUserIdAndRoleId]");
     }

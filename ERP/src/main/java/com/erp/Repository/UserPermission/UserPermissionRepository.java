@@ -35,6 +35,17 @@ public interface UserPermissionRepository extends JpaRepository<UserPermission, 
     )
     int deactiveUserPermissionByIds(@Param("ids") List<Long> ids);
 
+    @Modifying
+    @Transactional
+    @Query(
+            value = "update user_permissions   set active = false where role_action_id   in ( " +
+                    "select up.role_action_id  from user_permissions  as up " +
+                    "inner join   roles_action_permissions as rap  on rap.id = up.role_action_id and rap.role_id =:roleId " +
+                    " and up.user_id =:userId and rap.active = true and up.active = true) ",
+            nativeQuery = true
+    )
+    int deactiveUserPermissionByRoleId(@Param("roleId") Long roleId,@Param("userId") Long userId);
+
 
     @Query(value = """
             SELECT 
@@ -75,7 +86,7 @@ public interface UserPermissionRepository extends JpaRepository<UserPermission, 
             "SELECT  " +
             "    :userId , " +
             "    rap.id, " +
-            "    :createdBy ,  " +
+            "    :createdBY ,  " +
             "    true, " +
             "    NOW() " +
             "FROM roles_action_permissions rap\n" +
@@ -87,6 +98,6 @@ public interface UserPermissionRepository extends JpaRepository<UserPermission, 
             "      WHERE up.user_id = :userId " +
             "       AND up.active = true " +
             "  ) " +
-            "ON CONFLICT (user_id, role_action_id) DO NOTHING; " , nativeQuery = true)
+            " ON CONFLICT (user_id, role_action_id) DO NOTHING; " , nativeQuery = true)
     void insertUserPermission(long roleId , long userId , long createdBY);
 }
