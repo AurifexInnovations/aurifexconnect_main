@@ -5,7 +5,6 @@ import com.erp.Dto.Response.UserSubscriptionResponse;
 import com.erp.Dto.SubscriptionsDto.SubscriptionDto;
 import com.erp.Mapper.SubscriptionModule.SubscriptionMapper;
 import com.erp.Model.SubscriptionEntity;
-import com.erp.Repository.SubscriptionModule.PaymentRepository;
 import com.erp.Repository.SubscriptionModule.SubscriptionRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -21,8 +20,8 @@ public class SubscriptionServiceImpl implements ISubscriptionService
 //    @Autowired
 //    RazorpayService razorpayService;
 
-    @Autowired
-    PaymentRepository paymentRepository;
+//    @Autowired
+//    PaymentRepository paymentRepository;
 
     @Override
     public SubscriptionDto fetchSubscriptionByUserId(String userId) {

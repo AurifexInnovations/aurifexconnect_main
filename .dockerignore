@@ -1,0 +1,11 @@
+# File: `.dockerignore`
+# excludes build artifacts and editor/OS noise
+.git
+.gitignore
+.idea
+.vscode
+target
+**/target
+node_modules
+*.log
+*.tmp
