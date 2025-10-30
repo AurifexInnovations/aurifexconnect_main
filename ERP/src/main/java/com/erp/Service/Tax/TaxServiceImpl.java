@@ -13,6 +13,7 @@ import com.erp.Repository.Tax.TaxRepository;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
+
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.*;
@@ -37,7 +38,12 @@ public class TaxServiceImpl implements TaxService {
     public TaxResponse updateTax(TaxRequest taxRequest) {
         Tax existingTax = taxRepository.findById(taxRequest.getId())
                 .orElseThrow(() -> new TaxNotFoundException("Tax not found with Id: " + taxRequest.getId()));
-        taxMapper.mapToTaxEntity(taxRequest, existingTax);
+
+        existingTax.setTaxName(taxRequest.getTaxName());
+        existingTax.setTaxType(taxRequest.getTaxType());
+        existingTax.setTaxRate(taxRequest.getTaxRate());
+
+
         taxRepository.save(existingTax);
         return taxMapper.mapToTaxResponse(existingTax);
     }
@@ -106,7 +112,6 @@ public class TaxServiceImpl implements TaxService {
         return result;
     }
 
-
     @Override
     public List<TaxProjection> findTaxesByFilter(FilterRequest filterRequest) {
         log.info("Into [TaxServiceImpl] [findTaxesByFilter]");
@@ -135,4 +140,3 @@ public class TaxServiceImpl implements TaxService {
     }
 
 }
-
