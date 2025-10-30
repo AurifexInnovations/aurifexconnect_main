@@ -31,8 +31,13 @@ public class GlobalExceptionHandler  {
     public ResponseEntity<ErrorResponse> handleGlobalException(ResourceNotFoundException ex) {
         log.info("Into [GlobalExceptionHandler] [handleGlobalException] ");
 
-        ErrorResponse errorResponse = new ErrorResponse(ex.getMessage());
-        errorResponse.setCode(404);
+        ErrorResponse errorResponse = ErrorResponse.builder()
+                .timestamp(LocalDateTime.now())
+                .status(HttpStatus.NOT_FOUND.value())
+                .error("Internal Server Error")
+                .message(ex.getMessage())
+                .path("/api/v1")
+                .build();
 
         log.error("Error [GlobalExceptionHandler] [handleGlobalException]  :: {} " , ex.getStackTrace());
 
@@ -45,7 +50,14 @@ public class GlobalExceptionHandler  {
     public ResponseEntity<ErrorResponse> handleGlobalException(ResourceFoundException ex) {
         log.info("Into [GlobalExceptionHandler] [handleGlobalException] ");
 
-        ErrorResponse errorResponse = new ErrorResponse(ex.getMessage());
+        ErrorResponse errorResponse = ErrorResponse.builder()
+                .timestamp(LocalDateTime.now())
+                .status(HttpStatus.FOUND.value())
+                .error("Internal Server Error")
+                .message(ex.getMessage())
+                .path("/api/v1")
+                .build();
+
 
         log.error("Error [GlobalExceptionHandler] [handleGlobalException]  :: {} " , ex.getStackTrace());
 
@@ -58,7 +70,14 @@ public class GlobalExceptionHandler  {
     public ResponseEntity<ErrorResponse> handleGlobalException(DBReltedException ex) {
         log.info("Into [GlobalExceptionHandler] [handleGlobalException] ");
 
-        ErrorResponse errorResponse = new ErrorResponse(ex.getMessage());
+        ErrorResponse errorResponse = ErrorResponse.builder()
+                .timestamp(LocalDateTime.now())
+                .status(HttpStatus.INTERNAL_SERVER_ERROR.value())
+                .error("Internal Server Error")
+                .message(ex.getMessage())
+                .path("/api/v1")
+                .build();
+
 
         log.error("Error [GlobalExceptionHandler] [handleGlobalException]  :: {} " , ex.getStackTrace());
 
@@ -70,7 +89,14 @@ public class GlobalExceptionHandler  {
     public ResponseEntity<ErrorResponse> handleGlobalException(GlobalMessageExceptionHandler ex) {
         log.info("Into [GlobalMessageExceptionHandler] [handleGlobalException] ");
 
-        ErrorResponse errorResponse = new ErrorResponse(ex.getMessage());
+        ErrorResponse errorResponse = ErrorResponse.builder()
+                .timestamp(LocalDateTime.now())
+                .status(HttpStatus.INTERNAL_SERVER_ERROR.value())
+                .error("Internal Server Error")
+                .message(ex.getMessage())
+                .path("/api/v1")
+                .build();
+
 
         log.error("Error [GlobalMessageExceptionHandler] [handleGlobalException]  :: {} " , ex.getStackTrace());
 
@@ -82,7 +108,14 @@ public class GlobalExceptionHandler  {
     public ResponseEntity<ErrorResponse> handleGlobalException(RuntimeException ex) {
         log.info("Into [GlobalExceptionHandler] [handleGlobalException] ");
 
-        ErrorResponse errorResponse = new ErrorResponse(SOMETHING_WENT_WRONG);
+        ErrorResponse errorResponse = ErrorResponse.builder()
+                .timestamp(LocalDateTime.now())
+                .status(HttpStatus.INTERNAL_SERVER_ERROR.value())
+                .error("Something went Wrong ")
+                .message(ex.getMessage())
+                .path("/api/v1")
+                .build();
+
 
         log.error("Error [GlobalExceptionHandler] [handleGlobalException]  :: {} " , ex.getStackTrace());
         log.info("Exit [GlobalExceptionHandler] [handleGlobalException] ");
@@ -94,7 +127,14 @@ public class GlobalExceptionHandler  {
     public ResponseEntity<ErrorResponse> handleGlobalException(Exception ex) {
         log.info("Into [GlobalExceptionHandler] [handleGlobalException] ");
 
-        ErrorResponse errorResponse = new ErrorResponse(SOMETHING_WENT_WRONG);
+        ErrorResponse errorResponse = ErrorResponse.builder()
+                .timestamp(LocalDateTime.now())
+                .status(HttpStatus.INTERNAL_SERVER_ERROR.value())
+                .error(SOMETHING_WENT_WRONG)
+                .message(ex.getMessage())
+                .path("/api/v1")
+                .build();
+
 
         log.error("Error [GlobalExceptionHandler] [handleGlobalException]  :: {} " , ex.getStackTrace());
 
@@ -105,7 +145,14 @@ public class GlobalExceptionHandler  {
 
     @ExceptionHandler(BadRequestException.class)
     public ResponseEntity<ErrorResponse> handleRequestNotFound(BadRequestException ex) {
-        ErrorResponse errorResponse = new ErrorResponse(ex.getMessage());
+        ErrorResponse errorResponse = ErrorResponse.builder()
+                .timestamp(LocalDateTime.now())
+                .status(HttpStatus.BAD_REQUEST.value())
+                .error("Bad Request")
+                .message(ex.getMessage())
+                .path("/api/v1")
+                .build();
+
         return new ResponseEntity<>(errorResponse, HttpStatus.NOT_FOUND);
     }
 
@@ -235,17 +282,17 @@ public class GlobalExceptionHandler  {
         return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(error);
     }
 
-    @ExceptionHandler(Exception.class)
-    public ResponseEntity<ErrorResponse> handleGenericException(Exception ex) {
-        log.error("Unexpected error: {}", ex.getMessage(), ex);
-        ErrorResponse error = ErrorResponse.builder()
-                .timestamp(LocalDateTime.now())
-                .status(HttpStatus.INTERNAL_SERVER_ERROR.value())
-                .error("Internal Server Error")
-                .message("An unexpected error occurred")
-                .path("/api/v1")
-                .build();
-        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(error);
-    }
+//    @ExceptionHandler(Exception.class)
+//    public ResponseEntity<ErrorResponse> handleGenericException(Exception ex) {
+//        log.error("Unexpected error: {}", ex.getMessage(), ex);
+//        ErrorResponse error = ErrorResponse.builder()
+//                .timestamp(LocalDateTime.now())
+//                .status(HttpStatus.INTERNAL_SERVER_ERROR.value())
+//                .error("Internal Server Error")
+//                .message("An unexpected error occurred")
+//                .path("/api/v1")
+//                .build();
+//        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(error);
+//    }
 }
 
