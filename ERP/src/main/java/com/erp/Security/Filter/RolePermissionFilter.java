@@ -21,6 +21,7 @@ import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
 
 import java.io.IOException;
+import java.util.List;
 import java.util.Objects;
 
 @Component
@@ -101,6 +102,16 @@ public class RolePermissionFilter extends OncePerRequestFilter {
                 writeJsonError(response, HttpServletResponse.SC_UNAUTHORIZED, "Token expired, please login again");
                 return;
             }
+
+            @SuppressWarnings("unchecked")
+            List<String> roles = (List<String>) claims.get("role");
+
+            if (roles != null && roles.contains("ROLE_ADMIN")) {
+                filterChain.doFilter(request, response);
+                return;
+            }
+
+
 
             String email = claims.get(ClaimName.USER_EMAIL, String.class);
             String schemaName = claims.get(ClaimName.SCHEMA_NAME, String.class);
