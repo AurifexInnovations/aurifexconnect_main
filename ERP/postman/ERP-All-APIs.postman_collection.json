@@ -1,0 +1,204 @@
+{
+  "info": {
+    "name": "ERP - All APIs",
+    "_postman_id": "c2b7caa2-6aa9-4a0d-9f2a-erp-all-apis",
+    "description": "Consolidated collection covering major ERP controllers and endpoints.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "Banking",
+      "item": [
+        { "name": "Import Bank Statement (file)", "request": { "method": "POST", "url": { "raw": "{{baseUrl}}/api/v1/banking/statements/import", "host": ["{{baseUrl}}"], "path": ["api","v1","banking","statements","import"] } } },
+        { "name": "Create Manual Statement", "request": { "method": "POST", "url": { "raw": "{{baseUrl}}/api/v1/banking/statements/manual?bankAccountId=1&statementDate=2025-01-31&openingBalance=0&closingBalance=0", "host": ["{{baseUrl}}"], "path": ["api","v1","banking","statements","manual"], "query": [{"key":"bankAccountId","value":"1"},{"key":"statementDate","value":"2025-01-31"},{"key":"openingBalance","value":"0"},{"key":"closingBalance","value":"0"}] } } },
+        { "name": "Get Statement", "request": { "method": "GET", "url": { "raw": "{{baseUrl}}/api/v1/banking/statements/1", "host": ["{{baseUrl}}"], "path": ["api","v1","banking","statements","1"] } } },
+        { "name": "Account Statements", "request": { "method": "GET", "url": { "raw": "{{baseUrl}}/api/v1/banking/statements/account/1", "host": ["{{baseUrl}}"], "path": ["api","v1","banking","statements","account","1"] } } },
+        { "name": "Auto Reconcile", "request": { "method": "POST", "url": { "raw": "{{baseUrl}}/api/v1/banking/statements/1/auto-reconcile", "host": ["{{baseUrl}}"], "path": ["api","v1","banking","statements","1","auto-reconcile"] } } },
+        { "name": "Manual Reconcile Line", "request": { "method": "POST", "url": { "raw": "{{baseUrl}}/api/v1/banking/statements/lines/10/reconcile?transactionEntryId=100&notes=Manual", "host": ["{{baseUrl}}"], "path": ["api","v1","banking","statements","lines","10","reconcile"], "query": [{"key":"transactionEntryId","value":"100"},{"key":"notes","value":"Manual"}] } } },
+        { "name": "Reconciliation Report", "request": { "method": "GET", "url": { "raw": "{{baseUrl}}/api/v1/banking/reconciliation/report?bankAccountId=1&fromDate=2025-01-01&toDate=2025-01-31", "host": ["{{baseUrl}}"], "path": ["api","v1","banking","reconciliation","report"], "query": [{"key":"bankAccountId","value":"1"},{"key":"fromDate","value":"2025-01-01"},{"key":"toDate","value":"2025-01-31"}] } } },
+        { "name": "Mark Statement Reconciled", "request": { "method": "POST", "url": { "raw": "{{baseUrl}}/api/v1/banking/statements/1/mark-reconciled", "host": ["{{baseUrl}}"], "path": ["api","v1","banking","statements","1","mark-reconciled"] } } },
+        { "name": "Unreconciled Transactions", "request": { "method": "GET", "url": { "raw": "{{baseUrl}}/api/v1/banking/unreconciled-transactions?bankAccountId=1&fromDate=2025-01-01&toDate=2025-01-31", "host": ["{{baseUrl}}"], "path": ["api","v1","banking","unreconciled-transactions"], "query": [{"key":"bankAccountId","value":"1"},{"key":"fromDate","value":"2025-01-01"},{"key":"toDate","value":"2025-01-31"}] } } },
+        { "name": "Process Reconciliation", "request": { "method": "POST", "header": [{"key":"Content-Type","value":"application/json"}], "body": {"mode":"raw","raw":"{\n  \"bankAccountId\": 1,\n  \"statementId\": 1,\n  \"matches\": [{ \"lineId\": 10, \"transactionEntryId\": 100 }]\n}"}, "url": { "raw": "{{baseUrl}}/api/v1/banking/reconciliation/process", "host": ["{{baseUrl}}"], "path": ["api","v1","banking","reconciliation","process"] } } },
+        { "name": "Get Bank Balance", "request": { "method": "GET", "url": { "raw": "{{baseUrl}}/api/v1/banking/balance/1?asOfDate=2025-01-31", "host": ["{{baseUrl}}"], "path": ["api","v1","banking","balance","1"], "query": [{"key":"asOfDate","value":"2025-01-31"}] } } },
+        { "name": "Update Bank Balance", "request": { "method": "POST", "url": { "raw": "{{baseUrl}}/api/v1/banking/balance/1/update?asOfDate=2025-01-31", "host": ["{{baseUrl}}"], "path": ["api","v1","banking","balance","1","update"], "query": [{"key":"asOfDate","value":"2025-01-31"}] } } },
+        { "name": "Export Reconciliation Report", "request": { "method": "GET", "url": { "raw": "{{baseUrl}}/api/v1/banking/reconciliation/export?bankAccountId=1&fromDate=2025-01-01&toDate=2025-01-31&format=PDF", "host": ["{{baseUrl}}"], "path": ["api","v1","banking","reconciliation","export"], "query": [{"key":"bankAccountId","value":"1"},{"key":"fromDate","value":"2025-01-01"},{"key":"toDate","value":"2025-01-31"},{"key":"format","value":"PDF"}] } } }
+      ]
+    },
+    {
+      "name": "Financial Reports",
+      "item": [
+        { "name": "Trial Balance", "request": { "method": "GET", "url": { "raw": "{{baseUrl}}/api/v1/reports/financial/trial-balance?fromDate=2025-01-01&toDate=2025-01-31", "host": ["{{baseUrl}}"], "path": ["api","v1","reports","financial","trial-balance"], "query": [{"key":"fromDate","value":"2025-01-01"},{"key":"toDate","value":"2025-01-31"}] } } },
+        { "name": "Profit & Loss", "request": { "method": "GET", "url": { "raw": "{{baseUrl}}/api/v1/reports/financial/profit-loss?fromDate=2025-01-01&toDate=2025-01-31", "host": ["{{baseUrl}}"], "path": ["api","v1","reports","financial","profit-loss"], "query": [{"key":"fromDate","value":"2025-01-01"},{"key":"toDate","value":"2025-01-31"}] } } },
+        { "name": "Balance Sheet", "request": { "method": "GET", "url": { "raw": "{{baseUrl}}/api/v1/reports/financial/balance-sheet?asOfDate=2025-01-31", "host": ["{{baseUrl}}"], "path": ["api","v1","reports","financial","balance-sheet"], "query": [{"key":"asOfDate","value":"2025-01-31"}] } } },
+        { "name": "Cash Flow", "request": { "method": "GET", "url": { "raw": "{{baseUrl}}/api/v1/reports/financial/cash-flow?fromDate=2025-01-01&toDate=2025-01-31", "host": ["{{baseUrl}}"], "path": ["api","v1","reports","financial","cash-flow"], "query": [{"key":"fromDate","value":"2025-01-01"},{"key":"toDate","value":"2025-01-31"}] } } },
+        { "name": "Bank Reconciliation Report", "request": { "method": "GET", "url": { "raw": "{{baseUrl}}/api/v1/reports/financial/bank-reconciliation?bankAccountId=1&fromDate=2025-01-01&toDate=2025-01-31", "host": ["{{baseUrl}}"], "path": ["api","v1","reports","financial","bank-reconciliation"], "query": [{"key":"bankAccountId","value":"1"},{"key":"fromDate","value":"2025-01-01"},{"key":"toDate","value":"2025-01-31"}] } } },
+        { "name": "Tax Reports", "request": { "method": "GET", "url": { "raw": "{{baseUrl}}/api/v1/reports/financial/tax?fromDate=2025-01-01&toDate=2025-01-31&taxType=GST", "host": ["{{baseUrl}}"], "path": ["api","v1","reports","financial","tax"], "query": [{"key":"fromDate","value":"2025-01-01"},{"key":"toDate","value":"2025-01-31"},{"key":"taxType","value":"GST"}] } } },
+        { "name": "Aging Report", "request": { "method": "GET", "url": { "raw": "{{baseUrl}}/api/v1/reports/financial/aging?reportType=RECEIVABLES&asOfDate=2025-01-31", "host": ["{{baseUrl}}"], "path": ["api","v1","reports","financial","aging"], "query": [{"key":"reportType","value":"RECEIVABLES"},{"key":"asOfDate","value":"2025-01-31"}] } } },
+        { "name": "Comparative Report", "request": { "method": "GET", "url": { "raw": "{{baseUrl}}/api/v1/reports/financial/comparative?reportType=PL&currentFromDate=2025-01-01&currentToDate=2025-01-31&previousFromDate=2024-01-01&previousToDate=2024-01-31", "host": ["{{baseUrl}}"], "path": ["api","v1","reports","financial","comparative"], "query": [{"key":"reportType","value":"PL"},{"key":"currentFromDate","value":"2025-01-01"},{"key":"currentToDate","value":"2025-01-31"},{"key":"previousFromDate","value":"2024-01-01"},{"key":"previousToDate","value":"2024-01-31"}] } } },
+        { "name": "Export Report", "request": { "method": "GET", "url": { "raw": "{{baseUrl}}/api/v1/reports/financial/export?reportType=TRIAL_BALANCE&fromDate=2025-01-01&toDate=2025-01-31&format=PDF", "host": ["{{baseUrl}}"], "path": ["api","v1","reports","financial","export"], "query": [{"key":"reportType","value":"TRIAL_BALANCE"},{"key":"fromDate","value":"2025-01-01"},{"key":"toDate","value":"2025-01-31"},{"key":"format","value":"PDF"}] } } }
+      ]
+    },
+    {
+      "name": "COA - Account Groups",
+      "item": [
+        { "name": "Get Group by ID", "request": { "method": "GET", "url": { "raw": "{{baseUrl}}/api/v1/coa/groups/1", "host": ["{{baseUrl}}"], "path": ["api","v1","coa","groups","1"] } } },
+        { "name": "Get All Groups", "request": { "method": "GET", "url": { "raw": "{{baseUrl}}/api/v1/coa/groups/all", "host": ["{{baseUrl}}"], "path": ["api","v1","coa","groups","all"] } } },
+        { "name": "Deactivate Group", "request": { "method": "PUT", "url": { "raw": "{{baseUrl}}/api/v1/coa/groups/1/deactivate", "host": ["{{baseUrl}}"], "path": ["api","v1","coa","groups","1","deactivate"] } } },
+        { "name": "Activate Group", "request": { "method": "PUT", "url": { "raw": "{{baseUrl}}/api/v1/coa/groups/1/activate", "host": ["{{baseUrl}}"], "path": ["api","v1","coa","groups","1","activate"] } } }
+      ]
+    },
+    {
+      "name": "COA - Account SubGroups",
+      "item": [
+        { "name": "Get SubGroup by ID", "request": { "method": "GET", "url": { "raw": "{{baseUrl}}/api/v1/coa/subgroups/1", "host": ["{{baseUrl}}"], "path": ["api","v1","coa","subgroups","1"] } } },
+        { "name": "Get All SubGroups", "request": { "method": "GET", "url": { "raw": "{{baseUrl}}/api/v1/coa/subgroups/all", "host": ["{{baseUrl}}"], "path": ["api","v1","coa","subgroups","all"] } } },
+        { "name": "Deactivate SubGroup", "request": { "method": "PUT", "url": { "raw": "{{baseUrl}}/api/v1/coa/subgroups/1/deactivate", "host": ["{{baseUrl}}"], "path": ["api","v1","coa","subgroups","1","deactivate"] } } },
+        { "name": "Activate SubGroup", "request": { "method": "PUT", "url": { "raw": "{{baseUrl}}/api/v1/coa/subgroups/1/activate", "host": ["{{baseUrl}}"], "path": ["api","v1","coa","subgroups","1","activate"] } } }
+      ]
+    },
+    {
+      "name": "COA - Ledgers",
+      "item": [
+        { "name": "Get Ledger", "request": { "method": "GET", "url": { "raw": "{{baseUrl}}/api/v1/coa/ledgers/1", "host": ["{{baseUrl}}"], "path": ["api","v1","coa","ledgers","1"] } } },
+        { "name": "Update Ledger", "request": { "method": "PUT", "url": { "raw": "{{baseUrl}}/api/v1/coa/ledgers/1", "host": ["{{baseUrl}}"], "path": ["api","v1","coa","ledgers","1"] } } },
+        { "name": "Delete Ledger", "request": { "method": "DELETE", "url": { "raw": "{{baseUrl}}/api/v1/coa/ledgers/1", "host": ["{{baseUrl}}"], "path": ["api","v1","coa","ledgers","1"] } } }
+      ]
+    },
+    {
+      "name": "Vouchers",
+      "item": [
+        { "name": "Create Contra", "request": { "method": "POST", "url": { "raw": "{{baseUrl}}/api/v1/vouchers/contra", "host": ["{{baseUrl}}"], "path": ["api","v1","vouchers","contra"] } } },
+        { "name": "Create Journal", "request": { "method": "POST", "url": { "raw": "{{baseUrl}}/api/v1/vouchers/journal", "host": ["{{baseUrl}}"], "path": ["api","v1","vouchers","journal"] } } },
+        { "name": "Credit Note", "request": { "method": "POST", "url": { "raw": "{{baseUrl}}/api/v1/vouchers/credit-note", "host": ["{{baseUrl}}"], "path": ["api","v1","vouchers","credit-note"] } } },
+        { "name": "Debit Note", "request": { "method": "POST", "url": { "raw": "{{baseUrl}}/api/v1/vouchers/debit-note", "host": ["{{baseUrl}}"], "path": ["api","v1","vouchers","debit-note"] } } },
+        { "name": "Recurring", "request": { "method": "POST", "url": { "raw": "{{baseUrl}}/api/v1/vouchers/recurring", "host": ["{{baseUrl}}"], "path": ["api","v1","vouchers","recurring"] } } },
+        { "name": "Post Voucher", "request": { "method": "POST", "url": { "raw": "{{baseUrl}}/api/v1/vouchers/1/post", "host": ["{{baseUrl}}"], "path": ["api","v1","vouchers","1","post"] } } },
+        { "name": "Approve Voucher", "request": { "method": "POST", "url": { "raw": "{{baseUrl}}/api/v1/vouchers/1/approve", "host": ["{{baseUrl}}"], "path": ["api","v1","vouchers","1","approve"] } } },
+        { "name": "Reject Voucher", "request": { "method": "POST", "url": { "raw": "{{baseUrl}}/api/v1/vouchers/1/reject", "host": ["{{baseUrl}}"], "path": ["api","v1","vouchers","1","reject"] } } },
+        { "name": "Reverse Voucher", "request": { "method": "POST", "url": { "raw": "{{baseUrl}}/api/v1/vouchers/1/reverse", "host": ["{{baseUrl}}"], "path": ["api","v1","vouchers","1","reverse"] } } },
+        { "name": "Get Voucher", "request": { "method": "GET", "url": { "raw": "{{baseUrl}}/api/v1/vouchers/1", "host": ["{{baseUrl}}"], "path": ["api","v1","vouchers","1"] } } },
+        { "name": "By Type", "request": { "method": "GET", "url": { "raw": "{{baseUrl}}/api/v1/vouchers/type/JOURNAL", "host": ["{{baseUrl}}"], "path": ["api","v1","vouchers","type","JOURNAL"] } } },
+        { "name": "By Status", "request": { "method": "GET", "url": { "raw": "{{baseUrl}}/api/v1/vouchers/status/POSTED", "host": ["{{baseUrl}}"], "path": ["api","v1","vouchers","status","POSTED"] } } }
+      ]
+    },
+    {
+      "name": "Bank Accounts",
+      "item": [
+        { "name": "Create Bank Account (by ledger)", "request": { "method": "POST", "url": { "raw": "{{baseUrl}}/bank-account/1", "host": ["{{baseUrl}}"], "path": ["bank-account","1"] } } },
+        { "name": "Update Bank Account", "request": { "method": "PUT", "url": { "raw": "{{baseUrl}}/bank-account-update", "host": ["{{baseUrl}}"], "path": ["bank-account-update"] } } },
+        { "name": "Find Bank Account", "request": { "method": "POST", "url": { "raw": "{{baseUrl}}/bank-account-find", "host": ["{{baseUrl}}"], "path": ["bank-account-find"] } } },
+        { "name": "Delete Bank Account", "request": { "method": "DELETE", "url": { "raw": "{{baseUrl}}/bank-account-delete", "host": ["{{baseUrl}}"], "path": ["bank-account-delete"] } } },
+        { "name": "List Bank Accounts", "request": { "method": "GET", "url": { "raw": "{{baseUrl}}/bank-accounts", "host": ["{{baseUrl}}"], "path": ["bank-accounts"] } } },
+        { "name": "Current Bank Balance", "request": { "method": "GET", "url": { "raw": "{{baseUrl}}/balance", "host": ["{{baseUrl}}"], "path": ["balance"] } } }
+      ]
+    },
+    {
+      "name": "Inventory",
+      "item": [
+        { "name": "Create Inventory", "request": { "method": "POST", "url": { "raw": "{{baseUrl}}/inventory", "host": ["{{baseUrl}}"], "path": ["inventory"] } } },
+        { "name": "Update Inventory", "request": { "method": "PUT", "url": { "raw": "{{baseUrl}}/inventory", "host": ["{{baseUrl}}"], "path": ["inventory"] } } },
+        { "name": "Inventory By Id", "request": { "method": "POST", "url": { "raw": "{{baseUrl}}/inventory-byid", "host": ["{{baseUrl}}"], "path": ["inventory-byid"] } } },
+        { "name": "Delete Inventory", "request": { "method": "DELETE", "url": { "raw": "{{baseUrl}}/inventory-delete", "host": ["{{baseUrl}}"], "path": ["inventory-delete"] } } },
+        { "name": "All Inventory", "request": { "method": "GET", "url": { "raw": "{{baseUrl}}/inventory/all", "host": ["{{baseUrl}}"], "path": ["inventory","all"] } } },
+        { "name": "Categories", "request": { "method": "GET", "url": { "raw": "{{baseUrl}}/categories", "host": ["{{baseUrl}}"], "path": ["categories"] } } },
+        { "name": "Stock Value", "request": { "method": "GET", "url": { "raw": "{{baseUrl}}/inventory/stockvalue", "host": ["{{baseUrl}}"], "path": ["inventory","stockvalue"] } } },
+        { "name": "By Branch", "request": { "method": "POST", "url": { "raw": "{{baseUrl}}/inventory/by-branch", "host": ["{{baseUrl}}"], "path": ["inventory","by-branch"] } } },
+        { "name": "Low Stock", "request": { "method": "GET", "url": { "raw": "{{baseUrl}}/inventory/low-stock", "host": ["{{baseUrl}}"], "path": ["inventory","low-stock"] } } }
+      ]
+    },
+    {
+      "name": "Tax",
+      "item": [
+        { "name": "Create Tax", "request": { "method": "POST", "url": { "raw": "{{baseUrl}}/tax", "host": ["{{baseUrl}}"], "path": ["tax"] } } },
+        { "name": "Update Tax", "request": { "method": "PUT", "url": { "raw": "{{baseUrl}}/tax/update", "host": ["{{baseUrl}}"], "path": ["tax","update"] } } },
+        { "name": "Delete Tax", "request": { "method": "DELETE", "url": { "raw": "{{baseUrl}}/tax/delete", "host": ["{{baseUrl}}"], "path": ["tax","delete"] } } },
+        { "name": "Tax By Id", "request": { "method": "POST", "url": { "raw": "{{baseUrl}}/tax/byid", "host": ["{{baseUrl}}"], "path": ["tax","byid"] } } },
+        { "name": "All Taxes", "request": { "method": "GET", "url": { "raw": "{{baseUrl}}/tax/all", "host": ["{{baseUrl}}"], "path": ["tax","all"] } } },
+        { "name": "Tax Analytics Total", "request": { "method": "GET", "url": { "raw": "{{baseUrl}}/analytics/tax/total", "host": ["{{baseUrl}}"], "path": ["analytics","tax","total"] } } },
+        { "name": "Tax Analytics Breakup", "request": { "method": "GET", "url": { "raw": "{{baseUrl}}/analytics/tax/breakup", "host": ["{{baseUrl}}"], "path": ["analytics","tax","breakup"] } } }
+      ]
+    },
+    {
+      "name": "Staff",
+      "item": [
+        { "name": "Create Staff", "request": { "method": "POST", "url": { "raw": "{{baseUrl}}/staff", "host": ["{{baseUrl}}"], "path": ["staff"] } } },
+        { "name": "Update Staff", "request": { "method": "PUT", "url": { "raw": "{{baseUrl}}/staff/update", "host": ["{{baseUrl}}"], "path": ["staff","update"] } } },
+        { "name": "Delete Staff", "request": { "method": "DELETE", "url": { "raw": "{{baseUrl}}/staff/delete", "host": ["{{baseUrl}}"], "path": ["staff","delete"] } } },
+        { "name": "Staff By Details", "request": { "method": "POST", "url": { "raw": "{{baseUrl}}/staff/by-details", "host": ["{{baseUrl}}"], "path": ["staff","by-details"] } } },
+        { "name": "All Staff", "request": { "method": "POST", "url": { "raw": "{{baseUrl}}/staff/all", "host": ["{{baseUrl}}"], "path": ["staff","all"] } } },
+        { "name": "Staff By Branch", "request": { "method": "POST", "url": { "raw": "{{baseUrl}}/staff/by-branch", "host": ["{{baseUrl}}"], "path": ["staff","by-branch"] } } }
+      ]
+    },
+    {
+      "name": "Services",
+      "item": [
+        { "name": "Create Service", "request": { "method": "POST", "url": { "raw": "{{baseUrl}}/service", "host": ["{{baseUrl}}"], "path": ["service"] } } },
+        { "name": "Update Service", "request": { "method": "PUT", "url": { "raw": "{{baseUrl}}/service/update", "host": ["{{baseUrl}}"], "path": ["service","update"] } } },
+        { "name": "Service By Id", "request": { "method": "POST", "url": { "raw": "{{baseUrl}}/service/byid", "host": ["{{baseUrl}}"], "path": ["service","byid"] } } },
+        { "name": "Delete Service", "request": { "method": "DELETE", "url": { "raw": "{{baseUrl}}/service/delete", "host": ["{{baseUrl}}"], "path": ["service","delete"] } } },
+        { "name": "All Services", "request": { "method": "GET", "url": { "raw": "{{baseUrl}}/service/all", "host": ["{{baseUrl}}"], "path": ["service","all"] } } },
+        { "name": "Service Status", "request": { "method": "GET", "url": { "raw": "{{baseUrl}}/service/status", "host": ["{{baseUrl}}"], "path": ["service","status"] } } },
+        { "name": "Service Categories", "request": { "method": "GET", "url": { "raw": "{{baseUrl}}/service/categories", "host": ["{{baseUrl}}"], "path": ["service","categories"] } } },
+        { "name": "Service By Category", "request": { "method": "POST", "url": { "raw": "{{baseUrl}}/service/bycategory", "host": ["{{baseUrl}}"], "path": ["service","bycategory"] } } }
+      ]
+    },
+    {
+      "name": "Salary",
+      "item": [
+        { "name": "Add Salary", "request": { "method": "POST", "url": { "raw": "{{baseUrl}}/salary/add", "host": ["{{baseUrl}}"], "path": ["salary","add"] } } },
+        { "name": "User Salary", "request": { "method": "POST", "url": { "raw": "{{baseUrl}}/salary/user", "host": ["{{baseUrl}}"], "path": ["salary","user"] } } },
+        { "name": "User Salary (Month)", "request": { "method": "POST", "url": { "raw": "{{baseUrl}}/salary/user/salary-month", "host": ["{{baseUrl}}"], "path": ["salary","user","salary-month"] } } },
+        { "name": "Pay Salary", "request": { "method": "PUT", "url": { "raw": "{{baseUrl}}/salary/pay", "host": ["{{baseUrl}}"], "path": ["salary","pay"] } } },
+        { "name": "Update Salary", "request": { "method": "PUT", "url": { "raw": "{{baseUrl}}/salary/update", "host": ["{{baseUrl}}"], "path": ["salary","update"] } } },
+        { "name": "Salary Month", "request": { "method": "POST", "url": { "raw": "{{baseUrl}}/salary/month", "host": ["{{baseUrl}}"], "path": ["salary","month"] } } },
+        { "name": "Delete Salary", "request": { "method": "DELETE", "url": { "raw": "{{baseUrl}}/salary/delete", "host": ["{{baseUrl}}"], "path": ["salary","delete"] } } },
+        { "name": "Overview", "request": { "method": "GET", "url": { "raw": "{{baseUrl}}/salary/overview", "host": ["{{baseUrl}}"], "path": ["salary","overview"] } } }
+      ]
+    },
+    {
+      "name": "Salary Slip",
+      "item": [
+        { "name": "Generate Salary Slip", "request": { "method": "POST", "url": { "raw": "{{baseUrl}}/salary/generate", "host": ["{{baseUrl}}"], "path": ["salary","generate"] } } },
+        { "name": "Get Slip", "request": { "method": "POST", "url": { "raw": "{{baseUrl}}/salary/slip", "host": ["{{baseUrl}}"], "path": ["salary","slip"] } } }
+      ]
+    },
+    {
+      "name": "Invoice",
+      "item": [
+        { "name": "Create Invoice", "request": { "method": "POST", "url": { "raw": "{{baseUrl}}/invoice/create", "host": ["{{baseUrl}}"], "path": ["invoice","create"] } } },
+        { "name": "Find Invoice", "request": { "method": "POST", "url": { "raw": "{{baseUrl}}/invoice/find", "host": ["{{baseUrl}}"], "path": ["invoice","find"] } } },
+        { "name": "Invoice PDF", "request": { "method": "POST", "url": { "raw": "{{baseUrl}}/invoice/pdf", "host": ["{{baseUrl}}"], "path": ["invoice","pdf"] } } },
+        { "name": "Send Mail", "request": { "method": "POST", "url": { "raw": "{{baseUrl}}/invoice/sendMail", "host": ["{{baseUrl}}"], "path": ["invoice","sendMail"] } } }
+      ]
+    },
+    {
+      "name": "Admin & Users & Roles",
+      "item": [
+        { "name": "Create Admin", "request": { "method": "POST", "url": { "raw": "{{baseUrl}}{{appBase}}/admins", "host": ["{{baseUrl}}"], "path": ["{{appBase}}","admins"] } } },
+        { "name": "List Admins", "request": { "method": "GET", "url": { "raw": "{{baseUrl}}{{appBase}}/admins", "host": ["{{baseUrl}}"], "path": ["{{appBase}}","admins"] } } },
+        { "name": "Search Admins", "request": { "method": "POST", "url": { "raw": "{{baseUrl}}{{appBase}}/admins/search", "host": ["{{baseUrl}}"], "path": ["{{appBase}}","admins","search"] } } },
+        { "name": "Update Admin", "request": { "method": "PUT", "url": { "raw": "{{baseUrl}}{{appBase}}/admins/update", "host": ["{{baseUrl}}"], "path": ["{{appBase}}","admins","update"] } } },
+        { "name": "Delete Admin", "request": { "method": "DELETE", "url": { "raw": "{{baseUrl}}{{appBase}}/admins/delete", "host": ["{{baseUrl}}"], "path": ["{{appBase}}","admins","delete"] } } },
+        { "name": "Create User", "request": { "method": "POST", "url": { "raw": "{{baseUrl}}{{appBase}}/users", "host": ["{{baseUrl}}"], "path": ["{{appBase}}","users"] } } },
+        { "name": "List Users", "request": { "method": "GET", "url": { "raw": "{{baseUrl}}{{appBase}}/users", "host": ["{{baseUrl}}"], "path": ["{{appBase}}","users"] } } },
+        { "name": "Search Users", "request": { "method": "POST", "url": { "raw": "{{baseUrl}}{{appBase}}/users/search", "host": ["{{baseUrl}}"], "path": ["{{appBase}}","users","search"] } } },
+        { "name": "Update User", "request": { "method": "PUT", "url": { "raw": "{{baseUrl}}{{appBase}}/users", "host": ["{{baseUrl}}"], "path": ["{{appBase}}","users"] } } },
+        { "name": "Delete User", "request": { "method": "DELETE", "url": { "raw": "{{baseUrl}}{{appBase}}/users", "host": ["{{baseUrl}}"], "path": ["{{appBase}}","users"] } } },
+        { "name": "Create Role", "request": { "method": "POST", "url": { "raw": "{{baseUrl}}{{appBase}}/roles", "host": ["{{baseUrl}}"], "path": ["{{appBase}}","roles"] } } },
+        { "name": "List Roles", "request": { "method": "GET", "url": { "raw": "{{baseUrl}}{{appBase}}/roles", "host": ["{{baseUrl}}"], "path": ["{{appBase}}","roles"] } } }
+      ]
+    },
+    {
+      "name": "Tenant",
+      "item": [
+        { "name": "Delete Tenant Schema", "request": { "method": "DELETE", "url": { "raw": "{{baseUrl}}/tenant/{schemaName}", "host": ["{{baseUrl}}"], "path": ["tenant", "{schemaName}"] } } }
+      ]
+    }
+  ],
+  "variable": [
+    { "key": "baseUrl", "value": "http://localhost:8080" },
+    { "key": "appBase", "value": "/api/v1" }
+  ]
+}
+
+
