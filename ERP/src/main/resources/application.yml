@@ -1,8 +1,8 @@
 spring:
   datasource:
-    url: jdbc:postgresql://cee3ebbhveeoab.cluster-czrs8kj4isg7.us-east-1.rds.amazonaws.com:5432/d64jaa7o132p88
-    username: u1ucm8ohiu9dkg
-    password: p040a7e06d7c21395a6389990c402c97f91137f5704b8a6c507e97f1b25488593
+    url: jdbc:postgresql://localhost:5432/erp_db
+    username: postgres
+    password: root
     driver-class-name: org.postgresql.Driver
     hikari:
       connection-timeout: 30000
@@ -11,6 +11,10 @@ spring:
       auto-commit: false
       connection-test-query: SELECT 1
       validation-timeout: 5000
+  web:
+    resources :
+      static-locations: file:uploads/
+
   jpa:
     database-platform: org.hibernate.dialect.PostgreSQLDialect
     hibernate:
@@ -56,18 +60,17 @@ app:
       access-validity: 3600
       refresh-validity: 1296000
   domain:
-    name: ${DOMAIN_NAME}
+    name: localhost
     secure: false
     same-site: Lax
+  swagger-end-points: /v3/api-docs/,/swagger-ui/,/swagger-ui.html
+
 
 logging:
   level:
     com.erp: DEBUG
     org:
-      springframework:
-        security: DEBUG
-        orm:
-          jpa: DEBUG
+      springframework.security: DEBUG
       hibernate.SQL: DEBUG
       hibernate.type.descriptor.sql.BasicBinder: TRACE
       hibernate.orm.jdbc.bind: TRACE
@@ -77,12 +80,11 @@ logging:
     time-zone: Asia/Kolkata
     serialization:
       write-dates-as-timestamps: false
-
 otp:
   service:
   url: https://cpaas.messagecentral.com
   customer-id: C-1C35A10D607A45B
-  key: WWFnbmVzaDIzQA==
+  key: WWFnbmVzaDIzQA
   scope: NEW
   country: IN
   email: example@example.com
