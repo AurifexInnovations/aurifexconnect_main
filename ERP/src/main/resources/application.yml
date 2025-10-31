@@ -11,6 +11,10 @@ spring:
       auto-commit: false
       connection-test-query: SELECT 1
       validation-timeout: 5000
+  web:
+    resources :
+      static-locations: file:uploads/
+
   jpa:
     database-platform: org.hibernate.dialect.PostgreSQLDialect
     hibernate:
@@ -64,10 +68,7 @@ logging:
   level:
     com.erp: DEBUG
     org:
-      springframework:
-        security: DEBUG
-        orm:
-          jpa: DEBUG
+      springframework.security: DEBUG
       hibernate.SQL: DEBUG
       hibernate.type.descriptor.sql.BasicBinder: TRACE
       hibernate.orm.jdbc.bind: TRACE
@@ -77,12 +78,11 @@ logging:
     time-zone: Asia/Kolkata
     serialization:
       write-dates-as-timestamps: false
-
 otp:
   service:
   url: https://cpaas.messagecentral.com
   customer-id: C-1C35A10D607A45B
-  key: WWFnbmVzaDIzQA==
+  key: WWFnbmVzaDIzQA
   scope: NEW
   country: IN
   email: example@example.com
