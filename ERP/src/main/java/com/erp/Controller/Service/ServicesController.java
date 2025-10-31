@@ -1,6 +1,7 @@
 package com.erp.Controller.Service;
 
 import com.erp.Dto.Request.CommanParam;
+import com.erp.Dto.Request.FilterRequest;
 import com.erp.Dto.Request.ServiceRequest;
 import com.erp.Dto.Request.ServiceTypeGetRequest;
 import com.erp.Dto.Response.ResultDto;
@@ -170,6 +171,15 @@ public class ServicesController
             @RequestBody @Valid  ServiceTypeGetRequest request ) {
         log.info("[ServiceController]  [getAllServices] into get service data{} ",request.toString());
         ResultDto<ServiceTypeResponse> records = serviceTypeService.getAllServices(request);
+
+        return ResponseBuilder.success(HttpStatus.OK,"Data fetch successfully ",records);
+    }
+
+    @PostMapping("/filter")
+    public ResponseEntity<ResponseStructure<ResultDto<ServiceResponse>>> getAllServicesByFilter(@RequestBody FilterRequest filterRequest)
+    {
+        log.info("[ServiceController]  [getAllServicesByFilter] into get service data{} ",filterRequest.toString());
+        ResultDto<ServiceResponse> records = serviceTypeService.getAllServicesByFilter(filterRequest);
 
         return ResponseBuilder.success(HttpStatus.OK,"Data fetch successfully ",records);
     }

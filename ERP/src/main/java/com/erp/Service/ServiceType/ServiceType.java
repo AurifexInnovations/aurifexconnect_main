@@ -7,6 +7,7 @@ import com.erp.Dto.Response.ResultDto;
 import com.erp.Dto.Response.ServiceResponse;
 import com.erp.Dto.Response.ServiceTypeResponse;
 import com.erp.Model.Service;
+import com.erp.Dto.Request.FilterRequest;
 
 import java.util.List;
 
@@ -32,4 +33,5 @@ public interface ServiceType {
 
     public ResultDto<ServiceTypeResponse> getAllServices(ServiceTypeGetRequest request) ;
 
+    ResultDto<ServiceResponse> getAllServicesByFilter(FilterRequest filterRequest);
 }
