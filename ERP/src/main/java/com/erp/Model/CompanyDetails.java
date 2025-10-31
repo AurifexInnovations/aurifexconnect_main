@@ -79,7 +79,7 @@ import java.util.List;
 @AllArgsConstructor
 @Builder
 @EntityListeners(AuditingEntityListener.class)
-public class CompanyDetails extends BaseEntity
+public class CompanyDetails
 {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
