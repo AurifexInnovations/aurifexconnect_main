@@ -29,7 +29,6 @@ public class StockTransfer {
     @JoinColumn(name = "to_branch_id")    // match your DB column
     private Branch toBranch;
 
-
     @ManyToOne
     private Inventory inventory;
 
