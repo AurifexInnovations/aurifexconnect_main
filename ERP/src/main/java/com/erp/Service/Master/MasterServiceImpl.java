@@ -30,6 +30,7 @@ import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Service;
 
 import javax.naming.LimitExceededException;
+import java.math.BigDecimal;
 import java.util.*;
 
 @Service
@@ -138,8 +139,8 @@ public class MasterServiceImpl implements MasterService {
         double remaining = invoice.getAmount() - totalAdjusted;
 
         // Credit limit check
-        Double creditLimitObj = invoice.getLedger().getCreditLimit();
-        double creditLimit = creditLimitObj != null ? creditLimitObj : 0.0;
+        double creditLimitObj = invoice.getLedger().getCreditLimit().doubleValue();
+        double creditLimit = creditLimitObj != 0.0 ? creditLimitObj : 0.0;
 
         if (remaining > creditLimit) {
             throw new LimitExceededException("Credit limit exceeded for ledger: " + invoice.getLedger().getName());
@@ -158,7 +159,7 @@ public class MasterServiceImpl implements MasterService {
     private void handleBill(Master master) throws LimitExceededException {
         master.setTransactionStatus(TransactionStatus.UNPAID);
         master.setReferenceType(ReferenceType.NEWREF);
-        Double debitLimitObj = master.getLedger().getDebitLimit();
+        Double debitLimitObj = master.getLedger().getDebitLimit().doubleValue();
         double debitLimit = debitLimitObj != null ? debitLimitObj : 0.0;
 
         if (master.getAmount() > debitLimit) {
@@ -272,8 +273,6 @@ public class MasterServiceImpl implements MasterService {
                 : TransactionStatus.PARTIALLY_PAID;
     }
 }
-
-
 
 
 //    @Override
