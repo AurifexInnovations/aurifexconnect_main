@@ -22,11 +22,11 @@ public class StockTransfer {
     private long id;
 
     @ManyToOne
-    @JoinColumn(name = "from_branch_id")  // match your DB column
+    @JoinColumn(name = "from_branch_branch_id")  // match your DB column
     private Branch fromBranch;
 
     @ManyToOne
-    @JoinColumn(name = "to_branch_id")    // match your DB column
+    @JoinColumn(name = "to_branch_branch_id")    // match your DB column
     private Branch toBranch;
 
 

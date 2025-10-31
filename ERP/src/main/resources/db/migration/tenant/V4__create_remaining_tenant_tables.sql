@@ -96,8 +96,8 @@ CREATE TABLE IF NOT EXISTS stocktransfer (
     status VARCHAR(50) CHECK (status IN ('PENDING', 'APPROVED', 'REJECTED')),
     approved_by VARCHAR(255),
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    FOREIGN KEY (from_branch_id) REFERENCES branch(branch_id),
-    FOREIGN KEY (to_branch_id) REFERENCES branch(branch_id),
+    FOREIGN KEY (from_branch_branch_id) REFERENCES branch(branch_id),
+    FOREIGN KEY (to_branch_branch_id) REFERENCES branch(branch_id),
     FOREIGN KEY (inventory_item_id) REFERENCES inventory(item_id)
 );
 
