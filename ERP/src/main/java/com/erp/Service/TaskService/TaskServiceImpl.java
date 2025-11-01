@@ -7,6 +7,7 @@ import com.erp.Enum.TaskStatus;
 import com.erp.Exception.BadRequestException;
 import com.erp.Exception.DBReltedException;
 import com.erp.Exception.GlobalMessageExceptionHandler;
+import com.erp.Exception.ResourceNotFoundException;
 import com.erp.Exception.Task.TaskNoFoundException;
 
 import com.erp.Mapper.TaskMapper.TaskDetailsMapper;
@@ -39,7 +40,9 @@ import org.springframework.stereotype.Service;
 
 
 import org.springframework.web.multipart.MultipartFile;
+import software.amazon.awssdk.services.s3.endpoints.internal.Value;
 
+import java.sql.Timestamp;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
@@ -107,6 +110,8 @@ public class TaskServiceImpl implements TaskService {
                 task.setCreatedAt(LocalDateTime.now());
             }
 
+            task.setLatitude(taskRequest.getLatitude());
+            task.setLongitude(taskRequest.getLongitude());
              task.setTaskDetails(taskRequest.getTaskDetails());
             task = taskRepository.save(task);
             taskRequest.setTaskId(task.getTaskId());
@@ -124,7 +129,17 @@ public class TaskServiceImpl implements TaskService {
         return taskDetailsMapper.mapToTaskResponse(task.getTaskId());
     }
 
+    public String updateTaskLocation(Long taskId, TaskLocationUpdateRequest request) {
+        Task task = taskRepository.findById(taskId)
+                .orElseThrow(() -> new ResourceNotFoundException("Task not found with ID: " + taskId));
 
+        task.setLatitude(request.getLatitude());
+        task.setLongitude(request.getLongitude());
+        task.setUpdatedAt((LocalDateTime.now()));
+
+         taskRepository.save(task);
+         return "Location updated successfully";
+    }
     private void addTaskSchedule(TaskRequest taskRequest) {
 
         log.info("Into add  TaskSchedule...");

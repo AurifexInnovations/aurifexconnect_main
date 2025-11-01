@@ -3,6 +3,7 @@ package com.erp.Controller.Task;
 
 import com.erp.Dto.Request.*;
 import com.erp.Dto.Response.*;
+import com.erp.Model.Task;
 import com.erp.Projection.GetAllTaskResponse;
 import com.erp.Projection.TechnicianResponse;
 import com.erp.Projection.TechnicianTaskProjection;
@@ -22,6 +23,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
+import software.amazon.awssdk.services.s3.endpoints.internal.Value;
 
 import java.util.List;
 
@@ -46,6 +48,15 @@ public class TaskController {
         log.info("[TaskController]  [addTax]  exit from  adding task  {}",response);
         return ResponseBuilder.success(HttpStatus.CREATED, "Task Created", response);
 
+    }
+
+    @PutMapping("{taskId}/update-location")
+    public ResponseEntity<ResponseStructure<String>> updateTaskLocation(
+            @PathVariable Long taskId,
+            @RequestBody TaskLocationUpdateRequest request) {
+
+        String  updatedTask = taskService.updateTaskLocation(taskId, request);
+        return ResponseBuilder.success(HttpStatus.ACCEPTED, "Location update ", updatedTask);
     }
 
 

@@ -37,5 +37,6 @@ public class TaskRequest {
     private String ServiceLocation;
     private List<Long>  technicianId;
     private  List<MaterialDto> materialDto ;
-
+    private Double latitude;
+    private Double longitude;
 }

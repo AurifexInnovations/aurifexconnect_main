@@ -2,6 +2,7 @@ package com.erp.Service.TaskService;
 
 import com.erp.Dto.Request.*;
 import com.erp.Dto.Response.*;
+import com.erp.Model.Task;
 import com.erp.Model.TechnicianTaskMapper;
 import com.erp.Projection.GetAllTaskResponse;
 import com.erp.Projection.TechnicianResponse;
@@ -39,4 +40,6 @@ public interface TaskService {
 
     void updateTechnitianFeedBack(long taskId , long feedbackId);
     List<TechnitianFeedbackDetailProjection> getTechnitianFeedbackDetails(long feedbackId);
+
+     String  updateTaskLocation(Long taskId, TaskLocationUpdateRequest request) ;
 }
