@@ -120,9 +120,8 @@ CREATE TABLE IF NOT EXISTS task (
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     created_by BIGINT,
-    updated_by BIGINT,
-    latitude DOUBLE PRECISION ,
-    longitude DOUBLE PRECISION
+    updated_by BIGINT
+
 
 );
 
