@@ -101,7 +101,7 @@ CREATE TABLE IF NOT EXISTS stocktransfer (
     FOREIGN KEY (inventory_item_id) REFERENCES inventory(item_id)
 );
 
-CREATE TABLE IF NOT EXISTS task_material (
+CREATE TABLE task_material (
     task_material_id BIGSERIAL PRIMARY KEY,
     task_id          BIGINT NOT NULL,
     material_id      BIGINT NOT NULL,
@@ -110,7 +110,7 @@ CREATE TABLE IF NOT EXISTS task_material (
     quantity         BIGINT NOT NULL
 );
 
-CREATE TABLE IF NOT EXISTS task (
+CREATE TABLE task (
     task_id BIGSERIAL PRIMARY KEY,
     task_name VARCHAR(255) NOT NULL,
     customer_id BIGINT NOT NULL,
@@ -121,17 +121,15 @@ CREATE TABLE IF NOT EXISTS task (
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     created_by BIGINT,
     updated_by BIGINT
-
-
 );
 
-CREATE TABLE IF NOT EXISTS task_services (
+CREATE TABLE task_services (
     task_service_id BIGSERIAL PRIMARY KEY,
     task_id         BIGINT NOT NULL,
     service_id      BIGINT NOT NULL
 );
 
-CREATE TABLE IF NOT EXISTS task_schedule (
+CREATE TABLE task_schedule (
     task_schedule_id     BIGSERIAL PRIMARY KEY,
     task_id              BIGINT NOT NULL,
     assigned_date        DATE,
@@ -143,7 +141,10 @@ CREATE TABLE IF NOT EXISTS task_schedule (
     task_end_time        TIME
 );
 
-CREATE TABLE IF NOT EXISTS leaderboard (
+
+
+
+CREATE TABLE leaderboard (
     id BIGSERIAL PRIMARY KEY,
     technician_id BIGINT NOT NULL,
     average_rating DOUBLE PRECISION NOT NULL,
@@ -151,7 +152,7 @@ CREATE TABLE IF NOT EXISTS leaderboard (
 );
 
 
-CREATE TABLE IF NOT EXISTS  feedbacks (
+CREATE TABLE feedbacks (
     id BIGSERIAL PRIMARY KEY,
     customer_id BIGINT NOT NULL,
     task_id BIGINT NOT NULL,
@@ -162,7 +163,7 @@ CREATE TABLE IF NOT EXISTS  feedbacks (
     updated_at TIMESTAMP
 );
 
-CREATE TABLE IF NOT EXISTS  task_technicians (
+CREATE TABLE task_technicians (
     task_technicians_id BIGSERIAL PRIMARY KEY,
     task_id             BIGINT NOT NULL,
     technician_id       BIGINT NOT NULL,
@@ -170,7 +171,7 @@ CREATE TABLE IF NOT EXISTS  task_technicians (
 );
 
 
-CREATE TABLE IF NOT EXISTS files (
+CREATE TABLE files (
     file_id       BIGSERIAL PRIMARY KEY,
     file_url      VARCHAR(255),
     sequence      INT,
@@ -184,7 +185,7 @@ CREATE TABLE IF NOT EXISTS files (
     deleted_at    TIMESTAMP
 );
 
-CREATE TABLE IF NOT EXISTS  user_otp (
+CREATE TABLE user_otp (
 	id  BIGSERIAL PRIMARY KEY ,
 	mobile_no varchar NULL,
 	otp varchar(10) NULL,
@@ -198,7 +199,7 @@ CREATE TABLE IF NOT EXISTS  user_otp (
 );
 
 
-CREATE TABLE IF NOT EXISTS internal_ticket (
+CREATE TABLE internal_ticket (
     id BIGSERIAL PRIMARY KEY,
     title VARCHAR(255) NOT NULL,
     priority VARCHAR(255),
@@ -210,7 +211,7 @@ CREATE TABLE IF NOT EXISTS internal_ticket (
 );
 
 
-CREATE TABLE IF NOT EXISTS shipment_details (
+CREATE TABLE shipment_details (
     shipment_id BIGSERIAL PRIMARY KEY,
     reference_type VARCHAR(255),
     reference_id BIGINT,
