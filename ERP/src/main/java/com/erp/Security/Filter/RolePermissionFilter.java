@@ -141,13 +141,13 @@ public class RolePermissionFilter extends OncePerRequestFilter {
 
             Module module = roleActionPermissionRepository.findModuleId((moduleId));
             if (Objects.isNull(module)) {
-                writeJsonError(response, HttpServletResponse.SC_NOT_FOUND, "Module not found for this user");
+                writeJsonError(response, HttpServletResponse.SC_FORBIDDEN, "Module not found for this user");
                 return;
             }
 
             Action action = roleActionPermissionRepository.findActionId((actionId));
             if (Objects.isNull(action)) {
-                writeJsonError(response, HttpServletResponse.SC_NOT_FOUND, "Action not found for this user");
+                writeJsonError(response, HttpServletResponse.SC_FORBIDDEN, "Action not found for this user");
                 return;
             }
 
