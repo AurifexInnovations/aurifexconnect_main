@@ -57,6 +57,11 @@ public class Task {
     @Column(name = "updated_by")
     private Long updatedBy;
 
+    @Column(name = "latitude")
+    private Double latitude;
+
+    @Column(name = "longitude")
+    private Double longitude;
 
 
 }

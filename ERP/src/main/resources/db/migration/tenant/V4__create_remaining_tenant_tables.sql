@@ -101,7 +101,7 @@ CREATE TABLE IF NOT EXISTS stocktransfer (
     FOREIGN KEY (inventory_item_id) REFERENCES inventory(item_id)
 );
 
-CREATE TABLE task_material (
+CREATE TABLE IF NOT EXISTS task_material (
     task_material_id BIGSERIAL PRIMARY KEY,
     task_id          BIGINT NOT NULL,
     material_id      BIGINT NOT NULL,
@@ -110,7 +110,7 @@ CREATE TABLE task_material (
     quantity         BIGINT NOT NULL
 );
 
-CREATE TABLE task (
+CREATE TABLE IF NOT EXISTS task (
     task_id BIGSERIAL PRIMARY KEY,
     task_name VARCHAR(255) NOT NULL,
     customer_id BIGINT NOT NULL,
@@ -120,16 +120,19 @@ CREATE TABLE task (
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     created_by BIGINT,
-    updated_by BIGINT
+    updated_by BIGINT,
+    latitude DOUBLE PRECISION ,
+    longitude DOUBLE PRECISION
+
 );
 
-CREATE TABLE task_services (
+CREATE TABLE IF NOT EXISTS task_services (
     task_service_id BIGSERIAL PRIMARY KEY,
     task_id         BIGINT NOT NULL,
     service_id      BIGINT NOT NULL
 );
 
-CREATE TABLE task_schedule (
+CREATE TABLE IF NOT EXISTS task_schedule (
     task_schedule_id     BIGSERIAL PRIMARY KEY,
     task_id              BIGINT NOT NULL,
     assigned_date        DATE,
@@ -141,10 +144,7 @@ CREATE TABLE task_schedule (
     task_end_time        TIME
 );
 
-
-
-
-CREATE TABLE leaderboard (
+CREATE TABLE IF NOT EXISTS leaderboard (
     id BIGSERIAL PRIMARY KEY,
     technician_id BIGINT NOT NULL,
     average_rating DOUBLE PRECISION NOT NULL,
@@ -152,7 +152,7 @@ CREATE TABLE leaderboard (
 );
 
 
-CREATE TABLE feedbacks (
+CREATE TABLE IF NOT EXISTS  feedbacks (
     id BIGSERIAL PRIMARY KEY,
     customer_id BIGINT NOT NULL,
     task_id BIGINT NOT NULL,
@@ -163,7 +163,7 @@ CREATE TABLE feedbacks (
     updated_at TIMESTAMP
 );
 
-CREATE TABLE task_technicians (
+CREATE TABLE IF NOT EXISTS  task_technicians (
     task_technicians_id BIGSERIAL PRIMARY KEY,
     task_id             BIGINT NOT NULL,
     technician_id       BIGINT NOT NULL,
@@ -171,7 +171,7 @@ CREATE TABLE task_technicians (
 );
 
 
-CREATE TABLE files (
+CREATE TABLE IF NOT EXISTS files (
     file_id       BIGSERIAL PRIMARY KEY,
     file_url      VARCHAR(255),
     sequence      INT,
@@ -185,7 +185,7 @@ CREATE TABLE files (
     deleted_at    TIMESTAMP
 );
 
-CREATE TABLE user_otp (
+CREATE TABLE IF NOT EXISTS  user_otp (
 	id  BIGSERIAL PRIMARY KEY ,
 	mobile_no varchar NULL,
 	otp varchar(10) NULL,
@@ -199,7 +199,7 @@ CREATE TABLE user_otp (
 );
 
 
-CREATE TABLE internal_ticket (
+CREATE TABLE IF NOT EXISTS internal_ticket (
     id BIGSERIAL PRIMARY KEY,
     title VARCHAR(255) NOT NULL,
     priority VARCHAR(255),
@@ -211,7 +211,7 @@ CREATE TABLE internal_ticket (
 );
 
 
-CREATE TABLE shipment_details (
+CREATE TABLE IF NOT EXISTS shipment_details (
     shipment_id BIGSERIAL PRIMARY KEY,
     reference_type VARCHAR(255),
     reference_id BIGINT,

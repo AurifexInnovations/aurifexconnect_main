@@ -16,7 +16,7 @@ public interface TaskScheduleRepository extends JpaRepository<TaskSchedule,Long>
     SELECT 
         u.first_name || ' ' || u.last_name AS technicianName,
         ts.service_location AS attendanceLocation,
-        t.task_name AS taskName
+        t.task_name AS taskName,t.latitude as latitude ,t.longitude as longitude 
     FROM task t
     LEFT JOIN task_schedule ts ON t.task_id = ts.task_id
     LEFT JOIN task_technicians tt ON t.task_id = tt.task_id
