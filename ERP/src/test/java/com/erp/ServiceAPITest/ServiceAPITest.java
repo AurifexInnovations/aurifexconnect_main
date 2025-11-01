@@ -36,13 +36,13 @@ public class ServiceAPITest {
     void testAddService() throws Exception {
         ServiceRequest serviceRequest = new ServiceRequest();
         serviceRequest.setServiceName("Screen Repair");
-        serviceRequest.setCategories("Repair");
-        serviceRequest.setServiceStatus(ServiceStatus.AVAILABLE);
+        //serviceRequest.setCategories("Repair");
+        //serviceRequest.setServiceStatus(ServiceStatus.AVAILABLE);
 
         // Save directly for ID retrieval
         Service service = new Service();
         service.setServiceName(serviceRequest.getServiceName());
-        service.setCategories(serviceRequest.getCategories());
+        //service.setCategories(serviceRequest.getCategories());
         service.setServiceStatus(serviceRequest.getServiceStatus());
         serviceRepository.save(service);
         serviceId = service.getServiceId();
@@ -60,7 +60,7 @@ public class ServiceAPITest {
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.data.serviceName").value("Screen Repair"))
                 .andExpect(jsonPath("$.data.category").value("Repair"))
-                .andExpect(jsonPath("$.data.serviceStatus").value(ServiceStatus.AVAILABLE.toString()));
+                .andExpect(jsonPath("$.data.serviceStatus").value(ServiceStatus.ACTIVE.toString()));
     }
 
     @Test
@@ -68,8 +68,8 @@ public class ServiceAPITest {
     void testUpdateServiceById() throws Exception {
         ServiceRequest updateRequest = new ServiceRequest();
         updateRequest.setServiceName("Display Replacement");
-        updateRequest.setCategories("Repair");
-        updateRequest.setServiceStatus(ServiceStatus.AVAILABLE);
+        //  updateRequest.setCategories("Repair");
+//        updateRequest.setServiceStatus(ServiceStatus.AVAILABLE);
 
         mockMvc.perform(put("/service/" + serviceId)
                         .contentType(MediaType.APPLICATION_JSON)
@@ -100,7 +100,7 @@ public class ServiceAPITest {
     @Test
     @Order(6)
     void testGetServicesByStatus() throws Exception {
-        mockMvc.perform(get("/service/by-status/" + ServiceStatus.AVAILABLE))
+        mockMvc.perform(get("/service/by-status/" + ServiceStatus.ACTIVE))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.data").isArray());
     }

@@ -1,9 +1,7 @@
 package com.erp.Controller.StockTransfer;
 
-import com.erp.Dto.Request.PaginationRequest;
-import com.erp.Dto.Request.StockTransferParam;
-import com.erp.Dto.Request.StockTransferRequest;
-import com.erp.Dto.Request.TransferActionRequest;
+import com.erp.Dto.Request.*;
+import com.erp.Dto.Response.ResultDto;
 import com.erp.Dto.Response.StockTransferResponse;
 import com.erp.Service.StockTransferService.StockTransferService;
 import com.erp.Utility.ListResponseStructure;
@@ -90,4 +88,11 @@ public class StockTransferController {
         return ResponseBuilder.success(HttpStatus.OK, "Transfers by Status Retrieved Successfully", responses);
     }
 
+    @PostMapping("stocktransfer/filter")
+    public ResponseEntity<ResponseStructure<ResultDto<StockTransferResponse>>> getStockTransferDetails(@RequestBody FilterRequest filterRequest)
+    {
+        ResultDto<StockTransferResponse> responses = stockTransferService.getStockTransferDetails(filterRequest);
+
+        return ResponseBuilder.success(HttpStatus.OK, "All Stock Transfers Fetched", responses);
+    }
 }

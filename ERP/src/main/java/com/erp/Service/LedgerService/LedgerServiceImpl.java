@@ -29,17 +29,17 @@ public class LedgerServiceImpl implements LedgerService {
 
     @Override
     public LedgerResponse updateLedgerInfo(LedgerRequest ledgerRequest){
-        Ledger ledger = ledgerRepository.findById(ledgerRequest.getFindLegerId())
+        Ledger ledger = ledgerRepository.findById(ledgerRequest.getLedgerId())
                 .orElseThrow(()-> new LedgerNotFoundException("Ledger Not Found! Invalid Id"));
 
-        ledgerMapper.mapToLedgerEntity(ledgerRequest, ledger);
+        ledgerMapper.updateEntityFromRequest(ledgerRequest, ledger);
         ledgerRepository.save(ledger);
         return ledgerMapper.mapToLedgerResponse(ledger);
     }
 
     @Override
     public LedgerResponse deleteByLedgerId(LedgerRequest ledgerId){
-        Ledger ledger = ledgerRepository.findById(ledgerId.getFindLegerId())
+        Ledger ledger = ledgerRepository.findById(ledgerId.getLedgerId())
                 .orElseThrow(()-> new LedgerNotFoundException("Ledger Not Found! Invalid Id"));
         ledgerRepository.deleteById(ledger.getLedgerId());
         return ledgerMapper.mapToLedgerResponse(ledger);
@@ -65,7 +65,7 @@ public class LedgerServiceImpl implements LedgerService {
         if (ledgers.isEmpty()) {
             throw new LedgerNotFoundException("No ledger found ");
         }else {
-            return ledgerMapper.mapToLedgerResponse(ledgers);
+            return ledgerMapper.toResponseList(ledgers);
         }
     }
 }

@@ -1,50 +1,51 @@
 package com.erp.Model;
 
+import org.hibernate.annotations.UpdateTimestamp;
+import org.springframework.data.annotation.CreatedDate;
+import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 import com.erp.Enum.IndustryType;
 import com.erp.Enum.ReviewStatus;
-import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
-import lombok.*;
-import org.springframework.data.jpa.domain.AbstractAuditable;
-import org.springframework.data.jpa.domain.support.AuditingEntityListener;
+import lombok.AllArgsConstructor;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
 
+import java.time.LocalDateTime;
 import java.util.List;
 
-@NoArgsConstructor
-@AllArgsConstructor
 @Entity
 @Table(name = "company_details")
-@EntityListeners(AuditingEntityListener.class)
 @Getter
 @Setter
-@ToString(exclude = "documentDetails")
-@EqualsAndHashCode(onlyExplicitlyIncluded = true)
-public class CompanyDetails extends AbstractAuditable<Admin, Long> {
-
-    @Id
-    @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "company_details_seq_gen")
-    @SequenceGenerator(name = "company_details_seq_gen", sequenceName = "company_details_seq", allocationSize = 1)
-    @Column(name = "id")
-    private Long id;
-
+@NoArgsConstructor
+@AllArgsConstructor
+@EntityListeners(AuditingEntityListener.class)
+public class CompanyDetails extends BaseEntity {
     @Column(name = "name")
     private String name;
 
-    @Column(name = "address")
-    private String address;
+    @Column(name = "office_no")
+    private Integer officeNo;
+
+    @Column(name = "address_line1", length = 500)
+    private String addressLine1;
+
+    @Column(name = "address_line2", length = 500)
+    private String addressLine2;
+
+    @Column(columnDefinition = "TEXT")
+    private String description;
+
+    @Column(name = "gst_number", length = 50)
+    private String gstNumber;
+
+    @Column(name = "pan_number", length = 50)
+    private String panNumber;
 
     @Enumerated(EnumType.STRING)
     @Column(name = "industry_type")
     private IndustryType industryType;
-
-    @Column(name = "description", columnDefinition = "TEXT")
-    private String description;
-
-    @Column(name = "gst_number")
-    private String gstNumber;
-
-    @Column(name = "pan_number")
-    private String panNumber;
 
     @Enumerated(EnumType.STRING)
     @Column(name = "review_status")
@@ -53,13 +54,29 @@ public class CompanyDetails extends AbstractAuditable<Admin, Long> {
     @Column(name = "review_comment", columnDefinition = "TEXT")
     private String reviewComment;
 
+    @Column(name = "contact_person_name")
+    private String contactPersonName;
+
+    @Column(name = "contact_person_email")
+    private String contactPersonEmail;
+
+    @Column(name = "contact_person_phone")
+    private String contactPersonPhone;
+
+    @Column(length = 10)
+    private String pincode;
+
+    @Column(name = "city")
+    private String city;
+
+    @Column(name = "state")
+    private String state;
+
     @Column(name = "reviewed_by")
     private String reviewedBy;
 
-    @OneToMany(mappedBy = "companyDetails")
-    @JsonIgnore
+    @OneToMany(mappedBy = "companyDetails",
+            cascade = CascadeType.ALL,
+            orphanRemoval = true)
     private List<DocumentDetails> documentDetails;
-
 }
-
-

@@ -1,0 +1,362 @@
+{
+  "info": {
+    "name": "ERP Banking & Financial Reports APIs",
+    "_postman_id": "b0e8f03f-3e6e-4c02-9b73-erp-apis",
+    "description": "Postman collection to exercise Banking and Financial Reports endpoints.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "Banking",
+      "item": [
+        {
+          "name": "Import Bank Statement (file)",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "formdata",
+              "formdata": [
+                { "key": "bankAccountId", "value": "1", "type": "text" },
+                { "key": "statementDate", "value": "2025-01-31", "type": "text" },
+                { "key": "file", "type": "file", "src": [] },
+                { "key": "importSource", "value": "CSV", "type": "text" },
+                { "key": "notes", "value": "January statement", "type": "text" }
+              ]
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/banking/statements/import",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "banking", "statements", "import"]
+            }
+          }
+        },
+        {
+          "name": "Create Manual Bank Statement",
+          "request": {
+            "method": "POST",
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/banking/statements/manual?bankAccountId=1&statementDate=2025-01-31&openingBalance=1000.00&closingBalance=1500.00",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "banking", "statements", "manual"],
+              "query": [
+                {"key": "bankAccountId", "value": "1"},
+                {"key": "statementDate", "value": "2025-01-31"},
+                {"key": "openingBalance", "value": "1000.00"},
+                {"key": "closingBalance", "value": "1500.00"}
+              ]
+            }
+          }
+        },
+        {
+          "name": "Get Bank Statement",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/banking/statements/1",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "banking", "statements", "1"]
+            }
+          }
+        },
+        {
+          "name": "Get Bank Statements by Account",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/banking/statements/account/1",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "banking", "statements", "account", "1"]
+            }
+          }
+        },
+        {
+          "name": "Auto Reconcile Bank Statement",
+          "request": {
+            "method": "POST",
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/banking/statements/1/auto-reconcile",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "banking", "statements", "1", "auto-reconcile"]
+            }
+          }
+        },
+        {
+          "name": "Manual Reconcile Statement Line",
+          "request": {
+            "method": "POST",
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/banking/statements/lines/10/reconcile?transactionEntryId=100&notes=Manual%20match",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "banking", "statements", "lines", "10", "reconcile"],
+              "query": [
+                {"key": "transactionEntryId", "value": "100"},
+                {"key": "notes", "value": "Manual match"}
+              ]
+            }
+          }
+        },
+        {
+          "name": "Get Reconciliation Report",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/banking/reconciliation/report?bankAccountId=1&fromDate=2025-01-01&toDate=2025-01-31",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "banking", "reconciliation", "report"],
+              "query": [
+                {"key": "bankAccountId", "value": "1"},
+                {"key": "fromDate", "value": "2025-01-01"},
+                {"key": "toDate", "value": "2025-01-31"}
+              ]
+            }
+          }
+        },
+        {
+          "name": "Mark Statement as Reconciled",
+          "request": {
+            "method": "POST",
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/banking/statements/1/mark-reconciled",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "banking", "statements", "1", "mark-reconciled"]
+            }
+          }
+        },
+        {
+          "name": "Get Unreconciled Transactions",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/banking/unreconciled-transactions?bankAccountId=1&fromDate=2025-01-01&toDate=2025-01-31",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "banking", "unreconciled-transactions"],
+              "query": [
+                {"key": "bankAccountId", "value": "1"},
+                {"key": "fromDate", "value": "2025-01-01"},
+                {"key": "toDate", "value": "2025-01-31"}
+              ]
+            }
+          }
+        },
+        {
+          "name": "Process Reconciliation",
+          "request": {
+            "method": "POST",
+            "header": [
+              {"key": "Content-Type", "value": "application/json"}
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"bankAccountId\": 1,\n  \"statementId\": 1,\n  \"matches\": [\n    { \"lineId\": 10, \"transactionEntryId\": 100 }\n  ]\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/banking/reconciliation/process",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "banking", "reconciliation", "process"]
+            }
+          }
+        },
+        {
+          "name": "Get Bank Balance",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/banking/balance/1?asOfDate=2025-01-31",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "banking", "balance", "1"],
+              "query": [
+                {"key": "asOfDate", "value": "2025-01-31"}
+              ]
+            }
+          }
+        },
+        {
+          "name": "Update Bank Balance",
+          "request": {
+            "method": "POST",
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/banking/balance/1/update?asOfDate=2025-01-31",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "banking", "balance", "1", "update"],
+              "query": [
+                {"key": "asOfDate", "value": "2025-01-31"}
+              ]
+            }
+          }
+        },
+        {
+          "name": "Export Reconciliation Report",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/banking/reconciliation/export?bankAccountId=1&fromDate=2025-01-01&toDate=2025-01-31&format=PDF",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "banking", "reconciliation", "export"],
+              "query": [
+                {"key": "bankAccountId", "value": "1"},
+                {"key": "fromDate", "value": "2025-01-01"},
+                {"key": "toDate", "value": "2025-01-31"},
+                {"key": "format", "value": "PDF"}
+              ]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Financial Reports",
+      "item": [
+        {
+          "name": "Trial Balance",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/reports/financial/trial-balance?fromDate=2025-01-01&toDate=2025-01-31",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "reports", "financial", "trial-balance"],
+              "query": [
+                {"key": "fromDate", "value": "2025-01-01"},
+                {"key": "toDate", "value": "2025-01-31"}
+              ]
+            }
+          }
+        },
+        {
+          "name": "Profit & Loss",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/reports/financial/profit-loss?fromDate=2025-01-01&toDate=2025-01-31",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "reports", "financial", "profit-loss"],
+              "query": [
+                {"key": "fromDate", "value": "2025-01-01"},
+                {"key": "toDate", "value": "2025-01-31"}
+              ]
+            }
+          }
+        },
+        {
+          "name": "Balance Sheet",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/reports/financial/balance-sheet?asOfDate=2025-01-31",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "reports", "financial", "balance-sheet"],
+              "query": [
+                {"key": "asOfDate", "value": "2025-01-31"}
+              ]
+            }
+          }
+        },
+        {
+          "name": "Cash Flow",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/reports/financial/cash-flow?fromDate=2025-01-01&toDate=2025-01-31",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "reports", "financial", "cash-flow"],
+              "query": [
+                {"key": "fromDate", "value": "2025-01-01"},
+                {"key": "toDate", "value": "2025-01-31"}
+              ]
+            }
+          }
+        },
+        {
+          "name": "Bank Reconciliation Report",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/reports/financial/bank-reconciliation?bankAccountId=1&fromDate=2025-01-01&toDate=2025-01-31",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "reports", "financial", "bank-reconciliation"],
+              "query": [
+                {"key": "bankAccountId", "value": "1"},
+                {"key": "fromDate", "value": "2025-01-01"},
+                {"key": "toDate", "value": "2025-01-31"}
+              ]
+            }
+          }
+        },
+        {
+          "name": "Tax Reports",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/reports/financial/tax?fromDate=2025-01-01&toDate=2025-01-31&taxType=GST",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "reports", "financial", "tax"],
+              "query": [
+                {"key": "fromDate", "value": "2025-01-01"},
+                {"key": "toDate", "value": "2025-01-31"},
+                {"key": "taxType", "value": "GST"}
+              ]
+            }
+          }
+        },
+        {
+          "name": "Aging Report",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/reports/financial/aging?reportType=RECEIVABLES&asOfDate=2025-01-31",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "reports", "financial", "aging"],
+              "query": [
+                {"key": "reportType", "value": "RECEIVABLES"},
+                {"key": "asOfDate", "value": "2025-01-31"}
+              ]
+            }
+          }
+        },
+        {
+          "name": "Comparative Report",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/reports/financial/comparative?reportType=PL&currentFromDate=2025-01-01&currentToDate=2025-01-31&previousFromDate=2024-01-01&previousToDate=2024-01-31",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "reports", "financial", "comparative"],
+              "query": [
+                {"key": "reportType", "value": "PL"},
+                {"key": "currentFromDate", "value": "2025-01-01"},
+                {"key": "currentToDate", "value": "2025-01-31"},
+                {"key": "previousFromDate", "value": "2024-01-01"},
+                {"key": "previousToDate", "value": "2024-01-31"}
+              ]
+            }
+          }
+        },
+        {
+          "name": "Export Report",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/reports/financial/export?reportType=TRIAL_BALANCE&fromDate=2025-01-01&toDate=2025-01-31&format=PDF",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "reports", "financial", "export"],
+              "query": [
+                {"key": "reportType", "value": "TRIAL_BALANCE"},
+                {"key": "fromDate", "value": "2025-01-01"},
+                {"key": "toDate", "value": "2025-01-31"},
+                {"key": "format", "value": "PDF"}
+              ]
+            }
+          }
+        }
+      ]
+    }
+  ],
+  "variable": [
+    {
+      "key": "baseUrl",
+      "value": "http://localhost:8080"
+    }
+  ]
+}
+
+

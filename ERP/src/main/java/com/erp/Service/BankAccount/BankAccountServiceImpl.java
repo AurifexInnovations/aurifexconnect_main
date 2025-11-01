@@ -109,7 +109,7 @@ public class BankAccountServiceImpl implements BankAccountService{
     @Override
     public BankBalanceResponse getCurrentBankBalance() {
         List<BankAccount> accounts = bankAccountRepository.findAll();
-        double total = 0.0;
+        double total = 0.0; //in case you have to add total bank module
 
         if (accounts != null && !accounts.isEmpty()) {
             for (BankAccount account : accounts) {
@@ -123,7 +123,6 @@ public class BankAccountServiceImpl implements BankAccountService{
             total = 0.0;
         }
 
-        return new BankBalanceResponse("Total Bank Balance", total);
+        return new BankBalanceResponse();
     }
-
 }

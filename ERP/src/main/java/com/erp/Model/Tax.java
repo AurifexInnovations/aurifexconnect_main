@@ -14,6 +14,8 @@ import java.util.List;
 @Entity
 @Getter
 @Setter
+
+@Table(name = "tax")
 public class Tax {
 
     @Id
