@@ -161,9 +161,6 @@ public class TaskController {
     }
 
 
-
-
-
     @PostMapping("/task/start/{taskId}")
     @Operation(
             summary = "Update Task Status to IN_PROGRESS",

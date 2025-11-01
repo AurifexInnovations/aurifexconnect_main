@@ -39,6 +39,11 @@ public class UserRequest {
     @Size(min = 1, message = "User must have at least one role")
     private Set<RoleRequest> roles = new HashSet<>();
 
+
+    @NotEmpty(message = " Model and Action cannot be empty")
+    @Size(min = 1, message = "User must have at least one role")
+    private Set<PermissionRequest> permissions = new HashSet<>();
+
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;

@@ -22,14 +22,14 @@ public class RoleController {
 
     private final RoleServices roleService;
 
-    @PostMapping("/roles")
+    @PostMapping("admin/roles")
     @PreAuthorize("hasAnyRole('ROLE_ADMIN', 'ROLE_ROOT')")
     public ResponseEntity<ListResponseStructure<RoleResponse>> createRoles(@RequestBody @Valid RoleListRequest roleListRequest) {
         List<RoleResponse> roleResponses = roleService.createRoles(roleListRequest);
         return ResponseBuilder.success(HttpStatus.CREATED, "Roles created or retrieved successfully", roleResponses);
     }
 
-    @GetMapping("/roles")
+    @GetMapping("admin/roles")
     @PreAuthorize("hasAnyRole('ROLE_ADMIN', 'ROLE_ROOT')")
     public ResponseEntity<ListResponseStructure<RoleResponse>> getAllRoles() {
         List<RoleResponse> roleResponses = roleService.getAllRoles();

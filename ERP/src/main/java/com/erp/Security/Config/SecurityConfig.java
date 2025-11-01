@@ -1,18 +1,15 @@
 package com.erp.Security.Config;
 
 import com.erp.Config.AppEnv;
-import com.erp.Exception.GlobalExceptionHandler;
 import com.erp.Meta.MetaAdminRepository;
-import com.erp.Multitenancy.TenantContext;
 import com.erp.Multitenancy.TenantContextHolder;
 import com.erp.Repository.Rootuser.RootUserRepository;
 import com.erp.Security.Filter.AuthFilter;
+import com.erp.Security.Filter.RolePermissionFilter;
 import com.erp.Security.Filter.RefreshAuthFilter;
 import com.erp.Security.Filter.TokenBlackListService;
 import com.erp.Security.JWT.JWTService;
-import com.erp.Security.util.CookieManager;
 import com.erp.Security.util.UserRepositoryRegistry;
-import com.erp.Service.Auth.GenericAuthServiceImpl;
 import com.erp.Tenant.Filter.TenantCleanupFilter;
 import com.erp.Tenant.Filter.TenantFilter;
 import lombok.AllArgsConstructor;
@@ -40,6 +37,7 @@ import org.springframework.security.web.authentication.UsernamePasswordAuthentic
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
+
 import java.util.List;
 
 @Configuration
@@ -53,9 +51,9 @@ public class SecurityConfig {
     private final JWTService jwtService;
     private final TokenBlackListService tokenBlackListService;
     private final UserRepositoryRegistry userRepositoryRegistry;
-    private final CookieManager cookieManager;
     private final MetaAdminRepository metaAdminRepository;
     private final RootUserRepository rootUserRepository;
+    private final RolePermissionFilter jwtPermissionFilter; // ✅ Injected
 
     @Bean
     public PasswordEncoder passwordEncoder() {
@@ -83,7 +81,6 @@ public class SecurityConfig {
                 String schemaName = metaAdminRepository.findSchemaNameByAdminEmail(username)
                         .orElseThrow(() -> new UsernameNotFoundException("No schema mapped for user: " + username));
                 log.debug("Resolved schema '{}' for user '{}'", schemaName, username);
-                TenantContext.setCurrentTenant(schemaName);
             }
             return userRepositoryRegistry.findUserByEmail(username)
                     .orElseThrow(() -> new UsernameNotFoundException("User not found: " + username));
@@ -97,6 +94,7 @@ public class SecurityConfig {
         return hierarchy;
     }
 
+    // ------------------ Tenant Filters ------------------
     @Bean
     public FilterRegistrationBean<TenantFilter> tenantFilterRegistration(TenantFilter tenantFilter) {
         FilterRegistrationBean<TenantFilter> registrationBean = new FilterRegistrationBean<>();
@@ -113,6 +111,7 @@ public class SecurityConfig {
         return registrationBean;
     }
 
+    // ------------------ Public / Auth Filter Chain ------------------
     @Bean
     @Order(1)
     public SecurityFilterChain publicSecurityFilterChain(HttpSecurity http, AuthenticationManager authManager) throws Exception {
@@ -125,12 +124,13 @@ public class SecurityConfig {
                 .authorizeHttpRequests(authorize -> authorize
                         .requestMatchers(baseUrl + "/auth/register/**", baseUrl + "/login").permitAll()
                         .anyRequest().authenticated())
-                .authenticationManager(authManager) // ✅ THIS LINE IS CRITICAL
+                .authenticationManager(authManager)
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .anonymous(anonymous -> anonymous.principal("anonymousUser").authorities("ROLE_ANONYMOUS"))
                 .build();
     }
 
+    // ------------------ Refresh Token Filter Chain ------------------
     @Bean
     @Order(2)
     public SecurityFilterChain refreshSecurityFilterChain(HttpSecurity http) throws Exception {
@@ -148,11 +148,13 @@ public class SecurityConfig {
                 .build();
     }
 
+    // ------------------ Main Security Filter Chain ------------------
     @Bean
     @Order(3)
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         String baseUrl = env.getBaseUrl();
         log.info("Configuring default filter chain for {}", baseUrl + "/**");
+
         return http
                 .securityMatcher("/**")
                 .csrf(csrf -> csrf.disable())
@@ -165,19 +167,24 @@ public class SecurityConfig {
                         .requestMatchers(baseUrl + "/logout").authenticated()
                         .anyRequest().authenticated())
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
-                .addFilterBefore(new AuthFilter(jwtService, tokenBlackListService, userRepositoryRegistry), UsernamePasswordAuthenticationFilter.class)
+                // ✅ Permission filter
+                .addFilterBefore(jwtPermissionFilter, UsernamePasswordAuthenticationFilter.class)
+                // ✅ Auth filter
+                .addFilterBefore(new AuthFilter(jwtService, tokenBlackListService, userRepositoryRegistry),
+                        UsernamePasswordAuthenticationFilter.class)
                 .build();
     }
 
+    // ------------------ CORS Configuration ------------------
     @Bean
     public CorsConfigurationSource corsConfigurationSource()
     {
         CorsConfiguration config = new CorsConfiguration();
-        config.setAllowCredentials(true); // allow cookies / JWT via headers
+        config.setAllowCredentials(true);
         config.setAllowedOrigins(List.of("http://localhost:3000","http://localhost:5174"));
-        config.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS")); // typical REST methods
-        config.setAllowedHeaders(List.of("*")); // allow all headers
-        config.setExposedHeaders(List.of("Authorization")); // expose the Authorization header
+        config.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS"));
+        config.setAllowedHeaders(List.of("*"));
+        config.setExposedHeaders(List.of("Authorization"));
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
         source.registerCorsConfiguration("/**", config);
         return source;

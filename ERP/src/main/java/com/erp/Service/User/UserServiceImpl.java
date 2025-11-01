@@ -1,29 +1,27 @@
 package com.erp.Service.User;
 
-import com.erp.Dto.Request.CommanParam;
-import com.erp.Dto.Request.RoleRequest;
-import com.erp.Dto.Request.UserRequest;
-import com.erp.Dto.Request.UserUpdateRequest;
+import com.erp.Dto.Request.*;
 import com.erp.Dto.Response.UserResponse;
+import com.erp.Exception.ResourceNotFoundException;
 import com.erp.Exception.SameEmail.SameEmailFoundException;
 import com.erp.Exception.User.UserNotFoundException;
 import com.erp.Mapper.User.UserMapper;
-import com.erp.Model.Admin;
-import com.erp.Model.Role;
-import com.erp.Model.User;
+import com.erp.Model.*;
 import com.erp.Multitenancy.TenantContext;
 import com.erp.Repository.Role.RoleRepository;
+import com.erp.Repository.RoleActionPermission.RoleActionPermissionRepository;
 import com.erp.Repository.User.UserRepository;
+import com.erp.Repository.UserPermission.UserPermissionRepository;
 import com.erp.Security.util.UserIdentity;
+import com.erp.Service.UserPermission.UserPermissionService;
 import jakarta.transaction.Transactional;
 import lombok.AllArgsConstructor;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
-import java.util.Collections;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
+import java.time.LocalDateTime;
+import java.util.*;
+import java.util.stream.Collectors;
 
 @Service
 @AllArgsConstructor
@@ -36,12 +34,20 @@ public class UserServiceImpl implements UserServices {
     private final UserIdentity userIdentity;
     private final static String DEFAULT_ROLE = "EMPLOYEE";
 
+
+    RoleActionPermissionRepository roleActionPermissionRepository;
+
+    UserPermissionRepository userPermissionRepository;
+
+    private final UserPermissionService userPermissionService;
+
     @Override
     @Transactional
     public UserResponse createUser(UserRequest userRequest) {
         Admin currentAdmin = (Admin) userIdentity.getCurrentUser();
         String schemaName = currentAdmin.getSchemaName();
         TenantContext.setCurrentTenant(schemaName);
+
         try {
             if (userRepository.findByEmail(userRequest.getEmail()).isPresent()) {
                 throw new SameEmailFoundException("Employee already exists with this email");
@@ -77,11 +83,20 @@ public class UserServiceImpl implements UserServices {
 
             user.setRoles(attachedRoles);
             user = userRepository.save(user);
+
+            for (Role role  : user.getRoles()){
+                userPermissionService.addUserPermisionBasedOnRole(user.getId() ,  role.getRoleName());
+            }
+
             return userMapper.mapToUserResponse(user);
+
+        } catch (Exception e) {
+            throw new ResourceNotFoundException( e.getMessage());
         } finally {
             TenantContext.clear();
         }
     }
+
 
     @Override
     @Transactional()
@@ -91,20 +106,120 @@ public class UserServiceImpl implements UserServices {
         return userMapper.mapToListOfUserResponse(users);
     }
 
+    @Transactional
     @Override
     public UserResponse updateUserById(UserUpdateRequest userUpdateRequest) throws Exception{
 
-        User user = (User) userIdentity.getCurrentUser();
+        Admin currentAdmin = (Admin) userIdentity.getCurrentUser();
+
+//        User user = (User) userIdentity.getCurrentUser();
+
+        User user
+                = userRepository.findByIdAndIsActiveTrue(userUpdateRequest.getId());
 
         if(user.getId() == userUpdateRequest.getId()){
             userMapper.mapTOUserEntity(userUpdateRequest,user);
         }else {
             throw new UserNotFoundException("With this user id: "+ userUpdateRequest.getId() + "user is currently not login !");
         }
+
+
+        Set<Role> updatedRoles = new HashSet<>();
+        for (RoleRequest roleReq : userUpdateRequest.getRoles()) {
+            String roleNameUpper = roleReq.getRoleName().toUpperCase();
+            Role role = roleRepository.findByRoleName(roleNameUpper)
+                    .orElseGet(() -> {
+                        Role newRole = new Role();
+                        newRole.setRoleName(roleNameUpper);
+                        return roleRepository.save(newRole);
+                    });
+            updatedRoles.add(role);
+        }
+
+        // Ensure default role exists
+        Role defaultRole = roleRepository.findByRoleName(DEFAULT_ROLE)
+                .orElseGet(() -> {
+                    Role newRole = new Role();
+                    newRole.setRoleName(DEFAULT_ROLE);
+                    return roleRepository.save(newRole);
+                });
+        updatedRoles.add(defaultRole);
+
+        user.setRoles(updatedRoles);
         userRepository.save(user);
+
+        List<String> roleNames =
+            userUpdateRequest.getRoles().stream().map(RoleRequest::getRoleName).collect(Collectors.toList());
+
+        userPermissionService.updateUserRolePermissionByRoleName(roleNames , user.getId());
+
+//        updateUserModuleActionPermissions(user, updatedRoles, userUpdateRequest.getPermissions(), currentAdmin);
         return userMapper.mapToUserResponse(user);
 
     }
+
+
+    private void updateUserModuleActionPermissions(User user, Set<Role> roles,
+                                                   Set<PermissionRequest> permissionRequests,
+                                                   Admin currentAdmin) {
+
+        // Fetch existing user permissions
+        List<UserPermission> existingPermissions = userPermissionRepository. findByUserId(user.getId());
+        Set<Long> newPermissionIds = new HashSet<>();
+
+        for (PermissionRequest permission : permissionRequests) {
+            Long moduleId = permission.getModuleId();
+
+            for (Long actionId : permission.getActionId()) {
+
+                // Find or create RolesActionPermission
+                RolesActionPermission rap = roleActionPermissionRepository
+                        .findByRoleIdAndModuleIdAndActionId(
+                                roles.iterator().next().getRoleId(), moduleId, actionId)
+                        .orElseGet(() -> {
+                            RolesActionPermission newRap = RolesActionPermission.builder()
+                                    .roleId(roles.iterator().next().getRoleId())
+                                    .moduleId(moduleId)
+                                    .actionId(actionId)
+                                    .createdAt(LocalDateTime.now())
+                                    .active(true)
+                                    .build();
+                            return roleActionPermissionRepository.save(newRap);
+                        });
+
+                newPermissionIds.add(rap.getId());
+
+                // If not already linked, create new user permission
+                boolean exists = existingPermissions.stream()
+                        .anyMatch(up -> up.getRoleActionPermission().equals(rap.getId()));
+
+                if (!exists) {
+                    UserPermission newUserPerm = UserPermission.builder()
+                            .userId(user.getId())
+                            .roleActionPermission(rap.getId())
+                            .createdBy(currentAdmin.getId())
+                            .createdAt(LocalDateTime.now())
+                            .build();
+                    userPermissionRepository.save(newUserPerm);
+                }
+            }
+        }
+
+        // Deactivate any old role-action permissions no longer used
+        for (UserPermission oldPerm : existingPermissions) {
+            if (!newPermissionIds.contains(oldPerm.getRoleActionPermission())) {
+                RolesActionPermission rap = roleActionPermissionRepository
+                        .findById(oldPerm.getRoleActionPermission())
+                        .orElse(null);
+                if (rap != null && rap.isActive()) {
+                    rap.setActive(false);
+                    roleActionPermissionRepository.save(rap);
+                }
+            }
+        }
+    }
+
+
 
     @Override
     public UserResponse deleteUserById(CommanParam commanParamId) {

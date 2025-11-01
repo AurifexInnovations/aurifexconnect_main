@@ -51,25 +51,25 @@ public class MultiTenantConnectionProviderImpl implements MultiTenantConnectionP
             logger.debug("Setting schema to: {}", schema);
             connection.setSchema(schema);
             // Verify schema existence
-            try (var statement = connection.createStatement();
-                 var rs = statement.executeQuery("SELECT EXISTS(SELECT 1 FROM information_schema.schemata WHERE schema_name = '" + schema + "')")) {
-                if (rs.next() && !rs.getBoolean(1)) {
-                    throw new SQLException("Schema does not exist: " + schema);
-                }
-            }
-            // Verify current schema
-            try (var statement = connection.createStatement();
-                 var rs = statement.executeQuery("SELECT current_schema()")) {
-                if (rs.next()) {
-                    String currentSchema = rs.getString(1);
-                    logger.info("Current schema after setSchema: {}", currentSchema);
-                    if (!schema.equals(currentSchema)) {
-                        throw new SQLException("Failed to set schema to: " + schema + ", got: " + currentSchema);
-                    }
-                } else {
-                    throw new SQLException("No schema returned from current_schema()");
-                }
-            }
+//            try (var statement = connection.createStatement();
+//                 var rs = statement.executeQuery("SELECT EXISTS(SELECT 1 FROM information_schema.schemata WHERE schema_name = '" + schema + "')")) {
+//                if (rs.next() && !rs.getBoolean(1)) {
+//                    throw new SQLException("Schema does not exist: " + schema);
+//                }
+//            }
+//            // Verify current schema
+//            try (var statement = connection.createStatement();
+//                 var rs = statement.executeQuery("SELECT current_schema()")) {
+//                if (rs.next()) {
+//                    String currentSchema = rs.getString(1);
+//                    logger.info("Current schema after setSchema: {}", currentSchema);
+//                    if (!schema.equals(currentSchema)) {
+//                        throw new SQLException("Failed to set schema to: " + schema + ", got: " + currentSchema);
+//                    }
+//                } else {
+//                    throw new SQLException("No schema returned from current_schema()");
+//                }
+//            }
             return connection;
         } catch (SQLException e) {
             logger.error("Error setting schema: {}", schema, e);
