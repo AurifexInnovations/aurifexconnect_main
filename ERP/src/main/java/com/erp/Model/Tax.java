@@ -34,7 +34,7 @@ public class Tax {
     @Column(name = "tax_rate")
     private BigDecimal taxRate;
 
-    @Column(name = "created_at")
+    @Column(name = "created_at", updatable = false)
     @CreationTimestamp
     private LocalDateTime createdAt;
 
