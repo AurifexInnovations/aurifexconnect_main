@@ -116,17 +116,26 @@ public class SecurityConfig {
     @Order(1)
     public SecurityFilterChain publicSecurityFilterChain(HttpSecurity http, AuthenticationManager authManager) throws Exception {
         String baseUrl = env.getBaseUrl();
-        log.info("Configuring public filter chain for {}", baseUrl + "/auth/**");
+        String domainName = "https://aurifexconnect-main.onrender.com/";
+
+        log.info("Configuring public filter chain for {}, and domain {}", baseUrl + "/auth/**", domainName);
+
         return http
-                .securityMatcher(baseUrl + "/auth/**", baseUrl + "/login")
+                // Include "/" to allow the domain root as public
+                .securityMatcher("/", baseUrl, baseUrl + "/auth/**", baseUrl + "/login")
                 .csrf(csrf -> csrf.disable())
                 .cors(cors -> cors.configurationSource(corsConfigurationSource()))
                 .authorizeHttpRequests(authorize -> authorize
-                        .requestMatchers(baseUrl + "/auth/register/**", baseUrl + "/login").permitAll()
-                        .anyRequest().authenticated())
+                        // Allow access to root domain (/) and all auth/login/register endpoints
+                        .requestMatchers("/", baseUrl, baseUrl + "/auth/**", baseUrl + "/login", baseUrl + "/auth/register/**").permitAll()
+                        .anyRequest().authenticated()
+                )
                 .authenticationManager(authManager)
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
-                .anonymous(anonymous -> anonymous.principal("anonymousUser").authorities("ROLE_ANONYMOUS"))
+                .anonymous(anonymous -> anonymous
+                        .principal("anonymousUser")
+                        .authorities("ROLE_ANONYMOUS")
+                )
                 .build();
     }
 
