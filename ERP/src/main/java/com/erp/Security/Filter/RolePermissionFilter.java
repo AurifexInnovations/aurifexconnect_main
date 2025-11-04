@@ -38,16 +38,24 @@ public class RolePermissionFilter extends OncePerRequestFilter {
     protected boolean shouldNotFilter(HttpServletRequest request) throws ServletException {
         String path = request.getRequestURI();
 
-        if (path.equals("/api/v1/login")
+        // ✅ Log the incoming request path
+        log.info("Checking JwtPermissionFilter for path: {}", path);
+
+        // ✅ Skip for public or open endpoints
+        if (path.equals("/") // root path
+                || path.equals("/api/v1/login")
                 || path.startsWith("/api/v1/auth")
                 || path.startsWith("/api/v1/users")
-                || path.startsWith("/api/v1/admins") || path.startsWith("/api/v1/admin")) {
+                || path.startsWith("/api/v1/admins")
+                || path.startsWith("/api/v1/admin")) {
             log.info("Skipping JwtPermissionFilter for endpoint: {}", path);
             return true;
         }
 
-        return false; // otherwise filter runs normally
+        // ✅ Apply filter for all other secured endpoints
+        return false;
     }
+
 
     private String getHttpStatusText(int status) {
         switch (status) {
