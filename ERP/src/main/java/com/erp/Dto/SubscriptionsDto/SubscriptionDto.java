@@ -17,6 +17,7 @@ public class SubscriptionDto {
     private String planPeriod;
     private LocalDate planStartDate;
     private LocalDate planEndDate;
+    private String accountUser;
     private String branchCode;
     private String companyCode;
     private String paymentStatus;
