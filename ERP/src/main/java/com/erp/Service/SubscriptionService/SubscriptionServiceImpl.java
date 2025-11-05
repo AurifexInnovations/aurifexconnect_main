@@ -91,6 +91,8 @@ public class SubscriptionServiceImpl implements ISubscriptionService {
             // Default to year if plan period is unrecognized
             subscriptionEntity.setPlanEndDate(LocalDate.now().plusYears(1));
         }
+
+        subscriptionEntity.setAccountUser(String.valueOf(request.getAccountUser()));
         subscriptionEntity.setBranchCode(request.getBranchCode());
         subscriptionEntity.setCompanyCode(request.getCompanyCode());
         subscriptionEntity.setPaymentStatus(request.getPaymentStatus());

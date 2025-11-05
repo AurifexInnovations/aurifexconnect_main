@@ -13,6 +13,7 @@ public class UserSubscriptionRequest {
     private Integer totalBranches;   //---
     private Integer totalTechnicians;  //--
     private Integer totalAmount;  //--
+    private Integer accountUser;  //--
     private String paymentStatus; //--
     private String paymentMethod; //--
     private String paymentTransactionId; //--

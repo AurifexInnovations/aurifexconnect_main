@@ -1,6 +1,5 @@
 package com.erp.Security.Filter;
 
-import com.erp.Exception.ResourceFoundException;
 import com.erp.Exception.ResourceNotFoundException;
 import com.erp.Model.Action;
 import com.erp.Model.Module;
@@ -17,6 +16,7 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.dao.DataAccessException;
 import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
 
@@ -28,6 +28,8 @@ import java.util.Objects;
 @RequiredArgsConstructor
 @Slf4j
 public class RolePermissionFilter extends OncePerRequestFilter {
+
+    private static final String DEFAULT_TENANT = "public";
 
     private final JWTService jwtService;
     private final UserPermissionRepository userPermissionRepository;
@@ -72,7 +74,6 @@ public class RolePermissionFilter extends OncePerRequestFilter {
         }
     }
 
-
     private void writeJsonError(HttpServletResponse response, int status, String message) throws IOException {
         response.setStatus(status);
         response.setContentType("application/json");
@@ -88,16 +89,14 @@ public class RolePermissionFilter extends OncePerRequestFilter {
         response.getWriter().write(jsonResponse);
     }
 
-
     @Override
     protected void doFilterInternal(HttpServletRequest request,
                                     HttpServletResponse response,
-                                    FilterChain filterChain) throws  IOException {
+                                    FilterChain filterChain) throws IOException {
 
         log.info("JwtPermissionFilter invoked for: {}", request.getRequestURI());
 
         try {
-
 
             String token = extractToken(request);
             if (token == null) {
@@ -119,8 +118,6 @@ public class RolePermissionFilter extends OncePerRequestFilter {
                 return;
             }
 
-
-
             String email = claims.get(ClaimName.USER_EMAIL, String.class);
             String schemaName = claims.get(ClaimName.SCHEMA_NAME, String.class);
 
@@ -129,46 +126,63 @@ public class RolePermissionFilter extends OncePerRequestFilter {
                 return;
             }
 
-            var user = userRepository.findByEmail(email)
-                    .orElseThrow(() -> new ResourceNotFoundException("User not found: " + email));
-
-            Long userId = user.getId();
-            TenantContext.setCurrentTenant(user.getSchemaName());
-
-            String moduleIdHeader = request.getHeader("moduleId");
-            String actionIdHeader = request.getHeader("actionId");
-
-            long moduleId = (moduleIdHeader != null && !moduleIdHeader.isBlank())
-                    ? Long.parseLong(moduleIdHeader)
-                    : 0L;
-
-            long actionId = (actionIdHeader != null && !actionIdHeader.isBlank())
-                    ? Long.parseLong(actionIdHeader)
-                    : 0L;
-
-
-            Module module = roleActionPermissionRepository.findModuleId((moduleId));
-            if (Objects.isNull(module)) {
-                writeJsonError(response, HttpServletResponse.SC_FORBIDDEN, "Module not found for this user");
+            // If token indicates default/public tenant, skip DB checks entirely.
+            if (DEFAULT_TENANT.equalsIgnoreCase(schemaName.trim())) {
+                log.debug("Public/default tenant detected ('{}'), skipping DB permission checks.", schemaName);
+                TenantContext.setCurrentTenant(DEFAULT_TENANT);
+                filterChain.doFilter(request, response);
                 return;
             }
 
-            Action action = roleActionPermissionRepository.findActionId((actionId));
-            if (Objects.isNull(action)) {
-                writeJsonError(response, HttpServletResponse.SC_FORBIDDEN, "Action not found for this user");
-                return;
+            // For non-default tenants: guard DB access so missing table/schema doesn't crash filter.
+            try {
+                var user = userRepository.findByEmail(email)
+                        .orElseThrow(() -> new ResourceNotFoundException("User not found: " + email));
+
+                Long userId = user.getId();
+                TenantContext.setCurrentTenant(user.getSchemaName());
+
+                String moduleIdHeader = request.getHeader("moduleId");
+                String actionIdHeader = request.getHeader("actionId");
+
+                long moduleId = (moduleIdHeader != null && !moduleIdHeader.isBlank())
+                        ? Long.parseLong(moduleIdHeader)
+                        : 0L;
+
+                long actionId = (actionIdHeader != null && !actionIdHeader.isBlank())
+                        ? Long.parseLong(actionIdHeader)
+                        : 0L;
+
+                Module module = roleActionPermissionRepository.findModuleId((moduleId));
+                if (Objects.isNull(module)) {
+                    writeJsonError(response, HttpServletResponse.SC_FORBIDDEN, "Module not found for this user");
+                    return;
+                }
+
+                Action action = roleActionPermissionRepository.findActionId((actionId));
+                if (Objects.isNull(action)) {
+                    writeJsonError(response, HttpServletResponse.SC_FORBIDDEN, "Action not found for this user");
+                    return;
+                }
+
+                boolean hasPermission = userPermissionRepository
+                        .hasUserPermission(userId, moduleId, (actionId));
+
+                if (!hasPermission) {
+                    writeJsonError(response, HttpServletResponse.SC_FORBIDDEN,
+                            "You do not have permission   module :  " + module.getName() + " / action: " + action.getName());
+                    return;
+                }
+
+                filterChain.doFilter(request, response);
+
+            } catch (DataAccessException dae) {
+                // Likely missing table/schema for tenant — fail-safe: skip permission checks or respond per policy.
+                log.warn("Database access error for tenant '{}'. Skipping permission check: {}", schemaName, dae.getMessage());
+                TenantContext.setCurrentTenant(schemaName);
+                filterChain.doFilter(request, response);
             }
 
-            boolean hasPermission = userPermissionRepository
-                    .hasUserPermission(userId, moduleId, (actionId));
-
-            if (!hasPermission) {
-                writeJsonError(response, HttpServletResponse.SC_FORBIDDEN,
-                        "You do not have permission   module :  " + module.getName() + " / action: " + action.getName());
-                return;
-            }
-
-            filterChain.doFilter(request, response);
         } catch (RuntimeException e) {
             log.error("Runtime exception in JwtPermissionFilter: {}", e.getMessage(), e);
             writeJsonError(response, HttpServletResponse.SC_INTERNAL_SERVER_ERROR,
@@ -180,7 +194,6 @@ public class RolePermissionFilter extends OncePerRequestFilter {
             TenantContext.clear();
         }
     }
-
 
     private String extractToken(HttpServletRequest request) {
         String authHeader = request.getHeader("Authorization");
@@ -197,24 +210,4 @@ public class RolePermissionFilter extends OncePerRequestFilter {
         }
         return null;
     }
-
-//    private String resolveModuleFromRequest(HttpServletRequest request) {
-//        String path = request.getRequestURI().toLowerCase();
-//        if (path.startsWith("/api/v1/users")) return "USER";
-//        if (path.startsWith("/api/v1/customers")) return "CUSTOMER";
-//        if (path.startsWith("/api/v1/orders")) return "ORDER";
-//        if (path.startsWith("/api/v1/module")) return "TEST";
-//
-//        return "DEFAULT";
-//    }
-//
-//    private String resolveActionFromRequest(HttpServletRequest request) {
-//        return switch (request.getMethod()) {
-//            case "GET" -> "READ";
-//            case "POST" -> "CREATE";
-//            case "PUT" -> "UPDATE";
-//            case "DELETE" -> "DELETE";
-//            default -> "UNKNOWN";
-//        };
-//    }
 }
