@@ -14,6 +14,7 @@ import java.time.LocalDateTime;
 @Setter
 public class ServiceResponse
 {
+    private long serviceId;
     private String serviceName;
     private String serviceDescription;
     private double servicePrice;

@@ -30,11 +30,7 @@ CREATE TABLE IF NOT EXISTS public.masterconfig
     updatedon TIMESTAMP,
     CONSTRAINT masterconfig_pkey PRIMARY KEY (masterconfigid),
     CONSTRAINT masterconfig_servicename_key UNIQUE (servicename)
-)
-TABLESPACE pg_default;
-
-ALTER TABLE IF EXISTS public.masterconfig
-    OWNER TO postgres;
+);
 
 -- Insert sample data
 INSERT INTO public.masterconfig (
