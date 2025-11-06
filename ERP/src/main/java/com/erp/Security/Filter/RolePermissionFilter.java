@@ -40,24 +40,16 @@ public class RolePermissionFilter extends OncePerRequestFilter {
     protected boolean shouldNotFilter(HttpServletRequest request) throws ServletException {
         String path = request.getRequestURI();
 
-        // ✅ Log the incoming request path
-        log.info("Checking JwtPermissionFilter for path: {}", path);
-
-        // ✅ Skip for public or open endpoints
-        if (path.equals("/") // root path
-                || path.equals("/api/v1/login")
+        if (path.equals("/api/v1/login")
                 || path.startsWith("/api/v1/auth")
                 || path.startsWith("/api/v1/users")
-                || path.startsWith("/api/v1/admins")
-                || path.startsWith("/api/v1/admin")) {
+                || path.startsWith("/api/v1/admins") || path.startsWith("/api/v1/admin")) {
             log.info("Skipping JwtPermissionFilter for endpoint: {}", path);
             return true;
         }
 
-        // ✅ Apply filter for all other secured endpoints
-        return false;
+        return false; // otherwise filter runs normally
     }
-
 
     private String getHttpStatusText(int status) {
         switch (status) {
@@ -89,6 +81,7 @@ public class RolePermissionFilter extends OncePerRequestFilter {
         response.getWriter().write(jsonResponse);
     }
 
+
     @Override
     protected void doFilterInternal(HttpServletRequest request,
                                     HttpServletResponse response,
@@ -97,6 +90,7 @@ public class RolePermissionFilter extends OncePerRequestFilter {
         log.info("JwtPermissionFilter invoked for: {}", request.getRequestURI());
 
         try {
+
 
             String token = extractToken(request);
             if (token == null) {
@@ -117,6 +111,8 @@ public class RolePermissionFilter extends OncePerRequestFilter {
                 filterChain.doFilter(request, response);
                 return;
             }
+
+
 
             String email = claims.get(ClaimName.USER_EMAIL, String.class);
             String schemaName = claims.get(ClaimName.SCHEMA_NAME, String.class);
@@ -195,6 +191,7 @@ public class RolePermissionFilter extends OncePerRequestFilter {
         }
     }
 
+
     private String extractToken(HttpServletRequest request) {
         String authHeader = request.getHeader("Authorization");
         if (authHeader != null && authHeader.startsWith("Bearer ")) {
@@ -210,4 +207,24 @@ public class RolePermissionFilter extends OncePerRequestFilter {
         }
         return null;
     }
+
+//    private String resolveModuleFromRequest(HttpServletRequest request) {
+//        String path = request.getRequestURI().toLowerCase();
+//        if (path.startsWith("/api/v1/users")) return "USER";
+//        if (path.startsWith("/api/v1/customers")) return "CUSTOMER";
+//        if (path.startsWith("/api/v1/orders")) return "ORDER";
+//        if (path.startsWith("/api/v1/module")) return "TEST";
+//
+//        return "DEFAULT";
+//    }
+//
+//    private String resolveActionFromRequest(HttpServletRequest request) {
+//        return switch (request.getMethod()) {
+//            case "GET" -> "READ";
+//            case "POST" -> "CREATE";
+//            case "PUT" -> "UPDATE";
+//            case "DELETE" -> "DELETE";
+//            default -> "UNKNOWN";
+//        };
+//    }
 }
