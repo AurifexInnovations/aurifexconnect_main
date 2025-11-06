@@ -3,7 +3,7 @@ package com.erp.Strategy;
 import com.erp.Exception.ResourceNotFoundException;
 import com.erp.Model.GenericUser;
 import com.erp.Security.util.UserIdentity;
-import com.erp.Service.TaskService.TaskService;
+import com.erp.Service.InventoryService.InventoryService;
 import com.erp.Validator.FileTypeValidator;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -17,39 +17,41 @@ import java.nio.file.StandardCopyOption;
 import java.util.ArrayList;
 import java.util.List;
 
+import static com.erp.constants.FileUploadConstants.INVENTORY_CATEGORIES;
 import static com.erp.constants.FileUploadConstants.TASK_CATEGORIES;
 
 @Component
 @RequiredArgsConstructor
-public class TaskImageUploadStrategy implements FileUploadStrategy {
+public class InventoryUploadStrategy implements FileUploadStrategy {
 
     // Base template path (placeholders will be replaced dynamically)
-    private final String basePathTemplate = "uploads/technitian/{tId}/task/{taskId}/category/{cName}";
+    private final String basePathTemplate = "uploads/inventory/{iId}/";
 
     @Qualifier("imageValidator")
     private final FileTypeValidator imageValidator;
 
-    private final TaskService taskService;
     private final UserIdentity userIdentity;
+
+    private final InventoryService inventoryService;
 
     @Override
     public boolean supports(String category) {
-        return TASK_CATEGORIES.contains(category);
+        return INVENTORY_CATEGORIES.contains(category);
     }
 
     @Override
-    public boolean validateId(Long taskId) {
-        return taskService.getTask(taskId); // should return true/false
+    public boolean validateId(Long inventoryId) {
+        return inventoryService.findById(inventoryId);
     }
 
     @Override
-    public List<String> uploadFiles(int seq, Long taskId, String category, MultipartFile[] files) {
+    public List<String> uploadFiles(int seq, Long inventoryId, String category, MultipartFile[] files) {
         GenericUser user = userIdentity.getCurrentUser();
-        Long tId = user.getId();
 
-        boolean isValideTask = validateId(taskId);
+        boolean isValideTask = validateId(inventoryId);
+
         if (!isValideTask) {
-            throw new ResourceNotFoundException("Invalid taskId provided: " + taskId);
+            throw new ResourceNotFoundException("Invalid inventory provided: " + inventoryId);
         }
 
         List<String> filePaths = new ArrayList<>();
@@ -57,9 +59,7 @@ public class TaskImageUploadStrategy implements FileUploadStrategy {
         try {
             // Replace placeholders dynamically
             String resolvedPath = basePathTemplate
-                    .replace("{tId}", String.valueOf(tId))
-                    .replace("{taskId}", String.valueOf(taskId))
-                    .replace("{cName}", category);
+                    .replace("{iId}", String.valueOf(inventoryId));
 
             Path uploadDir = Paths.get(resolvedPath);
 

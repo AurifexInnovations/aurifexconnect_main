@@ -3,6 +3,7 @@ package com.erp.Repository.Inventory;
 import com.erp.Model.Branch;
 import com.erp.Model.Inventory;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Query;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
@@ -23,6 +24,9 @@ public interface InventoryRepository extends JpaRepository<Inventory,Long> {
 
     // New method for stock transfer approval
     Optional<Inventory> findByBranchAndItemName(Branch branch, String itemName);
+
+    @Query(value = "SELECT CASE WHEN COUNT(*) > 0 THEN TRUE ELSE FALSE END FROM inventory WHERE item_id = :id", nativeQuery = true)
+    boolean findByItemId(long id);
 }
 
 //@Query("SELECT i FROM Inventory i " +

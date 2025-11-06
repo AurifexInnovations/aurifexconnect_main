@@ -107,4 +107,6 @@ public interface InventoryService {
     List<InventoryResponse> getLowStockItems();
 
     ResultDto<InventoryAndBranchProjection> getInventoryDetails(FilterRequest filterRequest);
+
+    boolean findById(long inventoryId);
 }

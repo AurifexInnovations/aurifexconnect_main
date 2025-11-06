@@ -176,4 +176,16 @@ public class InventoryServiceImpl implements InventoryService {
 
         return inventoryAndBranchProjections;
     }
+
+    public boolean findById(long inventoryId){
+        log.info("Into [InventoryServiceImpl] [findById] ");
+
+        log.info("[InventoryServiceImpl] [findById] :: id {} " , inventoryId);
+
+        boolean isExits = inventoryRepository.findByItemId(inventoryId);
+
+        log.info("Exit [InventoryServiceImpl] [findById] ");
+
+        return isExits;
+    }
 }
