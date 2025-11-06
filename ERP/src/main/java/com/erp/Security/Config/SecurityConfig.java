@@ -127,7 +127,7 @@ public class SecurityConfig {
                 .cors(cors -> cors.configurationSource(corsConfigurationSource()))
                 .authorizeHttpRequests(authorize -> authorize
                         // Allow access to root domain (/) and all auth/login/register endpoints
-                        .requestMatchers("/", baseUrl, baseUrl + "/auth/**", baseUrl + "/login", baseUrl + "/auth/register/**").permitAll()
+                        .requestMatchers("/", baseUrl, baseUrl + "/auth/**", baseUrl + "/login", baseUrl + "/auth/register/**", baseUrl + "/root/logout").permitAll()
                         .anyRequest().authenticated()
                 )
                 .authenticationManager(authManager)
@@ -169,11 +169,13 @@ public class SecurityConfig {
                 .csrf(csrf -> csrf.disable())
                 .cors(cors -> cors.configurationSource(corsConfigurationSource()))
                 .authorizeHttpRequests(authorize -> authorize
+                        // allow root/default URLs without auth
+                        .requestMatchers("/", baseUrl + "/").permitAll()
                         .requestMatchers(baseUrl + "/admins/**").hasAnyAuthority("ROLE_ROOT")
                         .requestMatchers(baseUrl + "/roles/**").hasAnyAuthority("ROLE_ROOT", "ROLE_ADMIN")
                         .requestMatchers(baseUrl + "/user", baseUrl + "/user/delete/**").hasAnyAuthority("ROLE_ADMIN")
                         .requestMatchers(baseUrl + "/user/update/**").hasRole("EMPLOYEE")
-                        .requestMatchers(baseUrl + "/logout").authenticated()
+                        .requestMatchers(baseUrl + "/root/logout").authenticated()
                         .anyRequest().authenticated())
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 // ✅ Permission filter

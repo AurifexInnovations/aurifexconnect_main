@@ -149,8 +149,6 @@ public class GenericAuthServiceImpl implements AuthService {
     @Override
     public HttpHeaders logout(String refreshToken, String accessToken) {
         try {
-            tokenBlackListService.blackListToken(refreshToken);
-            tokenBlackListService.blackListToken(accessToken);
 
             HttpHeaders headers = new HttpHeaders();
             headers.add(HttpHeaders.SET_COOKIE, cookieManager.generateCookie("rt", "", 0));
@@ -182,4 +180,22 @@ public class GenericAuthServiceImpl implements AuthService {
                 roles
         );
     }
+
+    public Optional<GenericUser> loadUserFromCentralSchema(String email) {
+        String previous = TenantContext.getCurrentTenant();
+        try {
+            TenantContext.setCurrentTenant("master"); // central schema where users table exists
+            return userRepositoryRegistry.findUserByEmail(email);
+        } finally {
+            // restore previous tenant (could be null)
+            if (previous == null) {
+                TenantContext.clear();
+            } else {
+                TenantContext.setCurrentTenant(previous);
+            }
+
+        }
+    }
+
+
 }

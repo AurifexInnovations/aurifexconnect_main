@@ -37,7 +37,7 @@ public class AuthController {
         return ResponseBuilder.success(HttpStatus.OK, headers, "New access token generated", authRecord);
     }
 
-    @PostMapping("/logout")
+    @PostMapping("/root/logout")
     public ResponseEntity<ResponseStructure<AuthRecord>> logout(
             @CookieValue("rt") String refreshToken,
             @CookieValue("at") String accessToken) {
