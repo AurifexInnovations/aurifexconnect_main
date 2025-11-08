@@ -170,6 +170,10 @@ public class RolePermissionFilter extends OncePerRequestFilter {
                     return;
                 }
 
+                CustomHeaderRequestWrapper wrappedRequest = new CustomHeaderRequestWrapper(request);
+                wrappedRequest.addHeader("rt", "rt");
+                wrappedRequest.addHeader("at", "at");
+
                 filterChain.doFilter(request, response);
 
             } catch (DataAccessException dae) {
