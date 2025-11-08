@@ -4,6 +4,7 @@ import com.erp.Dto.Request.*;
 import com.erp.CustomRepository.StockTransferCustomRepository;
 import com.erp.Dto.Response.ResultDto;
 import com.erp.Dto.Response.StockTransferResponse;
+import com.erp.Enum.Action;
 import com.erp.Enum.StockTransferStatus;
 import com.erp.Exception.ResourceNotFoundException;
 import com.erp.Exception.StockTransfer_Exception.StockTransferNotFoundException;
@@ -16,6 +17,8 @@ import com.erp.Model.StockTransfer;
 import com.erp.Repository.Branch.BranchRepository;
 import com.erp.Repository.Inventory.InventoryRepository;
 import com.erp.Repository.StockTransfer.StockTransferRepository;
+import com.erp.Security.util.UserIdentity;
+import com.erp.Service.Activity.ActivityService;
 import lombok.AllArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
@@ -35,6 +38,10 @@ public class StockTransferServiceImpl implements StockTransferService
     private final BranchRepository branchRepository;
     private final InventoryRepository inventoryRepository;
 
+    private final UserIdentity userIdentity;
+
+    private final ActivityService activityService;
+
     @Override
     public StockTransferResponse createStockTransfer(StockTransferRequest request) {
         Branch fromBranch = branchRepository.findById(request.getFromBranchId())
@@ -52,11 +59,18 @@ public class StockTransferServiceImpl implements StockTransferService
         transfer.setInventory(inventory);
 
         // note it
-        transfer.setApprovedBy("Aryan"); // This Field's values changes After Role Based Authentication
+        transfer.setInitiatedBy(userIdentity.getCurrentUsername()); // This Field's values changes After Role Based Authentication
 
         transfer.setStatus(StockTransferStatus.PENDING);
 
         stockTransferRepository.save(transfer);
+
+        ActivityDto activityDto=new ActivityDto();
+        activityDto.setAction(Action.ADD_STOCK_TRANSFER.toString());
+        activityDto.setInventoryId(request.getInventoryId());
+        activityDto.setPerformedBy(userIdentity.getCurrentUsername());
+        activityService.addActivity(request.getInventoryId(),activityDto);
+
         return stockTransferMapper.mapToStockTransferResponse(transfer);
     }
 

@@ -2,6 +2,8 @@ package com.erp.CustomRepository;
 
 import com.erp.Dto.Request.FilterRequest;
 import com.erp.Dto.Response.ResultDto;
+import com.erp.Enum.ProductCategories;
+import com.erp.Enum.ProductStatus;
 import com.erp.Projection.InventoryAndBranchProjection;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.PersistenceContext;
@@ -38,28 +40,40 @@ public class InventoryCustomRepository {
     public ResultDto<InventoryAndBranchProjection> getInventoryDetails(FilterRequest filterRequest) {
         log.info("Into [InventoryCustomRepository] [getInventoryDetails]");
 
-        // ---------- BASE DATA QUERY ----------
+        // ---------- DATA QUERY ----------
         StringBuilder sql = new StringBuilder("""
                 SELECT
-                        i.item_id,
-                        i.item_name,
-                        i.item_quantity,
-                        i.item_description,
-                        i.item_cost,
-                        i.categories,
-                        i.low_stock_threshold,
-                        i.created_at,
-                        b.branch_name AS branchName
+                    i.item_id,
+                    i.item_name,
+                    i.brand_name,
+                    i.categories,
+                    i.product_categories,
+                    i.hsn_code,
+                    i.sku_code,
+                    i.ean,
+                    i.is_returnable,
+                    i.tax_id,
+                    i.product_status,
+                    i.branch_id,
+                    i.created_at,
+                    i.last_modified_at,
+                    
+                    COALESCE(SUM(v.stock_quantity), 0) AS totalStockQuantity,
+                    MAX(v.expiry_date) AS latestExpiryDate,
+                    
+                    b.branch_name AS branchName
                 FROM inventory i
-                INNER JOIN branch b ON i.branch_branch_id = b.branch_id
+                INNER JOIN branch b ON i.branch_id = b.branch_id
+                LEFT JOIN varients v ON i.item_id = v.item_id
                 WHERE 1=1
                 """);
 
-        // ---------- BASE COUNT QUERY ----------
+        // ---------- COUNT QUERY ----------
         StringBuilder countSql = new StringBuilder("""
-                SELECT COUNT(*) 
+                SELECT COUNT(DISTINCT i.item_id)
                 FROM inventory i
-                INNER JOIN branch b ON i.branch_branch_id = b.branch_id
+                INNER JOIN branch b ON i.branch_id = b.branch_id
+                LEFT JOIN varients v ON i.item_id = v.item_id
                 WHERE 1=1
                 """);
 
@@ -67,7 +81,7 @@ public class InventoryCustomRepository {
         Map<String, String> search = filterRequest.getSearchColumns();
         Map<String, String> orderBy = filterRequest.getOrderByColumns();
 
-        // ---------- FILTER CONDITIONS ----------
+        // ---------- FILTERS ----------
         if (filters != null && !filters.isEmpty()) {
             if (filters.containsKey("itemName")) {
                 sql.append(" AND i.item_name = :itemName");
@@ -78,8 +92,8 @@ public class InventoryCustomRepository {
                 countSql.append(" AND i.categories = :categories");
             }
             if (filters.containsKey("branchId")) {
-                sql.append(" AND i.branch_branch_id = :branchId");
-                countSql.append(" AND i.branch_branch_id = :branchId");
+                sql.append(" AND i.branch_id = :branchId");
+                countSql.append(" AND i.branch_id = :branchId");
             }
             if (filters.containsKey("startDate") && filters.containsKey("endDate")) {
                 sql.append(" AND i.created_at BETWEEN :startDate AND :endDate");
@@ -93,7 +107,7 @@ public class InventoryCustomRepository {
             }
         }
 
-        // ---------- SEARCH CONDITIONS ----------
+        // ---------- SEARCH ----------
         if (search != null && !search.isEmpty()) {
             if (search.containsKey("itemName")) {
                 sql.append(" AND LOWER(i.item_name) LIKE LOWER(CONCAT('%', :itemName, '%'))");
@@ -108,6 +122,9 @@ public class InventoryCustomRepository {
                 countSql.append(" AND LOWER(b.branch_name) LIKE LOWER(CONCAT('%', :branchName, '%'))");
             }
         }
+
+        // ---------- GROUP BY ----------
+        sql.append(" GROUP BY i.item_id, b.branch_name, i.brand_name, i.categories, i.product_categories, i.hsn_code, i.sku_code, i.ean, i.is_returnable, i.tax_id, i.product_status, i.branch_id, i.created_at, i.last_modified_at");
 
         // ---------- ORDER BY ----------
         if (orderBy != null && !orderBy.isEmpty()) {
@@ -124,17 +141,13 @@ public class InventoryCustomRepository {
                     case "branchName" -> orderClauses.add("b.branch_name " + direction);
                 }
             }
-            if (!orderClauses.isEmpty()) {
-                sql.append(String.join(", ", orderClauses));
-            }
+            sql.append(String.join(", ", orderClauses));
         }
-
-        log.info("[InventoryCustomRepository] [getInventoryDetails] :: Query = {}", sql);
 
         Query dataQuery = entityManager.createNativeQuery(sql.toString());
         Query countQuery = entityManager.createNativeQuery(countSql.toString());
 
-        // ---------- SET FILTER PARAMETERS ----------
+        // ---------- Set Filter Params ----------
         if (filters != null) {
             filterParamMap.forEach((paramName, mapKey) -> {
                 String value = filters.get(mapKey);
@@ -157,7 +170,7 @@ public class InventoryCustomRepository {
             });
         }
 
-        // ---------- SET SEARCH PARAMETERS ----------
+        // ---------- Set Search Params ----------
         if (search != null) {
             searchParamMap.forEach((paramName, mapKey) -> {
                 String value = search.get(mapKey);
@@ -168,7 +181,7 @@ public class InventoryCustomRepository {
             });
         }
 
-        // ---------- PAGINATION ----------
+        // ---------- Pagination ----------
         if (filterRequest.getPaginationRequest() != null) {
             int pageNumber = filterRequest.getPaginationRequest().getPageNumber();
             int pageSize = filterRequest.getPaginationRequest().getPageSize();
@@ -176,27 +189,42 @@ public class InventoryCustomRepository {
             dataQuery.setMaxResults(pageSize);
         }
 
-        // ---------- EXECUTE QUERIES ----------
         long totalCount = ((Number) countQuery.getSingleResult()).longValue();
         List<Object[]> rows = dataQuery.getResultList();
 
-        // ---------- MAP RESULTS ----------
         List<InventoryAndBranchProjection> resultList = new ArrayList<>();
+
         for (Object[] row : rows) {
             InventoryAndBranchProjection obj = new InventoryAndBranchProjection();
+
             obj.setItemId(((Number) row[0]).longValue());
             obj.setItemName((String) row[1]);
-            obj.setItemQuantity(((Number) row[2]).doubleValue());
-            obj.setItemDescription((String) row[3]);
-            obj.setItemCost(((Number) row[4]).doubleValue());
-            obj.setCategories((String) row[5]);
-            obj.setLowStockThreshold(((Number) row[6]).doubleValue());
-            obj.setCreatedAt(row[7] != null ? ((Timestamp) row[7]).toLocalDateTime() : null);
-            obj.setBranchName((String) row[8]);
+            obj.setBrandName((String) row[2]);
+            obj.setCategories((String) row[3]);
+
+            obj.setProductCategories(row[4] != null ? ProductCategories.valueOf((String) row[4]) : null);
+
+            obj.setHsnCode((String) row[5]);
+            obj.setSkuCode((String) row[6]);
+            obj.setEan((String) row[7]);
+            obj.setReturnable(row[8] != null && ((Boolean) row[8]));
+            obj.setTaxId(((Number) row[9]).longValue());
+
+            obj.setProductStatus(row[10] != null ? ProductStatus.valueOf((String) row[10]) : null);
+
+            obj.setBranchId(((Number) row[11]).longValue());
+            obj.setCreatedAt(row[12] != null ? ((Timestamp) row[12]).toLocalDateTime() : null);
+            obj.setLastModifiedAt(row[13] != null ? ((Timestamp) row[13]).toLocalDateTime() : null);
+
+            obj.setTotalStockQuantity(((Number) row[14]).intValue());
+            obj.setLatestExpiryDate(row[15] != null ? ((Timestamp) row[15]).toLocalDateTime() : null);
+
+            obj.setBranchName((String) row[16]);
+
             resultList.add(obj);
         }
 
-        // ---------- WRAP INTO ResultDto ----------
+
         ResultDto<InventoryAndBranchProjection> resultDto = new ResultDto<>();
         resultDto.setCount(totalCount);
         resultDto.setResults(resultList);

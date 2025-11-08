@@ -42,6 +42,8 @@ public class StockTransfer {
     @Column(name = "approved_by")
     private String approvedBy;
 
+    @Column(name = "initiated_by")
+    private String initiatedBy;
 
     @Column(name = "reason")
     private String reason;

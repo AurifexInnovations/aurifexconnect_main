@@ -4,6 +4,7 @@ import com.erp.CustomRepository.InventoryCustomRepository;
 import com.erp.Dto.Request.*;
 import com.erp.Dto.Response.*;
 import com.erp.Dto.VarientDto;
+import com.erp.Enum.Action;
 import com.erp.Enum.ProductStatus;
 import com.erp.Exception.Inventory_Exception.InventoryNotFoundException;
 import com.erp.Exception.ResourceNotFoundException;
@@ -17,6 +18,8 @@ import com.erp.Projection.InventoryAndBranchProjection;
 import com.erp.Repository.Branch.BranchRepository;
 import com.erp.Repository.Inventory.InventoryRepository;
 import com.erp.Repository.Tax.TaxRepository;
+import com.erp.Security.util.UserIdentity;
+import com.erp.Service.Activity.ActivityService;
 import com.erp.Service.Utility.FileService;
 import com.erp.Service.Varients.VarientService;
 import com.erp.Utility.ObjectMapperUtils;
@@ -59,6 +62,10 @@ public class InventoryServiceImpl implements InventoryService {
     private final ProductMapper productMapper;
 
     private final FileService fileService;
+
+    private final ActivityService activityService;
+
+    private final UserIdentity userIdentity;
 
     @Autowired
     private EntityManager entityManager;
@@ -220,42 +227,56 @@ public class InventoryServiceImpl implements InventoryService {
     @Transactional
     public Inventory createOrUpdateProduct(ProductRequest productRequest, MultipartFile[] files) {
         Long itemId = productRequest.getItemId();
-        log.info("Add/Update product request received :: itemId={}, itemName={}",
-                itemId, productRequest.getItemName());
+        log.info("Add/Update product request received :: itemId={}, itemName={}", itemId, productRequest.getItemName());
 
         try {
             Inventory product;
 
-            if (itemId != null && inventoryRepository.existsById(itemId)) {
-                log.info("Existing product found. Updating product with id={}", itemId);
+            boolean isNewProduct = (itemId == null || !inventoryRepository.existsById(itemId));
 
+            if (!isNewProduct) {
+                log.info("Existing product found. Updating product with id={}", itemId);
                 product = inventoryRepository.findById(itemId)
                         .orElseThrow(() -> new RuntimeException("Product not found with id=" + itemId));
 
-                if (ProductStatus.DISCONTINUED.equals(product.getProductStatus())) {
-                    product.setLastModifiedAt(LocalDateTime.now());
-                }
-
                 productMapper.updateProductFromRequest(productRequest, product);
+
+                ActivityDto activityDto=new ActivityDto();
+                activityDto.setAction(Action.UPDATE_INVENTORY.toString());
+                activityDto.setInventoryId(itemId);
+                activityDto.setPerformedBy(userIdentity.getCurrentUsername());
+                activityService.addActivity(itemId,activityDto);
 
 
             } else {
-                log.info("No existing product found. Creating a new product for branchId={}",
-                        productRequest.getBranchId());
+                log.info("No existing product found. Creating a new product for branchId={}", productRequest.getBranchId());
 
                 product = productMapper.toEntity(productRequest);
                 product.setCreatedAt(LocalDateTime.now());
+
+                ActivityDto activityDto=new ActivityDto();
+                activityDto.setAction(Action.ADD_INVENTORY.toString());
+                activityDto.setInventoryId(itemId);
+                activityDto.setPerformedBy(userIdentity.getCurrentUsername());
+                activityService.addActivity(itemId,activityDto);
             }
 
             product = inventoryRepository.save(product);
             log.info("Product saved successfully with id={}", product.getItemId());
 
             if (productRequest.getVarientList() != null && !productRequest.getVarientList().isEmpty()) {
-                for (VarientDto dto : productRequest.getVarientList()) {
-                    dto.setItemId(product.getItemId());
+
+                productRequest.getVarientList().forEach(dto -> dto.setItemId(itemId));
+
+                if (isNewProduct) {
+
+                    varientService.addAndUpdateVarients(productRequest.getVarientList());
+                    log.info("Added new variants for productId={}", product.getItemId());
+                } else {
+
+                    varientService.updateVarients(productRequest.getVarientList());
+                    log.info("Updated variants for productId={}", product.getItemId());
                 }
-                varientService.addAndUpdateVarients(productRequest.getVarientList());
-                log.info("Variants saved/updated successfully for productId={}", product.getItemId());
             }
 
             if (files != null && files.length > 0) {
