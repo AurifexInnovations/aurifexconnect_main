@@ -95,4 +95,11 @@ public class StockTransferController {
 
         return ResponseBuilder.success(HttpStatus.OK, "All Stock Transfers Fetched", responses);
     }
+
+    @PutMapping("/update-status")
+    public ResponseEntity<String> updateStatus(@RequestBody UpdateStockTransferStatusRequest request) {
+        stockTransferService.updateStockTransferStatus(request.getItemId(), request.getStatus());
+        return ResponseEntity.ok("Status updated successfully");
+    }
+
 }

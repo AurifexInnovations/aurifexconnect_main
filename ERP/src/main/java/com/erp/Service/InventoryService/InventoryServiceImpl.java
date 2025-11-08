@@ -287,7 +287,7 @@ public class InventoryServiceImpl implements InventoryService {
 
         } catch (Exception e) {
             log.error("Error while creating/updating product for id={} :: {}", itemId, e.getMessage(), e);
-            throw new RuntimeException("Failed to create or update product");
+            throw new ResourceNotFoundException("Failed to create or update product");
         }
     }
 
@@ -299,7 +299,7 @@ public class InventoryServiceImpl implements InventoryService {
         log.info("Deleting all task materials with itemId={}", itemId);
 
         try {
-            inventoryRepository.deleteByItemId(itemId);
+            inventoryRepository.setInactiveByItemId(itemId);
             log.info("Successfully deleted materials with itemId={}", itemId);
 
         } catch (Exception e) {

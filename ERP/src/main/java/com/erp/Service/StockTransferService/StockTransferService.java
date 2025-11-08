@@ -3,6 +3,7 @@ package com.erp.Service.StockTransferService;
 import com.erp.Dto.Request.*;
 import com.erp.Dto.Response.ResultDto;
 import com.erp.Dto.Response.StockTransferResponse;
+import com.erp.Enum.StockTransferStatus;
 
 import java.util.List;
 
@@ -19,5 +20,7 @@ public interface StockTransferService {
     List<StockTransferResponse> getTransfersByStatus(StockTransferParam param);
 
     ResultDto<StockTransferResponse> getStockTransferDetails(FilterRequest filterRequest);
+
+    public void updateStockTransferStatus(long itemId, StockTransferStatus status);
 
 }

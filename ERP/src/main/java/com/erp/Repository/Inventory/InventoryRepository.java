@@ -36,6 +36,12 @@ public interface InventoryRepository extends JpaRepository<Inventory,Long> {
     @Query("DELETE FROM Inventory i WHERE i.itemId = :itemId AND i.active = true")
     void deleteByItemId(@Param("itemId") Long itemId);
 
+
+    @Modifying
+    @Transactional
+    @Query("UPDATE Inventory i SET i.active = false WHERE i.itemId = :itemId")
+    void setInactiveByItemId(@Param("itemId") Long itemId);
+
 }
 
 //@Query("SELECT i FROM Inventory i " +

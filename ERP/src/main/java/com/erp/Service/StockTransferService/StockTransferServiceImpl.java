@@ -20,16 +20,19 @@ import com.erp.Repository.StockTransfer.StockTransferRepository;
 import com.erp.Security.util.UserIdentity;
 import com.erp.Service.Activity.ActivityService;
 import lombok.AllArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 
 @Service
 @AllArgsConstructor
+@Slf4j
 public class StockTransferServiceImpl implements StockTransferService
 {
     private final StockTransferCustomRepository stockTransferCustomRepository;
@@ -44,6 +47,7 @@ public class StockTransferServiceImpl implements StockTransferService
 
     @Override
     public StockTransferResponse createStockTransfer(StockTransferRequest request) {
+
         Branch fromBranch = branchRepository.findById(request.getFromBranchId())
                 .orElseThrow(() -> new ResourceNotFoundException("From Branch not found!"));
 
@@ -60,7 +64,6 @@ public class StockTransferServiceImpl implements StockTransferService
 
         // note it
         transfer.setInitiatedBy(userIdentity.getCurrentUsername()); // This Field's values changes After Role Based Authentication
-
         transfer.setStatus(StockTransferStatus.PENDING);
 
         stockTransferRepository.save(transfer);
@@ -170,6 +173,22 @@ public class StockTransferServiceImpl implements StockTransferService
         }
 
         return transferResponses;
+    }
+
+
+    @Transactional
+    public void updateStockTransferStatus(long itemId, StockTransferStatus status) {
+
+        log.info("Updating transfer status for itemId={} to {}", itemId, status);
+
+        try {
+            stockTransferRepository.updateStatusByItemId(itemId, status);
+            log.info("Successfully updated status for itemId={}", itemId);
+
+        } catch (Exception e) {
+            log.error("Error updating status for itemId={}", itemId, e);
+            throw e;
+        }
     }
 
 }
