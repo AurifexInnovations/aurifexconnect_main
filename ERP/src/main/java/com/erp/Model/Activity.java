@@ -20,7 +20,7 @@ public class Activity {
     private long inventoryId;
     @Column(name = "action", columnDefinition = "TEXT")
     private String action;
-    @Column(name = "quantity", precision = 10, scale = 2)
+    @Column(name = "quantity")
     private double quantity;
     @Column(name =  "performed_by")
     private String performedBy;
