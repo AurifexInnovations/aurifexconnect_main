@@ -194,6 +194,9 @@ public class GenericAuthServiceImpl implements AuthService {
         String refreshCookie = generationServiceHelper.generateToken(
                 TokenType.REFRESH, claim, Instant.ofEpochMilli(authRecord.refreshExpiration()));
 
+        String token = accessCookie.substring(accessCookie.indexOf("at=") + 3, accessCookie.indexOf(";"));
+        String refreshToken = refreshCookie.substring(refreshCookie.indexOf("at=") + 3, refreshCookie.indexOf(";"));
+
 
         return new AuthRecord(
                 user.getId(),
@@ -203,8 +206,8 @@ public class GenericAuthServiceImpl implements AuthService {
                 accessExpiration,
                 refreshExpiration,
                 roles,
-                accessCookie,
-                refreshCookie
+                token,
+                refreshToken
         );
     }
 
