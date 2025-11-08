@@ -157,12 +157,12 @@ public class InventoryController {
 
         try {
             inventoryService.deleteInventoryByItemId(itemId);
-            return ResponseEntity.ok("Materials deleted successfully for itemId = " + itemId);
+            return ResponseEntity.ok("Inventory deleted successfully for itemId = " + itemId);
 
         } catch (Exception e) {
-            log.error("Error deleting materials for itemId={}", itemId, e);
+            log.error("Error deleting Inventory for itemId={}", itemId, e);
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                    .body("Error while deleting materials");
+                    .body("Error while deleting Inventory");
         }
     }
 }

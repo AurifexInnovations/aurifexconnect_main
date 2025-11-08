@@ -98,7 +98,7 @@ public class StockTransferController {
 
     @PutMapping("/update-status")
     public ResponseEntity<String> updateStatus(@RequestBody UpdateStockTransferStatusRequest request) {
-        stockTransferService.updateStockTransferStatus(request.getItemId(), request.getStatus());
+        stockTransferService.updateStockTransferStatus(request.getId(), request.getStatus());
         return ResponseEntity.ok("Status updated successfully");
     }
 

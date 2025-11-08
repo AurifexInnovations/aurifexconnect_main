@@ -254,11 +254,13 @@ public class InventoryServiceImpl implements InventoryService {
                 product = productMapper.toEntity(productRequest);
                 product.setCreatedAt(LocalDateTime.now());
 
+
+                product = inventoryRepository.save(product);
                 ActivityDto activityDto=new ActivityDto();
                 activityDto.setAction(Action.ADD_INVENTORY.toString());
-                activityDto.setInventoryId(itemId);
+                activityDto.setInventoryId(product.getItemId());
                 activityDto.setPerformedBy(userIdentity.getCurrentUsername());
-                activityService.addActivity(itemId,activityDto);
+                activityService.addActivity(product.getItemId(),activityDto);
             }
 
             product = inventoryRepository.save(product);
@@ -296,14 +298,14 @@ public class InventoryServiceImpl implements InventoryService {
     @Transactional
     public void deleteInventoryByItemId(Long itemId) {
 
-        log.info("Deleting all task materials with itemId={}", itemId);
+        log.info("Deleting all task Inventory with itemId={}", itemId);
 
         try {
             inventoryRepository.setInactiveByItemId(itemId);
-            log.info("Successfully deleted materials with itemId={}", itemId);
+            log.info("Successfully deleted Inventory with itemId={}", itemId);
 
         } catch (Exception e) {
-            log.error("Error deleting materials with itemId={}", itemId, e);
+            log.error("Error deleting Inventory with itemId={}", itemId, e);
             throw e;
         }
     }

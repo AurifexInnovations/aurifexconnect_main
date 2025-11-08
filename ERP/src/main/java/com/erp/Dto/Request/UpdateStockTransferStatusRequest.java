@@ -5,6 +5,6 @@ import lombok.Data;
 
 @Data
 public class UpdateStockTransferStatusRequest {
-    private long itemId;
+    private long id;
     private StockTransferStatus status;
 }

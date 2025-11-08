@@ -25,7 +25,7 @@ public interface StockTransferRepository extends JpaRepository<StockTransfer, Lo
 
     @Modifying
     @Transactional
-    @Query("UPDATE StockTransfer st SET st.status = :status WHERE st.itemId = :itemId")
-    void updateStatusByItemId(@Param("itemId") Long itemId, @Param("status") StockTransferStatus status);
+    @Query("UPDATE StockTransfer st SET st.status = :status WHERE st.id = :id")
+    void updateStatusByItemId(@Param("itemId") Long id, @Param("status") StockTransferStatus status);
 
 }

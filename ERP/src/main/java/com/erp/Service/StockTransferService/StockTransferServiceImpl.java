@@ -177,16 +177,16 @@ public class StockTransferServiceImpl implements StockTransferService
 
 
     @Transactional
-    public void updateStockTransferStatus(long itemId, StockTransferStatus status) {
+    public void updateStockTransferStatus(long id, StockTransferStatus status) {
 
-        log.info("Updating transfer status for itemId={} to {}", itemId, status);
+        log.info("Updating transfer status for itemId={} to {}", id, status);
 
         try {
-            stockTransferRepository.updateStatusByItemId(itemId, status);
-            log.info("Successfully updated status for itemId={}", itemId);
+            stockTransferRepository.updateStatusByItemId(id, status);
+            log.info("Successfully updated status for itemId={}", id);
 
         } catch (Exception e) {
-            log.error("Error updating status for itemId={}", itemId, e);
+            log.error("Error updating status for itemId={}", id, e);
             throw e;
         }
     }

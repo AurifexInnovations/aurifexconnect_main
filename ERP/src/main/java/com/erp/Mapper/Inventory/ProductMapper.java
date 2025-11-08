@@ -24,6 +24,7 @@ public class ProductMapper {
         entity.setReturnable(dto.isReturnable());
         entity.setTaxId(dto.getTaxId());
         entity.setProductStatus(dto.getProductStatus());
+        entity.setActive(Boolean.TRUE);
         entity.setBranchId(dto.getBranchId());
         return entity;
     }
@@ -41,6 +42,7 @@ public class ProductMapper {
         entity.setEan(dto.getEan());
         entity.setReturnable(dto.isReturnable());
         entity.setTaxId(dto.getTaxId());
+        entity.setActive(Boolean.TRUE);
         entity.setProductStatus(dto.getProductStatus());
         entity.setBranchId(dto.getBranchId());
     }

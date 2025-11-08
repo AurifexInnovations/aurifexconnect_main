@@ -20,27 +20,11 @@ import java.util.Map;
 @Slf4j
 public class InventoryCustomRepository {
 
-    private final Map<String, String> filterParamMap = Map.of(
-            "itemName", "itemName",
-            "categories", "categories",
-            "branchId", "branchId",
-            "startDate", "startDate",
-            "endDate", "endDate"
-    );
-
-    private final Map<String, String> searchParamMap = Map.of(
-            "itemName", "itemName",
-            "categories", "categories",
-            "branchName", "branchName"
-    );
-
     @PersistenceContext
     private EntityManager entityManager;
 
     public ResultDto<InventoryAndBranchProjection> getInventoryDetails(FilterRequest filterRequest) {
-        log.info("Into [InventoryCustomRepository] [getInventoryDetails]");
 
-        // ---------- DATA QUERY ----------
         StringBuilder sql = new StringBuilder("""
                 SELECT
                     i.item_id,
@@ -57,179 +41,150 @@ public class InventoryCustomRepository {
                     i.branch_id,
                     i.created_at,
                     i.last_modified_at,
-                    
                     COALESCE(SUM(v.stock_quantity), 0) AS totalStockQuantity,
                     MAX(v.expiry_date) AS latestExpiryDate,
-                    
-                    b.branch_name AS branchName
+                    b.branch_name
                 FROM inventory i
                 INNER JOIN branch b ON i.branch_id = b.branch_id
                 LEFT JOIN varients v ON i.item_id = v.item_id
-                WHERE 1=1
+                WHERE i.active = true
                 """);
 
-        // ---------- COUNT QUERY ----------
         StringBuilder countSql = new StringBuilder("""
                 SELECT COUNT(DISTINCT i.item_id)
                 FROM inventory i
                 INNER JOIN branch b ON i.branch_id = b.branch_id
                 LEFT JOIN varients v ON i.item_id = v.item_id
-                WHERE 1=1
+                WHERE i.active = true
                 """);
 
         Map<String, String> filters = filterRequest.getFilterColumns();
         Map<String, String> search = filterRequest.getSearchColumns();
         Map<String, String> orderBy = filterRequest.getOrderByColumns();
 
-        // ---------- FILTERS ----------
-        if (filters != null && !filters.isEmpty()) {
-            if (filters.containsKey("itemName")) {
+        // Filters
+        if (filters != null) {
+
+            if (filters.containsKey("itemName") && !filters.get("itemName").isEmpty()) {
                 sql.append(" AND i.item_name = :itemName");
                 countSql.append(" AND i.item_name = :itemName");
             }
-            if (filters.containsKey("categories")) {
-                sql.append(" AND i.categories = :categories");
-                countSql.append(" AND i.categories = :categories");
+
+            if (filters.containsKey("brandName") && !filters.get("brandName").isEmpty()) {
+                sql.append(" AND i.brand_name = :brandName");
+                countSql.append(" AND i.brand_name = :brandName");
             }
-            if (filters.containsKey("branchId")) {
+
+            if (filters.containsKey("productCategories") && !filters.get("productCategories").isEmpty()) {
+                sql.append(" AND i.product_categories = :productCategories");
+                countSql.append(" AND i.product_categories = :productCategories");
+            }
+
+            // ✅ Only apply branch filter if branchId is provided & non-empty
+            if (filters.containsKey("branchId") && filters.get("branchId") != null && !filters.get("branchId").isEmpty()) {
                 sql.append(" AND i.branch_id = :branchId");
                 countSql.append(" AND i.branch_id = :branchId");
             }
+
             if (filters.containsKey("startDate") && filters.containsKey("endDate")) {
                 sql.append(" AND i.created_at BETWEEN :startDate AND :endDate");
                 countSql.append(" AND i.created_at BETWEEN :startDate AND :endDate");
-            } else if (filters.containsKey("startDate")) {
-                sql.append(" AND i.created_at >= :startDate");
-                countSql.append(" AND i.created_at >= :startDate");
-            } else if (filters.containsKey("endDate")) {
-                sql.append(" AND i.created_at <= :endDate");
-                countSql.append(" AND i.created_at <= :endDate");
             }
         }
 
-        // ---------- SEARCH ----------
-        if (search != null && !search.isEmpty()) {
-            if (search.containsKey("itemName")) {
-                sql.append(" AND LOWER(i.item_name) LIKE LOWER(CONCAT('%', :itemName, '%'))");
-                countSql.append(" AND LOWER(i.item_name) LIKE LOWER(CONCAT('%', :itemName, '%'))");
-            }
-            if (search.containsKey("categories")) {
-                sql.append(" AND LOWER(i.categories) LIKE LOWER(CONCAT('%', :categories, '%'))");
-                countSql.append(" AND LOWER(i.categories) LIKE LOWER(CONCAT('%', :categories, '%'))");
-            }
-            if (search.containsKey("branchName")) {
-                sql.append(" AND LOWER(b.branch_name) LIKE LOWER(CONCAT('%', :branchName, '%'))");
-                countSql.append(" AND LOWER(b.branch_name) LIKE LOWER(CONCAT('%', :branchName, '%'))");
-            }
+        // Search Condition
+        if (search != null && search.containsKey("itemName")) {
+            sql.append(" AND LOWER(i.item_name) LIKE LOWER(CONCAT('%', :searchItemName, '%'))");
+            countSql.append(" AND LOWER(i.item_name) LIKE LOWER(CONCAT('%', :searchItemName, '%'))");
         }
 
-        // ---------- GROUP BY ----------
-        sql.append(" GROUP BY i.item_id, b.branch_name, i.brand_name, i.categories, i.product_categories, i.hsn_code, i.sku_code, i.ean, i.is_returnable, i.tax_id, i.product_status, i.branch_id, i.created_at, i.last_modified_at");
+        // Group By
+        sql.append("""
+                GROUP BY i.item_id, b.branch_name
+                """);
 
-        // ---------- ORDER BY ----------
+        // Order by
         if (orderBy != null && !orderBy.isEmpty()) {
             sql.append(" ORDER BY ");
-            List<String> orderClauses = new ArrayList<>();
-            for (Map.Entry<String, String> entry : orderBy.entrySet()) {
-                String column = entry.getKey();
-                String direction = entry.getValue().equalsIgnoreCase("desc") ? "DESC" : "ASC";
-
-                switch (column) {
-                    case "itemName" -> orderClauses.add("i.item_name " + direction);
-                    case "categories" -> orderClauses.add("i.categories " + direction);
-                    case "createdAt" -> orderClauses.add("i.created_at " + direction);
-                    case "branchName" -> orderClauses.add("b.branch_name " + direction);
-                }
-            }
-            sql.append(String.join(", ", orderClauses));
+            orderBy.forEach((column, dir) -> sql.append(" i.").append(column).append(" ").append(dir).append(","));
+            sql.deleteCharAt(sql.length() - 1);
+        } else {
+            sql.append(" ORDER BY i.created_at DESC");
         }
 
         Query dataQuery = entityManager.createNativeQuery(sql.toString());
         Query countQuery = entityManager.createNativeQuery(countSql.toString());
 
-        // ---------- Set Filter Params ----------
+        // Apply Params
         if (filters != null) {
-            filterParamMap.forEach((paramName, mapKey) -> {
-                String value = filters.get(mapKey);
-                if (value != null && !value.isEmpty()) {
-                    switch (paramName) {
-                        case "branchId" -> {
-                            dataQuery.setParameter(paramName, Long.parseLong(value));
-                            countQuery.setParameter(paramName, Long.parseLong(value));
-                        }
-                        case "startDate", "endDate" -> {
-                            dataQuery.setParameter(paramName, Timestamp.valueOf(value));
-                            countQuery.setParameter(paramName, Timestamp.valueOf(value));
-                        }
-                        default -> {
-                            dataQuery.setParameter(paramName, value);
-                            countQuery.setParameter(paramName, value);
-                        }
-                    }
-                }
-            });
+            if (filters.containsKey("itemName")) {
+                dataQuery.setParameter("itemName", filters.get("itemName"));
+                countQuery.setParameter("itemName", filters.get("itemName"));
+            }
+
+            if (filters.containsKey("brandName")) {
+                dataQuery.setParameter("brandName", filters.get("brandName"));
+                countQuery.setParameter("brandName", filters.get("brandName"));
+            }
+
+            if (filters.containsKey("productCategories")) {
+                dataQuery.setParameter("productCategories", filters.get("productCategories"));
+                countQuery.setParameter("productCategories", filters.get("productCategories"));
+            }
+
+            if (filters.containsKey("branchId") && !filters.get("branchId").isEmpty()) {
+                dataQuery.setParameter("branchId", Long.parseLong(filters.get("branchId")));
+                countQuery.setParameter("branchId", Long.parseLong(filters.get("branchId")));
+            }
+
+            if (filters.containsKey("startDate") && filters.containsKey("endDate")) {
+                dataQuery.setParameter("startDate", Timestamp.valueOf(filters.get("startDate") + " 00:00:00"));
+                dataQuery.setParameter("endDate", Timestamp.valueOf(filters.get("endDate") + " 23:59:59"));
+                countQuery.setParameter("startDate", Timestamp.valueOf(filters.get("startDate") + " 00:00:00"));
+                countQuery.setParameter("endDate", Timestamp.valueOf(filters.get("endDate") + " 23:59:59"));
+            }
         }
 
-        // ---------- Set Search Params ----------
-        if (search != null) {
-            searchParamMap.forEach((paramName, mapKey) -> {
-                String value = search.get(mapKey);
-                if (value != null && !value.isEmpty()) {
-                    dataQuery.setParameter(paramName, value);
-                    countQuery.setParameter(paramName, value);
-                }
-            });
+        if (search != null && search.containsKey("itemName")) {
+            dataQuery.setParameter("searchItemName", search.get("itemName"));
+            countQuery.setParameter("searchItemName", search.get("itemName"));
         }
 
-        // ---------- Pagination ----------
-        if (filterRequest.getPaginationRequest() != null) {
-            int pageNumber = filterRequest.getPaginationRequest().getPageNumber();
-            int pageSize = filterRequest.getPaginationRequest().getPageSize();
-            dataQuery.setFirstResult(pageNumber * pageSize);
-            dataQuery.setMaxResults(pageSize);
-        }
+        // Pagination
+        int page = filterRequest.getPaginationRequest().getPageNumber();
+        int size = filterRequest.getPaginationRequest().getPageSize();
+        dataQuery.setFirstResult(page * size);
+        dataQuery.setMaxResults(size);
 
         long totalCount = ((Number) countQuery.getSingleResult()).longValue();
-        List<Object[]> rows = dataQuery.getResultList();
+        List<Object[]> resultRows = dataQuery.getResultList();
 
-        List<InventoryAndBranchProjection> resultList = new ArrayList<>();
-
-        for (Object[] row : rows) {
+        List<InventoryAndBranchProjection> responseList = new ArrayList<>();
+        for (Object[] r : resultRows) {
             InventoryAndBranchProjection obj = new InventoryAndBranchProjection();
-
-            obj.setItemId(((Number) row[0]).longValue());
-            obj.setItemName((String) row[1]);
-            obj.setBrandName((String) row[2]);
-            obj.setCategories((String) row[3]);
-
-            obj.setProductCategories(row[4] != null ? ProductCategories.valueOf((String) row[4]) : null);
-
-            obj.setHsnCode((String) row[5]);
-            obj.setSkuCode((String) row[6]);
-            obj.setEan((String) row[7]);
-            obj.setReturnable(row[8] != null && ((Boolean) row[8]));
-            obj.setTaxId(((Number) row[9]).longValue());
-
-            obj.setProductStatus(row[10] != null ? ProductStatus.valueOf((String) row[10]) : null);
-
-            obj.setBranchId(((Number) row[11]).longValue());
-            obj.setCreatedAt(row[12] != null ? ((Timestamp) row[12]).toLocalDateTime() : null);
-            obj.setLastModifiedAt(row[13] != null ? ((Timestamp) row[13]).toLocalDateTime() : null);
-
-            obj.setTotalStockQuantity(((Number) row[14]).intValue());
-            obj.setLatestExpiryDate(row[15] != null ? ((Timestamp) row[15]).toLocalDateTime() : null);
-
-            obj.setBranchName((String) row[16]);
-
-            resultList.add(obj);
+            obj.setItemId(((Number) r[0]).longValue());
+            obj.setItemName((String) r[1]);
+            obj.setBrandName((String) r[2]);
+            obj.setCategories((String) r[3]);
+            obj.setProductCategories(r[4] != null ? ProductCategories.valueOf((String) r[4]) : null);
+            obj.setHsnCode((String) r[5]);
+            obj.setSkuCode((String) r[6]);
+            obj.setEan((String) r[7]);
+            obj.setReturnable((Boolean) r[8]);
+            obj.setTaxId(((Number) r[9]).longValue());
+            obj.setProductStatus(r[10] != null ? ProductStatus.valueOf((String) r[10]) : null);
+            obj.setBranchId(((Number) r[11]).longValue());
+            obj.setCreatedAt(((Timestamp) r[12]).toLocalDateTime());
+            obj.setLastModifiedAt(((Timestamp) r[13]).toLocalDateTime());
+            obj.setTotalStockQuantity(((Number) r[14]).intValue());
+            obj.setLatestExpiryDate(r[15] != null ? ((Timestamp) r[15]).toLocalDateTime() : null);
+            obj.setBranchName((String) r[16]);
+            responseList.add(obj);
         }
 
-
-        ResultDto<InventoryAndBranchProjection> resultDto = new ResultDto<>();
-        resultDto.setCount(totalCount);
-        resultDto.setResults(resultList);
-
-        log.info("Exit [InventoryCustomRepository] [getInventoryDetails] with count = {}", totalCount);
-        return resultDto;
+        ResultDto<InventoryAndBranchProjection> result = new ResultDto<>();
+        result.setCount(totalCount);
+        result.setResults(responseList);
+        return result;
     }
 }

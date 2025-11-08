@@ -25,5 +25,5 @@ public class ProductRequest {
     private long taxId;
     private ProductStatus productStatus;
     private long branchId;
-    private List<VarientDto> VarientList;
+    private List<VarientDto> varientList;
 }

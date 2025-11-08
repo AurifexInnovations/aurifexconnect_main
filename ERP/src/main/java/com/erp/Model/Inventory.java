@@ -97,5 +97,7 @@ public class Inventory {
     @ManyToMany(fetch = FetchType.EAGER)
     private List<Tax> taxes;
 
-    private boolean active ;
+    @Column(name = "active")
+    private boolean active;
+
 }

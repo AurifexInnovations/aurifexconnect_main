@@ -21,6 +21,6 @@ public interface StockTransferService {
 
     ResultDto<StockTransferResponse> getStockTransferDetails(FilterRequest filterRequest);
 
-    public void updateStockTransferStatus(long itemId, StockTransferStatus status);
+    public void updateStockTransferStatus(long id, StockTransferStatus status);
 
 }

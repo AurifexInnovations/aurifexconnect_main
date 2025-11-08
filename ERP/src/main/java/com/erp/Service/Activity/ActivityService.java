@@ -8,6 +8,7 @@ import com.erp.Exception.ResourceNotFoundException;
 import com.erp.Mapper.ActivityLogMapper.ActivityLogMapper;
 import com.erp.Model.Activity;
 import com.erp.Repository.Activity.ActivityRepository;
+import com.erp.Repository.Inventory.InventoryRepository;
 import com.erp.Service.InventoryService.InventoryService;
 import com.erp.Utility.ObjectMapperUtils;
 import lombok.RequiredArgsConstructor;
@@ -22,18 +23,18 @@ import java.util.List;
 @Slf4j
 public class ActivityService {
 
-    private final ActivityRepository activityRepository ;
+    private final ActivityRepository activityRepository;
     private final ActivityCustomRepository activityCustomRepository;
-    private final InventoryService inventoryService;
+    private final InventoryRepository inventoryRepository;
     private final ActivityLogMapper activityLogMapper;
 
     public ActivityDto addActivity(long inventoryId , ActivityDto activityDto){
         log.info("Into [ActivityService] [addActivity] ");
 
-        log.info("[ActivityService] [addActivity] :: InventoryId :: {} :: activityRequest  {}  "
-                , inventoryId , ObjectMapperUtils.writeValueAsString(activityDto));
+        log.info("[ActivityService] [addActivity] :: InventoryId :: {} :: activityRequest  {}",
+                inventoryId , ObjectMapperUtils.writeValueAsString(activityDto));
 
-        boolean isExist = inventoryService.findById(inventoryId);
+        boolean isExist = inventoryRepository.existsById(inventoryId);
 
         if(!isExist){
             throw new ResourceNotFoundException("Inventory Details not found");
@@ -52,8 +53,7 @@ public class ActivityService {
 
     public ResultDto<Activity> getActivitiesByFilter(FilterRequest filterRequest){
         log.info("Into [ActivityService] [getActivitiesByFilter] ");
-
-        log.info("[ActivityService] [getActivitiesByFilter] :: FilterRequest :: {} " ,
+        log.info("[ActivityService] [getActivitiesByFilter] :: FilterRequest :: {}",
                 ObjectMapperUtils.writeValueAsString(filterRequest));
 
         ResultDto<Activity> activityResultDto =
@@ -63,6 +63,4 @@ public class ActivityService {
 
         return activityResultDto;
     }
-
-
 }
