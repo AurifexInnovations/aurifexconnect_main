@@ -176,6 +176,13 @@ public class RolePermissionFilter extends OncePerRequestFilter {
 
                 filterChain.doFilter(request, response);
 
+                // Now add them in the response after processing
+                response.addHeader("rt", "rt");
+                response.addHeader("at", "at");
+
+                // CORS headers so frontend can read them
+                response.addHeader("Access-Control-Expose-Headers", "rt, at");
+
             } catch (DataAccessException dae) {
                 // Likely missing table/schema for tenant — fail-safe: skip permission checks or respond per policy.
                 log.warn("Database access error for tenant '{}'. Skipping permission check: {}", schemaName, dae.getMessage());
