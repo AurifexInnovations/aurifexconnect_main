@@ -2,10 +2,12 @@ package com.erp.Strategy;
 
 import com.erp.Exception.ResourceNotFoundException;
 import com.erp.Model.GenericUser;
+import com.erp.Repository.Inventory.InventoryRepository;
 import com.erp.Security.util.UserIdentity;
 import com.erp.Service.InventoryService.InventoryService;
 import com.erp.Validator.FileTypeValidator;
 import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
 import org.springframework.web.multipart.MultipartFile;
@@ -32,7 +34,7 @@ public class InventoryUploadStrategy implements FileUploadStrategy {
 
     private final UserIdentity userIdentity;
 
-    private final InventoryService inventoryService;
+    private final InventoryRepository inventoryRepository; // ✅ No InventoryService
 
     @Override
     public boolean supports(String category) {
@@ -41,8 +43,9 @@ public class InventoryUploadStrategy implements FileUploadStrategy {
 
     @Override
     public boolean validateId(Long inventoryId) {
-        return inventoryService.findById(inventoryId);
+        return inventoryRepository.existsById(inventoryId); // ✅ No cycle
     }
+
 
     @Override
     public List<String> uploadFiles(int seq, Long inventoryId, String category, MultipartFile[] files) {

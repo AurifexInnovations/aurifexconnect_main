@@ -11,4 +11,5 @@ public class StockTransferRequest
     private long toBranchId;
     private long inventoryId;
     private double quantity;
+    private String reason;
 }

@@ -1,11 +1,10 @@
 package com.erp.Controller.Inventory;
 
-import com.erp.Dto.Request.CommanParam;
-import com.erp.Dto.Request.FilterRequest;
-import com.erp.Dto.Request.InventoryRequest;
+import com.erp.Dto.Request.*;
 import com.erp.Dto.Response.InventoryResponse;
 import com.erp.Dto.Response.ResultDto;
 import com.erp.Dto.Response.StockValueResponse;
+import com.erp.Model.Inventory;
 import com.erp.Projection.InventoryAndBranchProjection;
 import com.erp.Service.InventoryService.InventoryService;
 import com.erp.Utility.ListResponseStructure;
@@ -19,9 +18,11 @@ import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.AllArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.util.List;
 
@@ -29,6 +30,7 @@ import java.util.List;
 @AllArgsConstructor
 @RequestMapping("/")
 @Tag(name = "Inventory Controller",description = "Collection of APIs Endpoints Dealing with Inventory Data")
+@Slf4j
 public class InventoryController {
 
     private final InventoryService inventoryService;
@@ -136,5 +138,31 @@ public class InventoryController {
     public ResponseEntity<ResponseStructure<ResultDto<InventoryAndBranchProjection>>> getInventoryDetails(@RequestBody FilterRequest filterRequest){
         ResultDto<InventoryAndBranchProjection> inventoryAndBranchProjections = inventoryService.getInventoryDetails(filterRequest);
         return ResponseBuilder.success(HttpStatus.OK,"Inventories retrieved successfully!",inventoryAndBranchProjections);
+    }
+
+
+    @PostMapping("/save")
+    public ResponseEntity<Inventory> createOrUpdateProduct(
+            @RequestPart("productRequest") ProductRequest productRequest,
+            @RequestPart(value = "files", required = false) MultipartFile[] files) {
+
+        return ResponseEntity.ok(inventoryService.createOrUpdateProduct(productRequest, files));
+    }
+
+
+
+    @DeleteMapping("/item/{itemId}")
+    public ResponseEntity<?> deleteInventoryByItemId(@PathVariable Long itemId) {
+        log.info("Received delete request for itemId={}", itemId);
+
+        try {
+            inventoryService.deleteInventoryByItemId(itemId);
+            return ResponseEntity.ok("Materials deleted successfully for itemId = " + itemId);
+
+        } catch (Exception e) {
+            log.error("Error deleting materials for itemId={}", itemId, e);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body("Error while deleting materials");
+        }
     }
 }

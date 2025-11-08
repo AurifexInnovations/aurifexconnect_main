@@ -1,12 +1,12 @@
 package com.erp.Service.InventoryService;
 
-import com.erp.Dto.Request.CommanParam;
-import com.erp.Dto.Request.FilterRequest;
-import com.erp.Dto.Request.InventoryRequest;
+import com.erp.Dto.Request.*;
 import com.erp.Dto.Response.InventoryResponse;
 import com.erp.Dto.Response.ResultDto;
 import com.erp.Dto.Response.StockValueResponse;
+import com.erp.Model.Inventory;
 import com.erp.Projection.InventoryAndBranchProjection;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.util.List;
 
@@ -109,4 +109,8 @@ public interface InventoryService {
     ResultDto<InventoryAndBranchProjection> getInventoryDetails(FilterRequest filterRequest);
 
     boolean findById(long inventoryId);
+
+    public Inventory createOrUpdateProduct(ProductRequest productRequest, MultipartFile[] files);
+
+    void deleteInventoryByItemId(Long itemId);
 }

@@ -1,5 +1,8 @@
 package com.erp.Dto.Request;
 
+import com.erp.Dto.VarientDto;
+import com.erp.Enum.ProductCategories;
+import com.erp.Enum.ProductStatus;
 import com.erp.Enum.TaxName;
 import com.erp.Enum.TaxType;
 import jakarta.validation.constraints.DecimalMin;
