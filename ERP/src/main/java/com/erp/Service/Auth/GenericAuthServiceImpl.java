@@ -11,8 +11,11 @@ import com.erp.Repository.Rootuser.RootUserRepository;
 import com.erp.Security.Filter.TokenBlackListService;
 import com.erp.Security.JWT.ClaimName;
 import com.erp.Security.JWT.JWTService;
+import com.erp.Security.JWT.TokenType;
 import com.erp.Security.util.CookieManager;
 import com.erp.Security.util.UserRepositoryRegistry;
+import com.erp.Service.Helper.TokenGenerationServiceHelper;
+import com.erp.Service.TokenGeneration.TokenGenerationService;
 import io.jsonwebtoken.Claims;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -25,6 +28,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.time.Instant;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 
 @Service
@@ -38,7 +42,9 @@ public class GenericAuthServiceImpl implements AuthService {
     private final MetaAdminRepository metaAdminRepository;
     private final JWTService jwtService;
     private final CookieManager cookieManager;
-    private final PasswordEncoder passwordEncoder; // ✅ Added
+    private final PasswordEncoder passwordEncoder;
+    private  final TokenGenerationService tokenGenerationService;
+    private final TokenGenerationServiceHelper generationServiceHelper;
 
     @Override
     @Transactional
@@ -135,6 +141,14 @@ public class GenericAuthServiceImpl implements AuthService {
                 .map(auth -> auth.getAuthority())
                 .toList();
 
+        AuthRecord authRecord = new AuthRecord(user.getId(), user.getEmail(),true,schemaName,accessExpiration,refreshExpiration,
+                roles,"","");
+        Map<String, Object> claim = tokenGenerationService.setClaim(authRecord);
+        String accessCookie = generationServiceHelper.generateToken(
+                TokenType.ACCESS, claim, Instant.ofEpochMilli(authRecord.accessExpiration()));
+        String refreshCookie = generationServiceHelper.generateToken(
+                TokenType.REFRESH, claim, Instant.ofEpochMilli(authRecord.refreshExpiration()));
+
         return new AuthRecord(
                 user.getId(),
                 user.getEmail(),
@@ -142,7 +156,9 @@ public class GenericAuthServiceImpl implements AuthService {
                 schemaName,
                 accessExpiration,
                 refreshExpiration,
-                roles
+                roles,
+                accessCookie,
+                refreshCookie
         );
     }
 
@@ -170,6 +186,18 @@ public class GenericAuthServiceImpl implements AuthService {
                 .map(grantedAuthority -> grantedAuthority.getAuthority())
                 .toList();
 
+        AuthRecord authRecord = new AuthRecord(user.getId(), user.getEmail(),true,schemaName,accessExpiration,refreshExpiration,
+                roles,"","");
+        Map<String, Object> claim = tokenGenerationService.setClaim(authRecord);
+        String accessCookie = generationServiceHelper.generateToken(
+                TokenType.ACCESS, claim, Instant.ofEpochMilli(authRecord.accessExpiration()));
+        String refreshCookie = generationServiceHelper.generateToken(
+                TokenType.REFRESH, claim, Instant.ofEpochMilli(authRecord.refreshExpiration()));
+
+        String token = accessCookie.substring(accessCookie.indexOf("at=") + 3, accessCookie.indexOf(";"));
+        String refreshToken = refreshCookie.substring(refreshCookie.indexOf("at=") + 3, refreshCookie.indexOf(";"));
+
+
         return new AuthRecord(
                 user.getId(),
                 user.getEmail(),
@@ -177,7 +205,9 @@ public class GenericAuthServiceImpl implements AuthService {
                 schemaName,
                 accessExpiration,
                 refreshExpiration,
-                roles
+                roles,
+                token,
+                refreshToken
         );
     }
 
