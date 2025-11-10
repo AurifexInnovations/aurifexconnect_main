@@ -11,13 +11,14 @@ import lombok.Setter;
 public class TokenBlackList {
 
     @Id
-    @GeneratedValue(strategy = GenerationType.UUID)
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "id")
-    private String id;
+    private Long id;
 
-    @Column(name = "token")
+    @Column(nullable = false)
+    private Long expiration;
+
+    @Column(nullable = false, unique = true)
     private String token;
 
-    @Column(name = "expiration")
-    private long expiration;
 }
