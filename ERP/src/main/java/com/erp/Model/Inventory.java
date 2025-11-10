@@ -87,12 +87,12 @@ public class Inventory {
     @JoinColumn(name = "branch_branch_id", referencedColumnName = "branch_id")
     private Branch branch;
 
+//
+//    @OneToMany(mappedBy = "inventory")
+//    private List<LineItems> lineItems;
 
-    @OneToMany(mappedBy = "inventory")
-    private List<LineItems> lineItems;
-
-    @OneToMany(mappedBy = "inventory")
-    private List<InventoryMovement> inventoryMovement;
+//    @OneToMany(mappedBy = "inventory")
+//    private List<InventoryMovement> inventoryMovement;
 
     @ManyToMany(fetch = FetchType.EAGER)
     private List<Tax> taxes;

@@ -40,8 +40,7 @@ import org.springframework.web.multipart.MultipartFile;
 
 import java.sql.Date;
 import java.time.LocalDateTime;
-import java.util.ArrayList;
-import java.util.List;
+import java.util.*;
 
 
 import java.time.LocalDateTime;
@@ -237,7 +236,7 @@ public class InventoryServiceImpl implements InventoryService {
             if (!isNewProduct) {
                 log.info("Existing product found. Updating product with id={}", itemId);
                 product = inventoryRepository.findById(itemId)
-                        .orElseThrow(() -> new RuntimeException("Product not found with id=" + itemId));
+                        .orElseThrow(() -> new ResourceNotFoundException("Product not found with id=" + itemId));
 
                 productMapper.updateProductFromRequest(productRequest, product);
 
@@ -297,16 +296,23 @@ public class InventoryServiceImpl implements InventoryService {
 
     @Transactional
     public void deleteInventoryByItemId(Long itemId) {
-
-        log.info("Deleting all task Inventory with itemId={}", itemId);
+        log.info("Attempting to delete inventory with itemId={}", itemId);
 
         try {
+            Optional<Inventory> exists = inventoryRepository.findByItemIdAndActiveTrue(itemId);
+
+            if (exists.isEmpty()) {
+                log.warn("Inventory not found for itemId={}", itemId);
+                throw new ResourceNotFoundException("Inventory not found for itemId = " + itemId);
+            }
+
             inventoryRepository.setInactiveByItemId(itemId);
             log.info("Successfully deleted Inventory with itemId={}", itemId);
 
+        } catch (ResourceNotFoundException e) {// rethrow to handle in controller
         } catch (Exception e) {
             log.error("Error deleting Inventory with itemId={}", itemId, e);
-            throw e;
+            throw new RuntimeException("Error deleting inventory with itemId = " + itemId, e);
         }
     }
 

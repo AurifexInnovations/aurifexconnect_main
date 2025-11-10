@@ -23,7 +23,7 @@ import java.util.List;
 
 @RestController
 @AllArgsConstructor
-@RequestMapping("/")
+@RequestMapping("/api/v1")
 @Tag(name = "Stock Transfer Controller", description = "APIs for Stock Transfer operations between branches")
 public class StockTransferController {
 

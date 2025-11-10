@@ -1,4 +1,4 @@
-CREATE TABLE varients (
+CREATE TABLE IF NOT EXISTS  varients (
     id SERIAL PRIMARY KEY,
     item_id BIGINT ,
     stock_quantity DOUBLE PRECISION,
@@ -14,7 +14,7 @@ CREATE TABLE varients (
 );
 
 
-CREATE TABLE activity_logs (
+CREATE TABLE IF NOT EXISTS activity_logs (
     id SERIAL PRIMARY KEY,
     inventory_id BIGINT NOT NULL,
     action TEXT,
@@ -36,3 +36,11 @@ ADD COLUMN IF NOT EXISTS tax_id BIGINT,
 ADD COLUMN IF NOT EXISTS product_status VARCHAR(255),
 ADD COLUMN IF NOT EXISTS branch_id BIGINT,
 ADD COLUMN IF NOT EXISTS active  BOOLEAN;
+
+
+ALTER TABLE stocktransfer
+ADD COLUMN initiated_by VARCHAR(255),
+ADD COLUMN reason VARCHAR(500);
+
+
+

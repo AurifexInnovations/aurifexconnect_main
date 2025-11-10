@@ -65,6 +65,7 @@ public class StockTransferServiceImpl implements StockTransferService
         // note it
         transfer.setInitiatedBy(userIdentity.getCurrentUsername()); // This Field's values changes After Role Based Authentication
         transfer.setStatus(StockTransferStatus.PENDING);
+        transfer.setReason(request.getReason());
 
         stockTransferRepository.save(transfer);
 

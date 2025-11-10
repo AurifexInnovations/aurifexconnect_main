@@ -16,6 +16,7 @@ import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.persistence.EntityNotFoundException;
 import jakarta.validation.Valid;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -24,11 +25,14 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
+import java.time.LocalDateTime;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 
 @RestController
 @AllArgsConstructor
-@RequestMapping("/")
+@RequestMapping("/api/v1")
 @Tag(name = "Inventory Controller",description = "Collection of APIs Endpoints Dealing with Inventory Data")
 @Slf4j
 public class InventoryController {
@@ -141,7 +145,7 @@ public class InventoryController {
     }
 
 
-    @PostMapping("/save")
+    @PostMapping("/inventory/save")
     public ResponseEntity<Inventory> createOrUpdateProduct(
             @RequestPart("productRequest") ProductRequest productRequest,
             @RequestPart(value = "files", required = false) MultipartFile[] files) {
@@ -151,18 +155,20 @@ public class InventoryController {
 
 
 
-    @DeleteMapping("/item/{itemId}")
-    public ResponseEntity<?> deleteInventoryByItemId(@PathVariable Long itemId) {
+    @DeleteMapping("/inventory/{itemId}")
+    public ResponseEntity<Map<String, Object>> deleteInventoryByItemId(@PathVariable Long itemId) {
         log.info("Received delete request for itemId={}", itemId);
 
-        try {
-            inventoryService.deleteInventoryByItemId(itemId);
-            return ResponseEntity.ok("Inventory deleted successfully for itemId = " + itemId);
+        Map<String, Object> response = new LinkedHashMap<>();
+        response.put("timestamp", LocalDateTime.now());
+        response.put("itemId", itemId);
 
-        } catch (Exception e) {
-            log.error("Error deleting Inventory for itemId={}", itemId, e);
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                    .body("Error while deleting Inventory");
-        }
+
+            inventoryService.deleteInventoryByItemId(itemId);
+            response.put("status", "SUCCESS");
+            response.put("message", "Inventory deleted successfully.");
+            return ResponseEntity.ok(response);
+
     }
+
 }
