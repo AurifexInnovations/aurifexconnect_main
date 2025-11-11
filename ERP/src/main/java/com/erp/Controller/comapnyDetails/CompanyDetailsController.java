@@ -2,7 +2,11 @@ package com.erp.Controller.comapnyDetails;
 
 
 import com.erp.Dto.Request.CompanyDetailsRequestDto;
+import com.erp.Dto.Request.FilterRequest;
+import com.erp.Dto.Request.PaginationRequest;
+import com.erp.Dto.Response.CompanyDetailsResponse;
 import com.erp.Dto.Response.CompanyDetailsResponseDto;
+import com.erp.Dto.Response.ResultDto;
 import com.erp.Service.CompanyDetails.CompanyDetailsService;
 import com.erp.Utility.ResponseBuilder;
 import com.erp.Utility.ResponseStructure;
@@ -47,6 +51,14 @@ public class CompanyDetailsController {
         return ResponseBuilder.success(HttpStatus.OK,
                 "Company created successfully!!",
                 service.saveAndUpdate(companyDetails));
+    }
+
+    @PostMapping("/filter")
+    public ResponseEntity<ResponseStructure<ResultDto<CompanyDetailsResponseDto>>> filterCompanyDetails(
+            @RequestBody FilterRequest filterRequest) {
+        return ResponseBuilder.success(HttpStatus.OK,
+                "All Company Details",
+                service.getFilterData(filterRequest));
     }
 
 }

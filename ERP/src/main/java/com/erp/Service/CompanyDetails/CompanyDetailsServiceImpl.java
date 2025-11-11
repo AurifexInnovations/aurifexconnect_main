@@ -1,7 +1,11 @@
 package com.erp.Service.CompanyDetails;
 
+import com.erp.CustomRepository.CompanyDetailsCustomRepository;
 import com.erp.Dto.Request.CompanyDetailsRequestDto;
+import com.erp.Dto.Request.FilterRequest;
+import com.erp.Dto.Response.CompanyDetailsResponse;
 import com.erp.Dto.Response.CompanyDetailsResponseDto;
+import com.erp.Dto.Response.ResultDto;
 import com.erp.Mapper.companyDetails.CompanyDetailsMapper;
 import com.erp.Model.CompanyDetails;
 import com.erp.Repository.companyDetails.CompanyDetailsRepository;
@@ -20,6 +24,7 @@ public class CompanyDetailsServiceImpl implements CompanyDetailsService {
 
     private final CompanyDetailsRepository companyDetailsRepository;
     private final CompanyDetailsMapper companyDetailsMapper;
+    private final CompanyDetailsCustomRepository companyDetailsCustomRepository;
 
     @Override
     public Optional<CompanyDetailsResponseDto> findById(final Long id) {
@@ -45,5 +50,8 @@ public class CompanyDetailsServiceImpl implements CompanyDetailsService {
         }
     }
 
-
+    @Override
+    public ResultDto<CompanyDetailsResponseDto> getFilterData(FilterRequest filterRequest) {
+        return companyDetailsCustomRepository.getFilterData(filterRequest);
+    }
 }

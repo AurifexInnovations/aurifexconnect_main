@@ -1,6 +1,9 @@
 package com.erp.Service.SubscriptionService;
 
+import com.erp.CustomRepository.SubscriptionCustomRepository;
+import com.erp.Dto.Request.FilterRequest;
 import com.erp.Dto.Request.UserSubscriptionRequest;
+import com.erp.Dto.Response.ResultDto;
 import com.erp.Dto.Response.UserSubscriptionResponse;
 import com.erp.Dto.SubscriptionsDto.SubscriptionDto;
 import com.erp.Mapper.SubscriptionModule.SubscriptionMapper;
@@ -16,6 +19,8 @@ public class SubscriptionServiceImpl implements ISubscriptionService {
 
     @Autowired
     private SubscriptionRepository subscriptionRepository;
+    @Autowired
+    private SubscriptionCustomRepository subscriptionCustomRepository;
 
 //    @Autowired
 //    RazorpayService razorpayService;
@@ -77,8 +82,6 @@ public class SubscriptionServiceImpl implements ISubscriptionService {
 
         SubscriptionEntity subscriptionEntity = new SubscriptionEntity();
         subscriptionEntity.setUserId(request.getUserId());
-        subscriptionEntity.setSubscriptionPlan(request.getPlanPeriodForTechnicians());  //not sure taken randomly
-        subscriptionEntity.setPlanPeriod(request.getPlanPeriodForBranches());
         subscriptionEntity.setPlanStartDate(LocalDate.now());
 
         if (request.getPlanPeriod().equalsIgnoreCase("MONTHLY")) {
@@ -93,6 +96,11 @@ public class SubscriptionServiceImpl implements ISubscriptionService {
         }
 
         subscriptionEntity.setAccountUser(String.valueOf(request.getAccountUser()));
+        subscriptionEntity.setTotalAmount(String.valueOf(request.getTotalAmount()));
+        subscriptionEntity.setTotalBranches(String.valueOf(request.getTotalBranches()));
+        subscriptionEntity.setTotalTechnicians(String.valueOf(request.getTotalTechnicians()));
+
+        subscriptionEntity.setPlanPeriod(request.getPlanPeriod());
         subscriptionEntity.setBranchCode(request.getBranchCode());
         subscriptionEntity.setCompanyCode(request.getCompanyCode());
         subscriptionEntity.setPaymentStatus(request.getPaymentStatus());
@@ -113,5 +121,11 @@ public class SubscriptionServiceImpl implements ISubscriptionService {
             response.setMessage("Failed to create subscription.");
             return response;
         }
+    }
+
+    @Override
+    public ResultDto<SubscriptionDto> fetchFIlterSubscription(FilterRequest filterRequest) {
+        ResultDto<SubscriptionDto> res = subscriptionCustomRepository.getSubscriptionsFilter(filterRequest);
+        return res;
     }
 }

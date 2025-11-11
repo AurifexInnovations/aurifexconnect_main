@@ -3,13 +3,20 @@ package com.erp.Mapper.SubscriptionModule;
 import com.erp.Dto.SubscriptionsDto.SubscriptionDto;
 import com.erp.Model.SubscriptionEntity;
 
+import java.util.ArrayList;
+import java.util.List;
+
 public class SubscriptionMapper {
 
     public static SubscriptionDto toDto(SubscriptionEntity entity) {
         SubscriptionDto dto = new SubscriptionDto();
+
         dto.setSubscriptionId(entity.getSubscriptionId());
         dto.setUserId(entity.getUserId());
-        dto.setSubscriptionPlan(entity.getSubscriptionPlan());
+        dto.setAccountUser(entity.getAccountUser());
+        dto.setTotalAmount(entity.getTotalAmount());
+        dto.setTotalTechnicians(entity.getTotalTechnicians());
+        dto.setTotalBranches(entity.getTotalBranches());
         dto.setPlanPeriod(entity.getPlanPeriod());
         dto.setPlanStartDate(entity.getPlanStartDate());
         dto.setPlanEndDate(entity.getPlanEndDate());
@@ -18,20 +25,21 @@ public class SubscriptionMapper {
         dto.setPaymentStatus(entity.getPaymentStatus());
         dto.setTransactionPaymentId(entity.getPaymentTransactionId());
         dto.setActiveYn(entity.getActiveYn());
-//        dto.setCreatedBy(entity.getCreatedBy());
-//        dto.setCreatedOn(entity.getCreatedOn());
-//        dto.setUpdatedBy(entity.getUpdatedBy());
-//        dto.setUpdatedOn(entity.getUpdatedOn());
-//        dto.setDeletedBy(entity.getDeletedBy());
-//        dto.setDeletedOn(entity.getDeletedOn());
+        dto.setCreatedAt(entity.getCreatedAt().toString());
+        dto.setUpdatedAt(entity.getUpdatedAt().toString());
+
         return dto;
     }
 
     public static SubscriptionEntity toEntity(SubscriptionDto dto) {
         SubscriptionEntity entity = new SubscriptionEntity();
+
         entity.setSubscriptionId(dto.getSubscriptionId());
         entity.setUserId(dto.getUserId());
-        entity.setSubscriptionPlan(dto.getSubscriptionPlan());
+        entity.setAccountUser(dto.getAccountUser());
+        entity.setTotalAmount(entity.getTotalAmount());
+        entity.setTotalTechnicians(entity.getTotalTechnicians());
+        entity.setTotalBranches(entity.getTotalBranches());
         entity.setPlanPeriod(dto.getPlanPeriod());
         entity.setPlanStartDate(dto.getPlanStartDate());
         entity.setPlanEndDate(dto.getPlanEndDate());
@@ -40,13 +48,17 @@ public class SubscriptionMapper {
         entity.setPaymentStatus(dto.getPaymentStatus());
         entity.setPaymentTransactionId(dto.getTransactionPaymentId());
         entity.setActiveYn(dto.getActiveYn());
-//        entity.setCreatedBy(dto.getCreatedBy());
-//        entity.setCreatedOn(dto.getCreatedOn());
-//        entity.setUpdatedBy(dto.getUpdatedBy());
-//        entity.setUpdatedOn(dto.getUpdatedOn());
-//        entity.setDeletedBy(dto.getDeletedBy());
-//        entity.setDeletedOn(dto.getDeletedOn());
+        dto.setCreatedAt(entity.getCreatedAt().toString());
+        dto.setUpdatedAt(entity.getUpdatedAt().toString());
+
         return entity;
     }
 
+    public static List<SubscriptionDto> toSubscriptionDtoList(List<SubscriptionEntity> entities){
+        List<SubscriptionDto> list = new ArrayList<>();
+        for(SubscriptionEntity subscription : entities){
+            list.add(toDto(subscription));
+        }
+        return list;
+    }
 }
