@@ -8,7 +8,9 @@ import com.erp.Dto.Response.UserSubscriptionResponse;
 import com.erp.Dto.SubscriptionsDto.SubscriptionDto;
 import com.erp.Mapper.SubscriptionModule.SubscriptionMapper;
 import com.erp.Model.SubscriptionEntity;
+import com.erp.Repository.Admin.AdminUserRepository;
 import com.erp.Repository.SubscriptionModule.SubscriptionRepository;
+import com.erp.Security.util.UserIdentity;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -21,6 +23,8 @@ public class SubscriptionServiceImpl implements ISubscriptionService {
     private SubscriptionRepository subscriptionRepository;
     @Autowired
     private SubscriptionCustomRepository subscriptionCustomRepository;
+    @Autowired
+    private UserIdentity userIdentity;
 
 //    @Autowired
 //    RazorpayService razorpayService;
@@ -47,7 +51,7 @@ public class SubscriptionServiceImpl implements ISubscriptionService {
         }
         // Implementation logic to create a user subscription
 
-        SubscriptionDto subscriptionDto = fetchSubscriptionByUserId(request.getUserId());
+        SubscriptionDto subscriptionDto = fetchSubscriptionByUserId(userIdentity.getCurrentUserEmail());
         if (subscriptionDto != null && subscriptionDto.getPlanEndDate() != null && subscriptionDto.getPlanEndDate().isAfter(java.time.LocalDate.now())) {
             UserSubscriptionResponse response = new UserSubscriptionResponse();
             // User already has a subscription
@@ -81,7 +85,7 @@ public class SubscriptionServiceImpl implements ISubscriptionService {
 //        PaymentEntity paymentEnt = paymentRepository.save(paymentEntity);
 
         SubscriptionEntity subscriptionEntity = new SubscriptionEntity();
-        subscriptionEntity.setUserId(request.getUserId());
+        subscriptionEntity.setUserId(userIdentity.getCurrentUserEmail());
         subscriptionEntity.setPlanStartDate(LocalDate.now());
 
         if (request.getPlanPeriod().equalsIgnoreCase("MONTHLY")) {

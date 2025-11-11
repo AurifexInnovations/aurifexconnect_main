@@ -15,7 +15,7 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 
 @Entity
-@Table(name = "subscription")
+@Table(name = "subscription", schema = "public")
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
