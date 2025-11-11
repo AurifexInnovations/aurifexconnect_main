@@ -1,11 +1,16 @@
 package com.erp.Service.SubscriptionService;
 
+import com.erp.CustomRepository.SubscriptionCustomRepository;
+import com.erp.Dto.Request.FilterRequest;
 import com.erp.Dto.Request.UserSubscriptionRequest;
+import com.erp.Dto.Response.ResultDto;
 import com.erp.Dto.Response.UserSubscriptionResponse;
 import com.erp.Dto.SubscriptionsDto.SubscriptionDto;
 import com.erp.Mapper.SubscriptionModule.SubscriptionMapper;
 import com.erp.Model.SubscriptionEntity;
+import com.erp.Repository.Admin.AdminUserRepository;
 import com.erp.Repository.SubscriptionModule.SubscriptionRepository;
+import com.erp.Security.util.UserIdentity;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -16,6 +21,10 @@ public class SubscriptionServiceImpl implements ISubscriptionService {
 
     @Autowired
     private SubscriptionRepository subscriptionRepository;
+    @Autowired
+    private SubscriptionCustomRepository subscriptionCustomRepository;
+    @Autowired
+    private UserIdentity userIdentity;
 
 //    @Autowired
 //    RazorpayService razorpayService;
@@ -42,7 +51,7 @@ public class SubscriptionServiceImpl implements ISubscriptionService {
         }
         // Implementation logic to create a user subscription
 
-        SubscriptionDto subscriptionDto = fetchSubscriptionByUserId(request.getUserId());
+        SubscriptionDto subscriptionDto = fetchSubscriptionByUserId(userIdentity.getCurrentUserEmail());
         if (subscriptionDto != null && subscriptionDto.getPlanEndDate() != null && subscriptionDto.getPlanEndDate().isAfter(java.time.LocalDate.now())) {
             UserSubscriptionResponse response = new UserSubscriptionResponse();
             // User already has a subscription
@@ -76,9 +85,7 @@ public class SubscriptionServiceImpl implements ISubscriptionService {
 //        PaymentEntity paymentEnt = paymentRepository.save(paymentEntity);
 
         SubscriptionEntity subscriptionEntity = new SubscriptionEntity();
-        subscriptionEntity.setUserId(request.getUserId());
-        subscriptionEntity.setSubscriptionPlan(request.getPlanPeriodForTechnicians());  //not sure taken randomly
-        subscriptionEntity.setPlanPeriod(request.getPlanPeriodForBranches());
+        subscriptionEntity.setUserId(userIdentity.getCurrentUserEmail());
         subscriptionEntity.setPlanStartDate(LocalDate.now());
 
         if (request.getPlanPeriod().equalsIgnoreCase("MONTHLY")) {
@@ -93,6 +100,11 @@ public class SubscriptionServiceImpl implements ISubscriptionService {
         }
 
         subscriptionEntity.setAccountUser(String.valueOf(request.getAccountUser()));
+        subscriptionEntity.setTotalAmount(String.valueOf(request.getTotalAmount()));
+        subscriptionEntity.setTotalBranches(String.valueOf(request.getTotalBranches()));
+        subscriptionEntity.setTotalTechnicians(String.valueOf(request.getTotalTechnicians()));
+
+        subscriptionEntity.setPlanPeriod(request.getPlanPeriod());
         subscriptionEntity.setBranchCode(request.getBranchCode());
         subscriptionEntity.setCompanyCode(request.getCompanyCode());
         subscriptionEntity.setPaymentStatus(request.getPaymentStatus());
@@ -113,5 +125,11 @@ public class SubscriptionServiceImpl implements ISubscriptionService {
             response.setMessage("Failed to create subscription.");
             return response;
         }
+    }
+
+    @Override
+    public ResultDto<SubscriptionDto> fetchFIlterSubscription(FilterRequest filterRequest) {
+        ResultDto<SubscriptionDto> res = subscriptionCustomRepository.getSubscriptionsFilter(filterRequest);
+        return res;
     }
 }

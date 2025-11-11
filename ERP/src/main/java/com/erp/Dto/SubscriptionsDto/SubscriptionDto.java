@@ -13,16 +13,20 @@ public class SubscriptionDto {
 
     private Long subscriptionId;
     private String userId;
-    private String subscriptionPlan;
-    private String planPeriod;
     private LocalDate planStartDate;
     private LocalDate planEndDate;
+    private String totalBranches;   //---
+    private String totalTechnicians;  //--
+    private String totalAmount;  //--
     private String accountUser;
     private String branchCode;
     private String companyCode;
     private String paymentStatus;
+    private String planPeriod;
     private String transactionPaymentId;
     private String activeYn;
+    private String createdAt;
+    private String updatedAt;
 //    private String createdBy;
 //    private Timestamp createdOn;
 //    private String updatedBy;

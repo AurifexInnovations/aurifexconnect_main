@@ -17,7 +17,5 @@ public class UserSubscriptionRequest {
     private String paymentStatus; //--
     private String paymentMethod; //--
     private String paymentTransactionId; //--
-    private String planPeriod; //--
-    private String planPeriodForBranches; // Free, Basic, Premium
-    private String planPeriodForTechnicians; // Free, Basic, Premium
+    private String planPeriod;
 }

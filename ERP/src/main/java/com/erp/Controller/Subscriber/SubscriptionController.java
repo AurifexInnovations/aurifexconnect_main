@@ -1,6 +1,8 @@
 package com.erp.Controller.Subscriber;
 
+import com.erp.Dto.Request.FilterRequest;
 import com.erp.Dto.Request.UserSubscriptionRequest;
+import com.erp.Dto.Response.ResultDto;
 import com.erp.Dto.Response.UserSubscriptionResponse;
 import com.erp.Dto.SubscriptionsDto.SubscriptionDto;
 import com.erp.Service.SubscriptionService.ISubscriptionService;
@@ -46,4 +48,11 @@ public class SubscriptionController {
     }
 
 
+    @PostMapping("/filter")
+    public ResponseEntity<ResponseStructure<ResultDto<SubscriptionDto>>> subscriptionsFilter(
+            @RequestBody FilterRequest filterRequest){
+
+        ResultDto<SubscriptionDto> resultDto = subscriptionService.fetchFIlterSubscription(filterRequest);
+        return ResponseBuilder.success(HttpStatus.OK, "Subscriptins Fetched By Filter", resultDto);
+    }
 }
