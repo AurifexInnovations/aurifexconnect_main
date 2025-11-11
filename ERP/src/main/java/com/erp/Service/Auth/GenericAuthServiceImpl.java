@@ -165,6 +165,8 @@ public class GenericAuthServiceImpl implements AuthService {
     @Override
     public HttpHeaders logout(String refreshToken, String accessToken) {
         try {
+            tokenBlackListService.blackListToken(refreshToken);
+            tokenBlackListService.blackListToken(accessToken);
 
             HttpHeaders headers = new HttpHeaders();
             headers.add(HttpHeaders.SET_COOKIE, cookieManager.generateCookie("rt", "", 0));
