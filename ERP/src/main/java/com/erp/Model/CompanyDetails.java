@@ -75,6 +75,9 @@ public class CompanyDetails extends BaseEntity {
     @Column(name = "reviewed_by")
     private String reviewedBy;
 
+    @Column(name = "company_email")
+    private String companyEmail;
+
     @OneToMany(mappedBy = "companyDetails",
             cascade = CascadeType.ALL,
             orphanRemoval = true)

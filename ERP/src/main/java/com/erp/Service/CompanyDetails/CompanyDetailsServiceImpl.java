@@ -6,13 +6,16 @@ import com.erp.Dto.Request.FilterRequest;
 import com.erp.Dto.Response.CompanyDetailsResponse;
 import com.erp.Dto.Response.CompanyDetailsResponseDto;
 import com.erp.Dto.Response.ResultDto;
+import com.erp.Exception.CompnayDetails.CompanyDetailsFoundException;
 import com.erp.Mapper.companyDetails.CompanyDetailsMapper;
 import com.erp.Model.CompanyDetails;
 import com.erp.Repository.companyDetails.CompanyDetailsRepository;
+import com.erp.Security.util.UserIdentity;
 import com.erp.Service.DocumentDetails.DocumentDetailsService;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.Optional;
@@ -25,6 +28,7 @@ public class CompanyDetailsServiceImpl implements CompanyDetailsService {
     private final CompanyDetailsRepository companyDetailsRepository;
     private final CompanyDetailsMapper companyDetailsMapper;
     private final CompanyDetailsCustomRepository companyDetailsCustomRepository;
+    @Autowired private UserIdentity userIdentity;
 
     @Override
     public Optional<CompanyDetailsResponseDto> findById(final Long id) {
@@ -42,6 +46,14 @@ public class CompanyDetailsServiceImpl implements CompanyDetailsService {
                 newEntity.getDocumentDetails().
                         forEach(doc -> doc.setCompanyDetails(newEntity));
             }
+
+            String email = userIdentity.getCurrentUserEmail();
+
+            if(companyDetailsRepository.existsByCompanyEmail(email)){
+                throw new CompanyDetailsFoundException("Company Email Already Exists");
+            }
+
+            newEntity.setCompanyEmail(email);
             CompanyDetails savedEntity = companyDetailsRepository.save(newEntity);
             return companyDetailsMapper.toResponseDto(savedEntity);
         } catch (Exception e) {
