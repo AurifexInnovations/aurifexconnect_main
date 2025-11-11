@@ -1,8 +1,8 @@
 spring:
   datasource:
-    url: jdbc:postgresql://localhost:5432/erp_demo1
-    username: postgres
-    password: Yagnesh23@
+    url: ${POSTGRES_URL}
+    username: ${USERNAME}
+    password: ${PASSWORD}
     driver-class-name: org.postgresql.Driver
     hikari:
       connection-timeout: 30000
@@ -11,10 +11,6 @@ spring:
       auto-commit: false
       connection-test-query: SELECT 1
       validation-timeout: 5000
-  web:
-    resources :
-      static-locations: file:uploads/
-
   jpa:
     database-platform: org.hibernate.dialect.PostgreSQLDialect
     hibernate:
@@ -41,36 +37,37 @@ spring:
   mail:
     host: smtp.gmail.com
     port: 587
-    username: 'jagratgandhi@gmail.com'
-    password: 'khrt lrgf deoa lkwy'
+    username: ${SMTP_MAIL}
+    password: ${SMTP_PASSWORD}
     properties:
       mail.smtp.auth: true
       mail.smtp.starttls.enable: true
 
 root:
-  email: 'vishall369@gmail.com'
-  password: 'Vishall@369'
-  name: 'Vk'
+  email: ${ROOT_EMAIL}
+  password: ${ROOT_PASSWORD}
+  name: ${ROOT_NAME}
 
 app:
   base-url: /api/v1
   security:
-    secret: hkXpwj6XAghRuGS0JGjFhnUr3VKgh734mI5QYMFF6k8=
+    secret: ${SECURITY_SECRET}
     token-validity:
       access-validity: 3600
       refresh-validity: 1296000
   domain:
     name: ${DOMAIN_NAME}
-    secure: false
-    same-site: Lax
-  swagger-end-points: /v3/api-docs/,/swagger-ui/,/swagger-ui.html
-
+    secure: ${DOMAIN_SECURE}
+    same-site: ${DOMAIN_SAME_SITE}
 
 logging:
   level:
     com.erp: DEBUG
     org:
-      springframework.security: DEBUG
+      springframework:
+        security: DEBUG
+        orm:
+          jpa: DEBUG
       hibernate.SQL: DEBUG
       hibernate.type.descriptor.sql.BasicBinder: TRACE
       hibernate.orm.jdbc.bind: TRACE
@@ -80,6 +77,7 @@ logging:
     time-zone: Asia/Kolkata
     serialization:
       write-dates-as-timestamps: false
+
 otp:
   service:
   url: https://cpaas.messagecentral.com
