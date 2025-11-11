@@ -90,6 +90,10 @@ public class InventoryCustomRepository {
                 sql.append(" AND i.created_at BETWEEN :startDate AND :endDate");
                 countSql.append(" AND i.created_at BETWEEN :startDate AND :endDate");
             }
+            if (filters.containsKey("itemId") && filters.get("itemId") != null && !filters.get("itemId").isEmpty()) {
+                sql.append(" AND i.item_id = :itemId ");
+                countSql.append(" AND i.item_id = :itemId ");
+            }
         }
 
         // Search Condition
@@ -135,6 +139,11 @@ public class InventoryCustomRepository {
             if (filters.containsKey("branchId") && !filters.get("branchId").isEmpty()) {
                 dataQuery.setParameter("branchId", Long.parseLong(filters.get("branchId")));
                 countQuery.setParameter("branchId", Long.parseLong(filters.get("branchId")));
+            }
+
+            if (filters.containsKey("itemId") && !filters.get("itemId").isEmpty()) {
+                dataQuery.setParameter("itemId", Long.parseLong(filters.get("itemId")));
+                countQuery.setParameter("itemId", Long.parseLong(filters.get("itemId")));
             }
 
             if (filters.containsKey("startDate") && filters.containsKey("endDate")) {

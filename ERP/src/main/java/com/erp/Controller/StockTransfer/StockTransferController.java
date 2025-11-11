@@ -52,7 +52,7 @@ public class StockTransferController {
         return ResponseBuilder.success(HttpStatus.OK, "Transfer Approved", response);
     }
 
-    @PostMapping("stocktransfer/reject")
+    @PostMapping("update/stock-status")
     @Operation(description = "API to Reject a Stock Transfer Request",
             responses = {
                     @ApiResponse(responseCode = "200", description = "Transfer Rejected Successfully"),

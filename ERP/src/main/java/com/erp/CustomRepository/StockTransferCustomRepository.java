@@ -79,6 +79,10 @@ public class StockTransferCustomRepository {
                 sql.append(" AND s.to_branch_id = :toBranchId");
                 countSql.append(" AND s.to_branch_id = :toBranchId");
             }
+            if (filters.containsKey("itemId")) {
+                sql.append(" AND s.inventory_item_id = :itemId");
+                countSql.append(" AND s.inventory_item_id = :itemId");
+            }
         }
 
         // ---------- SEARCH ----------
@@ -137,6 +141,11 @@ public class StockTransferCustomRepository {
             if (filters.containsKey("toBranchId")) {
                 dataQuery.setParameter("toBranchId", Long.parseLong(filters.get("toBranchId")));
                 countQuery.setParameter("toBranchId", Long.parseLong(filters.get("toBranchId")));
+            }
+
+            if (filters.containsKey("itemId")) {
+                dataQuery.setParameter("itemId", Long.parseLong(filters.get("itemId")));
+                countQuery.setParameter("itemId", Long.parseLong(filters.get("itemId")));
             }
         }
 

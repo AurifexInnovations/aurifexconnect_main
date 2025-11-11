@@ -9,7 +9,7 @@ public class StockTransferRequest
 {
     private long fromBranchId;
     private long toBranchId;
-    private long inventoryId;
+    private long itemId;
     private double quantity;
     private String reason;
 }
