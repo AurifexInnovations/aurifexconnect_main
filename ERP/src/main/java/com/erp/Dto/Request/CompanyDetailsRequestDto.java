@@ -21,5 +21,6 @@ public record CompanyDetailsRequestDto(
         String city,
         String state,
         String reviewedBy,
+        String companyEmail,
         List<DocumentDetailsRequestDto> documentDetails
 ) {}

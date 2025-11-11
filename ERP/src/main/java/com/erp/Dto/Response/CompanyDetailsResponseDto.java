@@ -23,6 +23,7 @@ public record CompanyDetailsResponseDto(
         String city,
         String state,
         String reviewedBy,
+        String companyEmail,
         List<DocumentDetailsRequestDto> documentDetails
 ) {
 }
