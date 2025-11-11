@@ -61,6 +61,8 @@ public class AttendanceServiceImpl implements AttendanceService {
         attendance.setCheckIn(now);
         attendance.setCheckOut(now.plusHours((long) FIXED_WORKING_HOURS));
         attendance.setDate(today);
+        attendance.setStatus(AttendanceStatus.PRESENT);
+        attendance.setUsername(user.getFirstName() +" "+user.getLastName());
 
         calculateWorkingDetails(attendance);
         attendanceRepository.save(attendance);
@@ -367,4 +369,39 @@ public class AttendanceServiceImpl implements AttendanceService {
         log.info("Exit [AttendanceServiceImpl] [getAttendanceDetails]");
         return attendanceResponses;
     }
+    @Override
+    @Transactional
+    public AttendanceResponse createAttendance(AttendanceRequest request) {
+        long userId = request.getUserId();
+        LocalDate today = request.getDate();
+        LocalDateTime now = LocalDateTime.now(clock);
+
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new ResourceNotFoundException("User not found."));
+
+        attendanceRepository.findByUser_IdAndDate(userId, today)
+                .ifPresent(a -> {
+                    throw new ResourceFoundException("Already checked in today.");
+                });
+
+        System.out.println("**********************************"+userId);
+
+        Attendance attendance = new Attendance();
+        attendance.setUser(user);
+        attendance.setCheckIn(request.getCheckInTime());
+        attendance.setCheckOut(request.getCheckOutTime());
+        attendance.setDate(today);
+        attendance.setStatus(AttendanceStatus.valueOf(request.getStatus()));
+        attendance.setUsername(user.getFirstName() +" "+user.getLastName());
+
+        calculateWorkingDetails(attendance);
+        attendanceRepository.save(attendance);
+
+        AttendanceResponse response = attendanceMapper.mapToResponse(attendance);
+        response.setWorkingHours(formatHours(String.valueOf(attendance.getWorkingHours())));
+        response.setWorkingDays(formatDays(String.valueOf(attendance.getWorkingDays())));
+
+        return response;
+    }
+
 }

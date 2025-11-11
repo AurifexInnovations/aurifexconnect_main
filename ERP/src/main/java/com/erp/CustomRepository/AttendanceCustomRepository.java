@@ -156,7 +156,7 @@ public class AttendanceCustomRepository {
         List<AttendanceResponse> results = new ArrayList<>();
         for (Object[] row : rows) {
             AttendanceResponse dto = new AttendanceResponse();
-            dto.setAttendanceId(((Number) row[0]).longValue());
+            dto.setId(((Number) row[0]).longValue());
 
             // date
             if (row[1] != null) {
@@ -188,8 +188,8 @@ public class AttendanceCustomRepository {
             dto.setWorkingHours(String.valueOf(row[4] != null ? ((Number) row[4]).doubleValue() : null));
             dto.setWorkingDays(String.valueOf(row[5] != null ? ((Number) row[5]).doubleValue() : null));
             dto.setUserId(((Number) row[6]).longValue());
-            dto.setFirstName((String) row[7]);
-            dto.setLastName((String) row[8]);
+            //dto.setFirstName((String) row[7]);
+            //dto.setLastName((String) row[8]);
             if (row[9] != null) dto.setStatus(AttendanceStatus.valueOf(row[9].toString()));
 
             results.add(dto);

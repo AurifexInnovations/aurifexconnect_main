@@ -28,6 +28,17 @@ public class AttendanceController {
 
     private final AttendanceService attendanceService;
 
+    @PostMapping("/create")
+    @Operation(summary = "Create Attendance Manually", description = "Manually add attendance for a user (Admin use)")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "Attendance created successfully"),
+            @ApiResponse(responseCode = "400", description = "Invalid data or user not found")
+    })
+    public ResponseEntity<ResponseStructure<AttendanceResponse>> createAttendance(@Valid @RequestBody AttendanceRequest request) {
+        AttendanceResponse response = attendanceService.createAttendance(request);
+        return ResponseBuilder.success(HttpStatus.OK, "Attendance created successfully", response);
+    }
+
     @PostMapping("/check-in")
     @Operation(
             summary = "User Check-In",

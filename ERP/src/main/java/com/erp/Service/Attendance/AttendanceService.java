@@ -43,4 +43,6 @@ public interface AttendanceService {
     AttendanceSummaryChartResponse getAttendanceSummaryAnalytics(AttendanceRequest request);
 
     ResultDto<AttendanceResponse> getFilteredAttendance(FilterRequest filterRequest);
+
+    AttendanceResponse createAttendance(AttendanceRequest request);
 }

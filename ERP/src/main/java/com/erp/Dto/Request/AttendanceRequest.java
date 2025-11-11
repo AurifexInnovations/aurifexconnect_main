@@ -9,7 +9,7 @@ import java.time.LocalDateTime;
 @Setter
 public class AttendanceRequest {
     private long id;
-    private long userId;
+    private Long userId;
     private String month;
     private LocalDate date;
     private LocalDateTime checkInTime;
