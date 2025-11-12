@@ -150,8 +150,6 @@ public class TaskController {
         return ResponseEntity.ok(technicians);
     }
 
-
-
     @GetMapping("/task/performance/report")
     public ResponseEntity<ListResponseStructure<TechnicianLeaderboardDto>> getTechnicianPerformanceReport(
             @RequestParam String startDate,
@@ -170,7 +168,6 @@ public class TaskController {
                 technicianLeaderboardDto
         );
     }
-
 
     @PostMapping("/task/start/{taskId}")
     @Operation(
