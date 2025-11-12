@@ -1,5 +1,7 @@
 package com.erp.Projection;
 
+import com.erp.Enum.ProductCategories;
+import com.erp.Enum.ProductStatus;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -18,6 +20,21 @@ public class InventoryAndBranchProjection {
     private String categories;
     private double lowStockThreshold;
     private LocalDateTime createdAt;
+    private LocalDateTime lastModifiedAt;
+
+    private String brandName;
+    private ProductCategories productCategories;
+    private String hsnCode;
+    private String skuCode;
+    private String ean;
+    private boolean isReturnable;
+    private long taxId;
+    private ProductStatus productStatus;
+    private long branchId;
     private String branchName;
+
+    private int totalStockQuantity;
+    private LocalDateTime latestExpiryDate;
+
 
 }

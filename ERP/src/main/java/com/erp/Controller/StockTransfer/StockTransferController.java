@@ -23,7 +23,7 @@ import java.util.List;
 
 @RestController
 @AllArgsConstructor
-@RequestMapping("/")
+@RequestMapping("/api/v1")
 @Tag(name = "Stock Transfer Controller", description = "APIs for Stock Transfer operations between branches")
 public class StockTransferController {
 
@@ -52,7 +52,7 @@ public class StockTransferController {
         return ResponseBuilder.success(HttpStatus.OK, "Transfer Approved", response);
     }
 
-    @PostMapping("stocktransfer/reject")
+    @PostMapping("update/stock-status")
     @Operation(description = "API to Reject a Stock Transfer Request",
             responses = {
                     @ApiResponse(responseCode = "200", description = "Transfer Rejected Successfully"),
@@ -95,4 +95,11 @@ public class StockTransferController {
 
         return ResponseBuilder.success(HttpStatus.OK, "All Stock Transfers Fetched", responses);
     }
+
+    @PutMapping("/update-status")
+    public ResponseEntity<String> updateStatus(@RequestBody UpdateStockTransferStatusRequest request) {
+        stockTransferService.updateStockTransferStatus(request.getId(), request.getStatus());
+        return ResponseEntity.ok("Status updated successfully");
+    }
+
 }

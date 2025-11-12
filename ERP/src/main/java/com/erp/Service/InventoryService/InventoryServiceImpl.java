@@ -1,28 +1,49 @@
 package com.erp.Service.InventoryService;
 
 import com.erp.CustomRepository.InventoryCustomRepository;
-import com.erp.Dto.Request.CommanParam;
-import com.erp.Dto.Request.FilterRequest;
-import com.erp.Dto.Request.InventoryRequest;
-import com.erp.Dto.Response.InventoryResponse;
-import com.erp.Dto.Response.ResultDto;
-import com.erp.Dto.Response.StockValueResponse;
-import com.erp.Exception.Branch_Exception.BranchNotFoundException;
+import com.erp.Dto.Request.*;
+import com.erp.Dto.Response.*;
+import com.erp.Dto.VarientDto;
+import com.erp.Enum.Action;
+import com.erp.Enum.ProductStatus;
 import com.erp.Exception.Inventory_Exception.InventoryNotFoundException;
 import com.erp.Exception.ResourceNotFoundException;
 import com.erp.Mapper.Inventory.InventoryMapper;
+import com.erp.Mapper.Inventory.ProductMapper;
 import com.erp.Model.Branch;
 import com.erp.Model.Inventory;
 import com.erp.Model.Tax;
+import com.erp.Model.Varient;
 import com.erp.Projection.InventoryAndBranchProjection;
 import com.erp.Repository.Branch.BranchRepository;
 import com.erp.Repository.Inventory.InventoryRepository;
 import com.erp.Repository.Tax.TaxRepository;
+import com.erp.Security.util.UserIdentity;
+import com.erp.Service.Activity.ActivityService;
+import com.erp.Service.Utility.FileService;
+import com.erp.Service.Varients.VarientService;
 import com.erp.Utility.ObjectMapperUtils;
+import jakarta.persistence.EntityManager;
+import jakarta.persistence.Tuple;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+import jakarta.persistence.TypedQuery;
 
+import jakarta.persistence.criteria.CriteriaBuilder;
+import jakarta.persistence.criteria.CriteriaQuery;
+import jakarta.persistence.criteria.Predicate;
+import jakarta.persistence.criteria.Root;
+import org.springframework.web.multipart.MultipartFile;
+
+import java.sql.Date;
+import java.time.LocalDateTime;
+import java.util.*;
+
+
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -36,6 +57,17 @@ public class InventoryServiceImpl implements InventoryService {
     private final InventoryMapper inventoryMapper;
     private final BranchRepository branchRepository;
     private final TaxRepository taxRepository;
+    private final VarientService varientService;
+    private final ProductMapper productMapper;
+
+    private final FileService fileService;
+
+    private final ActivityService activityService;
+
+    private final UserIdentity userIdentity;
+
+    @Autowired
+    private EntityManager entityManager;
 
     private final InventoryCustomRepository inventoryCustomRepository;
 
@@ -133,10 +165,10 @@ public class InventoryServiceImpl implements InventoryService {
     }
 
     @Override
-    public List<InventoryResponse> getInventoryByBranchId(CommanParam param){
+    public List<InventoryResponse> getInventoryByBranchId(CommanParam param) {
         List<Inventory> inventories = inventoryRepository.findByBranch_BranchId(param.getId());
 
-        if(inventories.isEmpty()){
+        if (inventories.isEmpty()) {
             throw new InventoryNotFoundException("No inventories found for branch id " + param.getId());
         }
         return inventoryMapper.mapToInventoryResponse(inventories);
@@ -158,22 +190,131 @@ public class InventoryServiceImpl implements InventoryService {
 
 
     @Override
-    public  ResultDto<InventoryAndBranchProjection>  getInventoryDetails(FilterRequest filterRequest){
+    public ResultDto<InventoryAndBranchProjection> getInventoryDetails(FilterRequest filterRequest) {
         log.info("Into [InventoryServiceImpl] [getInventoryDetails] ");
 
-        log.info("[InventoryServiceImpl] [getInventoryDetails] :: Request :: {} " ,
+        log.info("[InventoryServiceImpl] [getInventoryDetails] :: Request :: {} ",
                 ObjectMapperUtils.writeValueAsString(filterRequest));
 
-        ResultDto<InventoryAndBranchProjection>  inventoryAndBranchProjections = new ResultDto<>();
+        ResultDto<InventoryAndBranchProjection> inventoryAndBranchProjections = new ResultDto<>();
 
-        try{
+        try {
             inventoryAndBranchProjections = inventoryCustomRepository.getInventoryDetails(filterRequest);
-        }catch (Exception exception){
-            log.error("Error [InventoryServiceImpl] [getInventoryDetails] :: {} {} " , exception.getMessage() , exception);
+        } catch (Exception exception) {
+            log.error("Error [InventoryServiceImpl] [getInventoryDetails] :: {} {} ", exception.getMessage(), exception);
         }
 
         log.info("Exit [InventoryServiceImpl] [getInventoryDetails] ");
 
         return inventoryAndBranchProjections;
     }
+
+    public boolean findById(long inventoryId) {
+        log.info("Into [InventoryServiceImpl] [findById] ");
+
+        log.info("[InventoryServiceImpl] [findById] :: id {} ", inventoryId);
+
+        boolean isExits = inventoryRepository.findByItemId(inventoryId);
+
+        log.info("Exit [InventoryServiceImpl] [findById] ");
+
+        return isExits;
+    }
+
+
+    @Override
+    @Transactional
+    public Inventory createOrUpdateProduct(ProductRequest productRequest, MultipartFile[] files) {
+        Long itemId = productRequest.getItemId();
+        log.info("Add/Update product request received :: itemId={}, itemName={}", itemId, productRequest.getItemName());
+
+        try {
+            Inventory product;
+
+            boolean isNewProduct = (itemId == null || !inventoryRepository.existsById(itemId));
+
+            if (!isNewProduct) {
+                log.info("Existing product found. Updating product with id={}", itemId);
+                product = inventoryRepository.findById(itemId)
+                        .orElseThrow(() -> new ResourceNotFoundException("Product not found with id=" + itemId));
+
+                productMapper.updateProductFromRequest(productRequest, product);
+
+                ActivityDto activityDto=new ActivityDto();
+                activityDto.setAction(Action.UPDATE_INVENTORY.toString());
+                activityDto.setInventoryId(itemId);
+                activityDto.setPerformedBy(userIdentity.getCurrentUsername());
+                activityService.addActivity(itemId,activityDto);
+
+
+            } else {
+                log.info("No existing product found. Creating a new product for branchId={}", productRequest.getBranchId());
+
+                product = productMapper.toEntity(productRequest);
+                product.setCreatedAt(LocalDateTime.now());
+
+
+                product = inventoryRepository.save(product);
+                ActivityDto activityDto=new ActivityDto();
+                activityDto.setAction(Action.ADD_INVENTORY.toString());
+                activityDto.setInventoryId(product.getItemId());
+                activityDto.setPerformedBy(userIdentity.getCurrentUsername());
+                activityService.addActivity(product.getItemId(),activityDto);
+            }
+
+            product = inventoryRepository.save(product);
+            log.info("Product saved successfully with id={}", product.getItemId());
+
+            if (productRequest.getVarientList() != null && !productRequest.getVarientList().isEmpty()) {
+
+                productRequest.getVarientList().forEach(dto -> dto.setItemId(itemId));
+
+                if (isNewProduct) {
+
+                    varientService.addAndUpdateVarients(productRequest.getVarientList());
+                    log.info("Added new variants for productId={}", product.getItemId());
+                } else {
+
+                    varientService.updateVarients(productRequest.getVarientList());
+                    log.info("Updated variants for productId={}", product.getItemId());
+                }
+            }
+
+            if (files != null && files.length > 0) {
+                fileService.uploadFiles(product.getItemId(), "INVENTORY", files);
+            }
+
+            return product;
+
+        } catch (Exception e) {
+            log.error("Error while creating/updating product for id={} :: {}", itemId, e.getMessage(), e);
+            throw new ResourceNotFoundException("Failed to create or update product");
+        }
+    }
+
+
+
+    @Transactional
+    public void deleteInventoryByItemId(Long itemId) {
+        log.info("Attempting to delete inventory with itemId={}", itemId);
+
+        try {
+            Optional<Inventory> exists = inventoryRepository.findByItemIdAndActiveTrue(itemId);
+
+            if (exists.isEmpty()) {
+                log.warn("Inventory not found for itemId={}", itemId);
+                throw new ResourceNotFoundException("Inventory not found for itemId = " + itemId);
+            }
+
+            inventoryRepository.setInactiveByItemId(itemId);
+            log.info("Successfully deleted Inventory with itemId={}", itemId);
+
+        } catch (ResourceNotFoundException e) {// rethrow to handle in controller
+        } catch (Exception e) {
+            log.error("Error deleting Inventory with itemId={}", itemId, e);
+            throw new RuntimeException("Error deleting inventory with itemId = " + itemId, e);
+        }
+    }
+
+
 }

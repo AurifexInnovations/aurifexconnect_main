@@ -44,4 +44,6 @@ public interface InventoryMapper {
      * @return A list of corresponding {@link InventoryResponse} DTOs.
      */
     List<InventoryResponse> mapToInventoryResponse(List<Inventory> inventoryList);
+
+
 }

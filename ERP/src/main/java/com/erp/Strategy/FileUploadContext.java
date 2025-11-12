@@ -6,6 +6,7 @@ import java.util.List;
 
 @Component
 public class FileUploadContext {
+
     private final List<FileUploadStrategy> strategies;
 
     public FileUploadContext(List<FileUploadStrategy> strategies) {

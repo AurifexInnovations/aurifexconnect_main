@@ -4,29 +4,38 @@ import com.erp.Dto.Request.*;
 import com.erp.CustomRepository.StockTransferCustomRepository;
 import com.erp.Dto.Response.ResultDto;
 import com.erp.Dto.Response.StockTransferResponse;
+import com.erp.Enum.Action;
 import com.erp.Enum.StockTransferStatus;
 import com.erp.Exception.ResourceNotFoundException;
 import com.erp.Exception.StockTransfer_Exception.StockTransferNotFoundException;
 import com.erp.Exception.Inventory_Exception.InventoryNotFoundException;
 import com.erp.Exception.Branch_Exception.BranchNotFoundException;
 import com.erp.Mapper.StockTransfer.StockTransferMapper;
+import com.erp.Model.Activity;
 import com.erp.Model.Branch;
 import com.erp.Model.Inventory;
 import com.erp.Model.StockTransfer;
+import com.erp.Repository.Activity.ActivityRepository;
 import com.erp.Repository.Branch.BranchRepository;
 import com.erp.Repository.Inventory.InventoryRepository;
 import com.erp.Repository.StockTransfer.StockTransferRepository;
+import com.erp.Security.util.UserIdentity;
+import com.erp.Service.Activity.ActivityService;
 import lombok.AllArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDateTime;
 import java.util.List;
 
 @Service
 @AllArgsConstructor
+@Slf4j
 public class StockTransferServiceImpl implements StockTransferService
 {
     private final StockTransferCustomRepository stockTransferCustomRepository;
@@ -35,15 +44,22 @@ public class StockTransferServiceImpl implements StockTransferService
     private final BranchRepository branchRepository;
     private final InventoryRepository inventoryRepository;
 
+    private final UserIdentity userIdentity;
+
+    private final ActivityService activityService;
+
+    private final ActivityRepository activityRepository;
+
     @Override
     public StockTransferResponse createStockTransfer(StockTransferRequest request) {
+
         Branch fromBranch = branchRepository.findById(request.getFromBranchId())
                 .orElseThrow(() -> new ResourceNotFoundException("From Branch not found!"));
 
         Branch toBranch = branchRepository.findById(request.getToBranchId())
                 .orElseThrow(() -> new ResourceNotFoundException("To Branch not found!"));
 
-        Inventory inventory = inventoryRepository.findById(request.getInventoryId())
+        Inventory inventory = inventoryRepository.findById(request.getItemId())
                 .orElseThrow(() -> new ResourceNotFoundException("Inventory item not found!"));
 
         StockTransfer transfer = stockTransferMapper.mapToStockTransfer(request);
@@ -52,11 +68,18 @@ public class StockTransferServiceImpl implements StockTransferService
         transfer.setInventory(inventory);
 
         // note it
-        transfer.setApprovedBy("Aryan"); // This Field's values changes After Role Based Authentication
-
+        transfer.setInitiatedBy(userIdentity.getCurrentUsername()); // This Field's values changes After Role Based Authentication
         transfer.setStatus(StockTransferStatus.PENDING);
+        transfer.setReason(request.getReason());
 
         stockTransferRepository.save(transfer);
+
+        ActivityDto activityDto=new ActivityDto();
+        activityDto.setAction(Action.ADD_STOCK_TRANSFER.toString());
+        activityDto.setInventoryId(request.getItemId());
+        activityDto.setPerformedBy(userIdentity.getCurrentUsername());
+        activityService.addActivity(request.getItemId(),activityDto);
+
         return stockTransferMapper.mapToStockTransferResponse(transfer);
     }
 
@@ -104,18 +127,25 @@ public class StockTransferServiceImpl implements StockTransferService
     }
 
     @Override
+    @Transactional
     public StockTransferResponse rejectTransfer(TransferActionRequest request) {
         StockTransfer transfer = stockTransferRepository.findById(request.getTransferId())
                 .orElseThrow(() -> new StockTransferNotFoundException("Transfer not found!"));
 
-        if (transfer.getStatus() != StockTransferStatus.PENDING) {
-            throw new StockTransferNotFoundException("Transfer is already processed!");
-        }
+//        if (transfer.getStatus() != StockTransferStatus.PENDING) {
+//            throw new StockTransferNotFoundException("Transfer is already processed!");
+//        }
 
-        transfer.setStatus(StockTransferStatus.REJECTED);
+        transfer.setStatus(request.getStatus());
         transfer.setApprovedBy(request.getApproverName());
         stockTransferRepository.save(transfer);
-
+        Activity activity = new Activity();
+        activity.setAction("Status updated from " + transfer.getStatus() + " to " + request.getStatus());
+        activity.setQuantity(transfer.getQuantity());
+        activity.setInventoryId(transfer.getInventory().getItemId());
+        activity.setTimeStamp(LocalDateTime.now());
+        activity.setPerformedBy(request.getApproverName());
+        activityRepository.save(activity);
         return stockTransferMapper.mapToStockTransferResponse(transfer);
     }
 
@@ -156,6 +186,22 @@ public class StockTransferServiceImpl implements StockTransferService
         }
 
         return transferResponses;
+    }
+
+
+    @Transactional
+    public void updateStockTransferStatus(long id, StockTransferStatus status) {
+
+        log.info("Updating transfer status for itemId={} to {}", id, status);
+
+        try {
+            stockTransferRepository.updateStatusByItemId(id, status);
+            log.info("Successfully updated status for itemId={}", id);
+
+        } catch (Exception e) {
+            log.error("Error updating status for itemId={}", id, e);
+            throw e;
+        }
     }
 
 }

@@ -1,11 +1,10 @@
 package com.erp.Controller.Inventory;
 
-import com.erp.Dto.Request.CommanParam;
-import com.erp.Dto.Request.FilterRequest;
-import com.erp.Dto.Request.InventoryRequest;
+import com.erp.Dto.Request.*;
 import com.erp.Dto.Response.InventoryResponse;
 import com.erp.Dto.Response.ResultDto;
 import com.erp.Dto.Response.StockValueResponse;
+import com.erp.Model.Inventory;
 import com.erp.Projection.InventoryAndBranchProjection;
 import com.erp.Service.InventoryService.InventoryService;
 import com.erp.Utility.ListResponseStructure;
@@ -17,18 +16,25 @@ import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.persistence.EntityNotFoundException;
 import jakarta.validation.Valid;
 import lombok.AllArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
+import java.time.LocalDateTime;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 
 @RestController
 @AllArgsConstructor
-@RequestMapping("/")
+@RequestMapping("/api/v1")
 @Tag(name = "Inventory Controller",description = "Collection of APIs Endpoints Dealing with Inventory Data")
+@Slf4j
 public class InventoryController {
 
     private final InventoryService inventoryService;
@@ -137,4 +143,32 @@ public class InventoryController {
         ResultDto<InventoryAndBranchProjection> inventoryAndBranchProjections = inventoryService.getInventoryDetails(filterRequest);
         return ResponseBuilder.success(HttpStatus.OK,"Inventories retrieved successfully!",inventoryAndBranchProjections);
     }
+
+
+    @PostMapping("/inventory/save")
+    public ResponseEntity<Inventory> createOrUpdateProduct(
+            @RequestPart("productRequest") ProductRequest productRequest,
+            @RequestPart(value = "files", required = false) MultipartFile[] files) {
+
+        return ResponseEntity.ok(inventoryService.createOrUpdateProduct(productRequest, files));
+    }
+
+
+
+    @DeleteMapping("/inventory/{itemId}")
+    public ResponseEntity<Map<String, Object>> deleteInventoryByItemId(@PathVariable Long itemId) {
+        log.info("Received delete request for itemId={}", itemId);
+
+        Map<String, Object> response = new LinkedHashMap<>();
+        response.put("timestamp", LocalDateTime.now());
+        response.put("itemId", itemId);
+
+
+            inventoryService.deleteInventoryByItemId(itemId);
+            response.put("status", "SUCCESS");
+            response.put("message", "Inventory deleted successfully.");
+            return ResponseEntity.ok(response);
+
+    }
+
 }

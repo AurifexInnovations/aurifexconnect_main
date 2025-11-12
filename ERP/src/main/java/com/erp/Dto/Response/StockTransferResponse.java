@@ -22,4 +22,10 @@ public class StockTransferResponse {
     private String approvedBy;
 
     private LocalDateTime createdAt;
+
+    private String initiatedBy;
+
+    private String reason;
+
+    private String brandName;
 }

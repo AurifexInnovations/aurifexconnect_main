@@ -9,7 +9,12 @@ public class FileUploadConstants {
     public static final String DIGITAL_SIGNATURE = "DIGITAL_SIGNATURE";
     public static final String SELFIE = "SELFIE";
 
-    public static Set<String> CATEGORIES = Set.of(
+    public static Set<String> TASK_CATEGORIES = Set.of(
                 "BEFORE_SERVICE" , "AFTER_SERVICE" , "DIGITAL_SIGNATURE" , "SELFIE"
     );
+
+    public static Set<String> INVENTORY_CATEGORIES = Set.of(
+            "INVENTORY"
+    );
 }
+
