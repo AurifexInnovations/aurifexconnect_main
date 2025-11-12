@@ -89,8 +89,8 @@ otp:
   flowType: SMS
 
 aws:
-  region: 'us-east-1'
-  accessKeyId: 'AKIAY6AK4OWGFME6JMOE'
-  secretKey: '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'
+  accessKeyId: ${AWS_ACCESS_KEY}
+  secretKey: ${AWS_SECRET_KEY}
+  region: ${AWS_REGION}
   s3:
-    bucket: 'demobuchetbm'
+    bucket: ${AWS_S3_BUCKET}
