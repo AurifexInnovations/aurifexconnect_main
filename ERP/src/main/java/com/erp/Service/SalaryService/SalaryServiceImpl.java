@@ -121,8 +121,9 @@ public class SalaryServiceImpl implements SalaryService {
         long baseSalary = Optional.ofNullable(request.getBaseSalary()).orElse(salary.getBaseSalary());
         long bonus = Optional.ofNullable(request.getBonus()).orElse(salary.getBonus());
         long deductions = Optional.ofNullable(request.getDeductions()).orElse(salary.getDeductions());
+        int workingDays = Optional.ofNullable(request.getWorkingDays()).orElse(salary.getWorkingDays());
 
-        long netSalary = calculateNetSalary(baseSalary, paidDays, salary.getWorkingDays(), bonus, deductions);
+        long netSalary = calculateNetSalary(baseSalary, paidDays, workingDays, bonus, deductions);
 
         salary = salaryMapper.mapToSalary(request, salary);
         salary.setPaidDays(paidDays);

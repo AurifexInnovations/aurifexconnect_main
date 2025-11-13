@@ -14,5 +14,4 @@ public class SalaryRequest {
     private Integer workingDays;
     private Integer paidDays;
     private String remarks;
-    
 }

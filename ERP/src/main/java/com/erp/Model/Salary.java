@@ -1,6 +1,7 @@
 package com.erp.Model;
 
 import com.erp.Enum.AmountStatus;
+import com.erp.Service.SalaryService.YearMonthAttributeConverter;
 import jakarta.persistence.*;
 import lombok.*;
 import java.time.YearMonth;
@@ -20,6 +21,7 @@ public class Salary {
     @ManyToOne
     private User user;
 
+    @Convert(converter = YearMonthAttributeConverter.class)
     @Column(name = "month")
     private YearMonth month;
 
@@ -48,6 +50,7 @@ public class Salary {
     @Column(name = "amount_status")
     private AmountStatus amountStatus;
 
+    @Convert(converter = YearMonthAttributeConverter.class)
     @Column(name = "payment_date")
     private YearMonth paymentDate;
 }
