@@ -15,8 +15,8 @@ import java.time.LocalDateTime;
 @Builder
 public class ContractResponseDto {
     private Long id;
-    private String customerId;
-    private String quotationId;
+    private Long customerId;
+    private Long quotationId;
     private ContractStatus contractStatus;
     private LocalDate startDate;
     private LocalDate endDate;
@@ -27,7 +27,7 @@ public class ContractResponseDto {
     private LocalDate activationDate;
     private LocalDate renewalDate;
     private String contractNotes;
-    private String createdBy;
+    private Long createdBy;
     private LocalDateTime createdAt;
     private String lastModifiedBy;
     private LocalDateTime lastModifiedAt;

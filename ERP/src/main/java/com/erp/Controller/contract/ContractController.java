@@ -1,8 +1,11 @@
 package com.erp.Controller.contract;
 
 import com.erp.Dto.Request.ContractRequestDto;
+import com.erp.Dto.Request.FilterRequest;
+import com.erp.Dto.Response.ContractResponse;
 import com.erp.Dto.Response.ContractResponseDto;
 
+import com.erp.Dto.Response.ResultDto;
 import com.erp.Utility.ListResponseStructure;
 import com.erp.Utility.ResponseBuilder;
 import com.erp.Utility.ResponseStructure;
@@ -22,9 +25,7 @@ public class ContractController {
 
     private final com.erp.Service.ContractService.ContractService contractService;
 
-    /**
-     * Create or Update Contract
-     */
+
     @PostMapping
     public ResponseEntity<ResponseStructure<ContractResponseDto>> addOrUpdateContract(
             @RequestBody ContractRequestDto contractRequestDto) {
@@ -40,9 +41,7 @@ public class ContractController {
         return ResponseBuilder.success(HttpStatus.OK, message, response);
     }
 
-    /**
-     * Get all Contracts
-     */
+
     @GetMapping
     public ResponseEntity<ListResponseStructure<ContractResponseDto>> getAllContracts() {
         log.info("Fetching all contracts");
@@ -53,9 +52,14 @@ public class ContractController {
         return ResponseBuilder.success(HttpStatus.OK, "Contract list retrieved successfully", contracts);
     }
 
-    /**
-     * Get Contract by ID
-     */
+
+    @PostMapping("/filter")
+    public ResponseEntity<ResultDto<ContractResponse>> getFilteredContracts(@RequestBody FilterRequest filterRequest) {
+        log.info("[ContractController] [getFilteredContracts] called");
+        ResultDto<ContractResponse> result = contractService.getFilteredContracts(filterRequest);
+        return ResponseEntity.ok(result);
+    }
+
     @GetMapping("/id/{contractId}")
     public ResponseEntity<ResponseStructure<ContractResponseDto>> getContractById(
             @PathVariable("contractId") Long contractId) {
@@ -67,9 +71,7 @@ public class ContractController {
         return ResponseBuilder.success(HttpStatus.OK, "Contract details retrieved", response);
     }
 
-    /**
-     * Delete Contract by ID
-     */
+
     @DeleteMapping("/id/{contractId}")
     public ResponseEntity<ResponseStructure<ContractResponseDto>> deleteContractById(
             @PathVariable("contractId") Long contractId) {

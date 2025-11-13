@@ -23,10 +23,10 @@ public class Contract {
     private Long id;
 
     @Column(name = "customer_id", nullable = false, length = 50)
-    private String customerId;
+    private Long customerId;
 
     @Column(name = "quotation_id", length = 50)
-    private String quotationId;
+    private Long quotationId;
 
     @Enumerated(EnumType.STRING)
     @Column(name = "contract_status", nullable = false)
@@ -61,7 +61,7 @@ public class Contract {
     private String contractNotes;
 
     @Column(name = "created_by", length = 100)
-    private String createdBy;
+    private Long createdBy;
 
     @Column(name = "created_at")
     private LocalDateTime createdAt = LocalDateTime.now();

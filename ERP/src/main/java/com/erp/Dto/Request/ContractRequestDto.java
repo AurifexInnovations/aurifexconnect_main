@@ -14,8 +14,8 @@ import java.time.LocalDate;
 @Builder
 public class ContractRequestDto {
     private Long id ;
-    private String customerId;
-    private String quotationId;
+    private Long customerId;
+    private Long quotationId;
     private ContractStatus contractStatus;
     private LocalDate startDate;
     private LocalDate endDate;
@@ -26,6 +26,6 @@ public class ContractRequestDto {
     private LocalDate activationDate;
     private LocalDate renewalDate;
     private String contractNotes;
-    private String createdBy;
+    private Long createdBy;
     private String lastModifiedBy;
 }
