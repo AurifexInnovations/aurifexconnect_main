@@ -6,6 +6,7 @@ import com.erp.Dto.Response.ContractResponse;
 import com.erp.Dto.Response.ContractResponseDto;
 
 import com.erp.Dto.Response.ResultDto;
+import com.erp.Model.Contract;
 import com.erp.Utility.ListResponseStructure;
 import com.erp.Utility.ResponseBuilder;
 import com.erp.Utility.ResponseStructure;
@@ -81,5 +82,11 @@ public class ContractController {
 
         log.info("Deleted contract successfully with ID: {}", contractId);
         return ResponseBuilder.success(HttpStatus.OK, "Contract deleted successfully", (ContractResponseDto) null);
+    }
+
+    @PostMapping("/convert/{quotationId}")
+    public ResponseEntity<ResponseStructure<Contract>> convertQuotationToContract(@PathVariable Long quotationId) {
+        Contract contract = contractService.convertQuotationToContract(quotationId);
+        return ResponseBuilder.success(HttpStatus.CREATED, "Contract created successfully",contract);
     }
 }

@@ -6,9 +6,14 @@ import com.erp.Dto.Request.FilterRequest;
 import com.erp.Dto.Response.ContractResponse;
 import com.erp.Dto.Response.ContractResponseDto;
 import com.erp.Dto.Response.ResultDto;
+import com.erp.Enum.ContractStatus;
+import com.erp.Enum.ServiceFrequency;
+import com.erp.Exception.ResourceNotFoundException;
 import com.erp.Mapper.contractMapper.ContractMapper;
 import com.erp.Model.Contract;
 import com.erp.Model.GenericUser;
+import com.erp.Model.Quotation;
+import com.erp.Repository.Quotation.QuotationRepository;
 import com.erp.Repository.contract.ContractRepository;
 import com.erp.Security.util.UserIdentity;
 import com.erp.Utility.ObjectMapperUtils;
@@ -17,6 +22,8 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.math.BigDecimal;
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -28,6 +35,7 @@ public class ContractServiceImpl implements com.erp.Service.ContractService.Cont
 
     private final ContractRepository contractRepository;
     private final ContractMapper contractMapper;
+    private final QuotationRepository quotationRepository;
 
     private final ContractCustomRepository contractCustomRepository;
 
@@ -47,7 +55,7 @@ public class ContractServiceImpl implements com.erp.Service.ContractService.Cont
             contract = contractRepository.findById(request.getId())
                     .orElseThrow(() -> {
                         log.error("Contract not found with ID: {}", request.getId());
-                        return new RuntimeException("Contract not found with id: " + request.getId());
+                        return new ResourceNotFoundException("Contract not found with id: " + request.getId());
                     });
 
 
@@ -140,5 +148,29 @@ public class ContractServiceImpl implements com.erp.Service.ContractService.Cont
 
         contractRepository.deleteById(id);
         log.info("Contract deleted successfully with ID: {}", id);
+    }
+
+    public Contract convertQuotationToContract(Long quotationId) {
+        Quotation quotation = quotationRepository.findById(quotationId)
+                .orElseThrow(() -> new ResourceNotFoundException("Quotation not found with ID: " + quotationId));
+
+        GenericUser currentUser = userIdentity.getCurrentUser();
+
+        // Convert quotation data into contract
+        Contract contract = Contract.builder()
+                .quotationId(quotation.getId())
+                .customerId(Long.valueOf(quotation.getCustomerId()))
+                .contractStatus(ContractStatus.DRAFT)
+                .startDate(LocalDate.now()) // set as current date or based on business logic
+                .endDate(quotation.getValidityDate() != null ? quotation.getValidityDate() : LocalDate.now().plusMonths(6))
+                .totalValue(BigDecimal.valueOf(quotation.getTotalAmount() != null ? quotation.getTotalAmount() : 0.0))
+                .serviceFrequency(ServiceFrequency.MONTHLY) // default, adjust based on your logic
+                .paymentTerms(quotation.getPaymentTerms())
+                .isRecurring(true)
+                .contractNotes(quotation.getNotes())
+                .createdBy(currentUser.getId()) // or fetch from logged-in user
+                .build();
+
+        return contractRepository.save(contract);
     }
 }

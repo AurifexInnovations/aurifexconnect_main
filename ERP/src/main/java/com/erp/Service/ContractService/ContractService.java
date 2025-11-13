@@ -13,12 +13,17 @@ import java.util.List;
 public interface ContractService {
     ContractResponseDto addOrUpdateContract(ContractRequestDto request);
 
+
     List<ContractResponseDto> getAllContracts();
 
+
     ContractResponseDto getContractById(Long id);
+
 
     void deleteContractById(Long id);
 
     ResultDto<ContractResponse> getFilteredContracts(FilterRequest filterRequest);
 
+
+    Contract convertQuotationToContract(Long qutationId);
 }
