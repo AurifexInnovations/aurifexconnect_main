@@ -18,7 +18,7 @@ public class Quotation {
     private String type;
 
     @Column(name = "customer_id")
-    private String customerId;
+    private Long customerId;
 
     private String address;
 
@@ -53,8 +53,8 @@ public class Quotation {
     public String getType() { return type; }
     public void setType(String type) { this.type = type; }
 
-    public String getCustomerId() { return customerId; }
-    public void setCustomerId(String customerId) { this.customerId = customerId; }
+    public Long getCustomerId() { return customerId; }
+    public void setCustomerId(Long customerId) { this.customerId = customerId; }
 
     public String getAddress() { return address; }
     public void setAddress(String address) { this.address = address; }

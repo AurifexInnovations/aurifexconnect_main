@@ -47,7 +47,7 @@ public class ContractCustomRepository {
                     cd.name AS customer_name,
                     c.created_at
                 FROM contracts c
-                LEFT JOIN tenant_1_palak_gmail_com.customer_details cd 
+                LEFT JOIN customer_details cd 
                     ON c.customer_id = cd.id
                 WHERE 1=1
             """);
@@ -55,7 +55,7 @@ public class ContractCustomRepository {
             StringBuilder countSql = new StringBuilder("""
                 SELECT COUNT(*)
                 FROM contracts c
-                LEFT JOIN tenant_1_palak_gmail_com.customer_details cd 
+                LEFT JOIN customer_details cd 
                     ON c.customer_id = cd.id
                 WHERE 1=1
             """);

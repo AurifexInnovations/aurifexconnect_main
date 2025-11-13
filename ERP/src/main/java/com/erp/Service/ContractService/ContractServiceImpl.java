@@ -26,6 +26,7 @@ import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 @Slf4j
@@ -159,15 +160,18 @@ public class ContractServiceImpl implements com.erp.Service.ContractService.Cont
     }
 
     public Contract convertQuotationToContract(Long quotationId) {
-        Quotation quotation = quotationRepository.findById(quotationId)
-                .orElseThrow(() -> new ResourceNotFoundException("Quotation not found with ID: " + quotationId));
+        Optional<Quotation> quotationLocal = quotationRepository.findById(quotationId);
+        if (quotationLocal.isEmpty()){
+            throw new ResourceNotFoundException("Quotation not found with ID: " + quotationId);
+        }
+        Quotation quotation = quotationLocal.get();
 
         GenericUser currentUser = userIdentity.getCurrentUser();
 
         // Convert quotation data into contract
         Contract contract = Contract.builder()
                 .quotationId(quotation.getId())
-                .customerId(Long.valueOf(quotation.getCustomerId()))
+                .customerId(quotation.getCustomerId())
                 .contractStatus(ContractStatus.DRAFT)
                 .startDate(LocalDate.now()) // set as current date or based on business logic
                 .endDate(quotation.getValidityDate() != null ? quotation.getValidityDate() : LocalDate.now().plusMonths(6))
@@ -176,7 +180,9 @@ public class ContractServiceImpl implements com.erp.Service.ContractService.Cont
                 .paymentTerms(quotation.getPaymentTerms())
                 .isRecurring(true)
                 .contractNotes(quotation.getNotes())
-                .createdBy(currentUser.getId()) // or fetch from logged-in user
+                .createdBy(currentUser.getId())
+                .createdAt(LocalDateTime.now())
+                .lastModifiedAt(LocalDateTime.now())
                 .build();
 
         return contractRepository.save(contract);

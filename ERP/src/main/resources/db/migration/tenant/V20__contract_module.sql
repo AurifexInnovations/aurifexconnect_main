@@ -18,3 +18,7 @@ CREATE TABLE IF NOT EXISTS contracts (
     last_modified_by BIGINT,
     last_modified_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
+
+ALTER TABLE quotations
+ALTER COLUMN customer_id TYPE BIGINT
+USING customer_id::BIGINT;
