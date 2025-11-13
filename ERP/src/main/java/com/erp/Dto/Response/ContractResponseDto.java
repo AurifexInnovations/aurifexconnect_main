@@ -29,6 +29,6 @@ public class ContractResponseDto {
     private String contractNotes;
     private Long createdBy;
     private LocalDateTime createdAt;
-    private String lastModifiedBy;
+    private Long lastModifiedBy;
     private LocalDateTime lastModifiedAt;
 }

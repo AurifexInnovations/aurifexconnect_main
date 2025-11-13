@@ -30,7 +30,7 @@ public class Contract {
 
     @Enumerated(EnumType.STRING)
     @Column(name = "contract_status", nullable = false)
-    private ContractStatus contractStatus = ContractStatus.DRAFT;
+    private ContractStatus contractStatus;
 
     @Column(name = "start_date", nullable = false)
     private LocalDate startDate;
@@ -67,7 +67,7 @@ public class Contract {
     private LocalDateTime createdAt = LocalDateTime.now();
 
     @Column(name = "last_modified_by", length = 100)
-    private String lastModifiedBy;
+    private Long lastModifiedBy;
 
     @Column(name = "last_modified_at")
     private LocalDateTime lastModifiedAt = LocalDateTime.now();

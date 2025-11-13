@@ -27,5 +27,5 @@ public class ContractRequestDto {
     private LocalDate renewalDate;
     private String contractNotes;
     private Long createdBy;
-    private String lastModifiedBy;
+    private Long lastModifiedBy;
 }

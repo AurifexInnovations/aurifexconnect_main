@@ -45,49 +45,57 @@ public class ContractServiceImpl implements com.erp.Service.ContractService.Cont
     @Override
     @Transactional
     public ContractResponseDto addOrUpdateContract(ContractRequestDto request) {
-        Contract contract;
+        try {
+            Contract contract;
+            GenericUser genericUser = userIdentity.getCurrentUser();
 
-        GenericUser genericUser= userIdentity.getCurrentUser();
+            if (request.getId() != null) {
+                log.info("Updating contract with ID: {}", request.getId());
 
-        if (request.getId() != null) {
-            log.info("Updating contract with ID: {}", request.getId());
+                contract = contractRepository.findById(request.getId())
+                        .orElseThrow(() -> {
+                            log.error("Contract not found with ID: {}", request.getId());
+                            return new ResourceNotFoundException("Contract not found with id: " + request.getId());
+                        });
 
-            contract = contractRepository.findById(request.getId())
-                    .orElseThrow(() -> {
-                        log.error("Contract not found with ID: {}", request.getId());
-                        return new ResourceNotFoundException("Contract not found with id: " + request.getId());
-                    });
+                // Update existing fields
+                contract.setCustomerId(request.getCustomerId());
+                contract.setQuotationId(request.getQuotationId());
+                contract.setContractStatus(request.getContractStatus());
+                contract.setStartDate(request.getStartDate());
+                contract.setEndDate(request.getEndDate());
+                contract.setTotalValue(request.getTotalValue());
+                contract.setServiceFrequency(request.getServiceFrequency());
+                contract.setPaymentTerms(request.getPaymentTerms());
+                contract.setIsRecurring(request.getIsRecurring());
+                contract.setActivationDate(request.getActivationDate());
+                contract.setRenewalDate(request.getRenewalDate());
+                contract.setContractNotes(request.getContractNotes());
+              //  contract.setLastModifiedBy(genericUser.getId());
+                contract.setLastModifiedAt(LocalDateTime.now());
+                log.debug("Contract after field updates: {}", contract);
 
+            } else {
+                log.info("Creating new contract for customer: {}", request.getCustomerId());
+                request.setCreatedBy(genericUser.getId());
+                contract = contractMapper.toEntity(request);
+            }
 
-            // Update existing fields
-            contract.setCustomerId(request.getCustomerId());
-            contract.setQuotationId(request.getQuotationId());
-            contract.setContractStatus(request.getContractStatus());
-            contract.setStartDate(request.getStartDate());
-            contract.setEndDate(request.getEndDate());
-            contract.setTotalValue(request.getTotalValue());
-            contract.setServiceFrequency(request.getServiceFrequency());
-            contract.setPaymentTerms(request.getPaymentTerms());
-            contract.setIsRecurring(request.getIsRecurring());
-            contract.setActivationDate(request.getActivationDate());
-            contract.setRenewalDate(request.getRenewalDate());
-            contract.setContractNotes(request.getContractNotes());
-            contract.setLastModifiedBy(request.getLastModifiedBy());
-            contract.setLastModifiedAt(LocalDateTime.now());
-            contract.setCreatedBy(genericUser.getId());
-            log.debug("Contract after field updates: {}", contract);
+            Contract savedContract = contractRepository.save(contract);
+            log.info("Contract saved successfully with ID: {}", savedContract.getId());
 
-        } else {
-            log.info("Creating new contract for customer: {}", request.getCustomerId());
-            request .setCreatedBy(genericUser.getId());
-            contract = contractMapper.toEntity(request);
+            return contractMapper.toResponse(savedContract);
+
+        } catch (ResourceNotFoundException ex) {
+            log.error("Error while updating contract: {}", ex.getMessage(), ex);
+            throw ex;
+
+        } catch (Exception ex) {
+            log.error("Unexpected error occurred in addOrUpdateContract: {}", ex.getMessage(), ex);
+            throw new RuntimeException("Something went wrong while processing contract", ex);
         }
-
-        Contract savedContract = contractRepository.save(contract);
-        log.info("Contract saved successfully with ID: {}", savedContract.getId());
-
-        return contractMapper.toResponse(savedContract);
     }
+
 
     @Override
     public List<ContractResponseDto> getAllContracts() {
