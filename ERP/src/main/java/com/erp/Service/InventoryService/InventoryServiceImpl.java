@@ -271,11 +271,11 @@ public class InventoryServiceImpl implements InventoryService {
 
                 if (isNewProduct) {
 
-                    varientService.addAndUpdateVarients(productRequest.getVarientList());
+                    varientService.addAndUpdateVarients(productRequest.getVarientList(),product.getItemId());
                     log.info("Added new variants for productId={}", product.getItemId());
                 } else {
 
-                    varientService.updateVarients(productRequest.getVarientList());
+                    varientService.updateVarients(productRequest.getVarientList(),product.getItemId());
                     log.info("Updated variants for productId={}", product.getItemId());
                 }
             }

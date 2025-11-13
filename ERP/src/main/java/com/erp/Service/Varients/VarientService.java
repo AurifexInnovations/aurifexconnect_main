@@ -23,13 +23,15 @@ public class VarientService {
     private final VarientRepository varientRepository;
     private final VarientMapper varientMapper;
 
-    public List<VarientDto> addAndUpdateVarients(List<VarientDto> varientDtos){
+    public List<VarientDto> addAndUpdateVarients(List<VarientDto> varientDtos,Long itemId){
         log.info("Into [VarientService] [addVarients] ");
 
         log.info("[VarientService] [addVarients]  :: VarientRequest :: {} "
                 , ObjectMapperUtils.writeValueAsString(varientDtos));
 
         List<Varient> varients = varientMapper.mapDtosToEntities(varientDtos);
+
+        varients.forEach(varient -> varient.setItemId(itemId));
 
         varients = varientRepository.saveAll(varients);
 
@@ -38,7 +40,7 @@ public class VarientService {
         return varientMapper.map(varients);
     }
 
-    public List<VarientDto> updateVarients(List<VarientDto> varientDtos){
+    public List<VarientDto> updateVarients(List<VarientDto> varientDtos,Long itemId){
         log.info("Into [VarientService] [updateVarients] ");
 
         Map<Long ,VarientDto > varientDtoMap = convertListOfVarientDtosToMap(varientDtos);
@@ -50,10 +52,13 @@ public class VarientService {
 
             if(varientDtoMap.containsKey(varient.getId())){
                 VarientDto varientDto = varientDtoMap.get(varient.getId());
+                varientDto.setItemId(itemId);
                 varientMapper.update(varient , varientDto);
             }
 
         }
+
+        varients.forEach(varient -> varient.setItemId(itemId));
 
         varients = varientRepository.saveAll(varients);
 
