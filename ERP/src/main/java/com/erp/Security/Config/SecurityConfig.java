@@ -192,7 +192,7 @@ public class SecurityConfig {
     {
         CorsConfiguration config = new CorsConfiguration();
         config.setAllowCredentials(true);
-        config.setAllowedOrigins(List.of("http://localhost:3000","http://localhost:5174"));
+        config.setAllowedOrigins(List.of("http://localhost:3000","http://localhost:5174","https://magenta-cranachan-beb97b.netlify.app"));
         config.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS"));
         config.setAllowedHeaders(List.of("*"));
         config.setExposedHeaders(List.of("Authorization"));
