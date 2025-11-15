@@ -64,6 +64,13 @@ public class SalaryController
         return ResponseBuilder.success(HttpStatus.OK, "Salary record fetched", response);
     }
 
+    @GetMapping("/all")
+    @Operation(summary = "Fetch all salary data", description = "Returns salary details for all users")
+    public ResponseEntity<ListResponseStructure<SalaryResponse>> getAllSalaryData() {
+        List<SalaryResponse> response = salaryService.getAllSalaryData();
+        return ResponseBuilder.success(HttpStatus.OK, "All salary data fetched successfully", response);
+    }
+
     @PutMapping("/pay")
     @Operation(summary = "Mark Salary As Paid",
             description = "API Endpoint to Update Salary records",
