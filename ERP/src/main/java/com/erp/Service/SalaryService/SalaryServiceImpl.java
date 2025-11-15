@@ -4,10 +4,7 @@ import com.erp.CustomRepository.SalaryCustomRepository;
 import com.erp.Dto.Request.FilterRequest;
 import com.erp.Dto.Request.Param;
 import com.erp.Dto.Request.SalaryRequest;
-import com.erp.Dto.Response.MonthlySalaryResponse;
-import com.erp.Dto.Response.ResultDto;
-import com.erp.Dto.Response.SalaryResponse;
-import com.erp.Dto.Response.SalarySummaryResponse;
+import com.erp.Dto.Response.*;
 import com.erp.Enum.AmountStatus;
 import com.erp.Exception.ResourceNotFoundException;
 import com.erp.Exception.Salary.SalaryNotFoundException;
@@ -30,6 +27,7 @@ import org.springframework.stereotype.Service;
 import java.time.LocalDate;
 import java.time.YearMonth;
 import java.util.*;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -208,4 +206,62 @@ public class SalaryServiceImpl implements SalaryService {
 
         return salaryResponses;
     }
+
+    @Override
+    public List<SalaryResponse> getAllSalaryData() {
+
+        List<Salary> salaries = salaryRepository.findAll();
+
+        return salaries.stream().map(salary -> {
+
+            SalaryResponse response = new SalaryResponse();
+            response.setId(salary.getId());
+
+            // FULL USER MAPPING
+            UserResponse userResponse = new UserResponse();
+            userResponse.setId(salary.getUser().getId());
+            userResponse.setFirstName(salary.getUser().getFirstName());
+            userResponse.setLastName(salary.getUser().getLastName());
+            userResponse.setEmail(salary.getUser().getEmail());
+            userResponse.setPhoneNo(salary.getUser().getPhoneNo());
+            userResponse.setActive(salary.getUser().isActive());
+            userResponse.setSchemaName(salary.getUser().getSchemaName());
+            userResponse.setCreatedAt(salary.getUser().getCreatedAt());
+            userResponse.setLastModifiedAt(salary.getUser().getLastModifiedAt());
+
+            // Roles mapping (avoid null pointer)
+            if (salary.getUser().getRoles() != null) {
+                userResponse.setRoleNames(
+                        salary.getUser().getRoles()
+                                .stream()
+                                .map(role -> role.getRoleName())
+                                .collect(Collectors.toList())
+                );
+            }
+
+            userResponse.setFullName(
+                    salary.getUser().getFirstName() + " " + salary.getUser().getLastName()
+            );
+
+            response.setUser(userResponse);
+
+            // Salary fields
+            response.setFirstName(salary.getUser().getFirstName());
+            response.setLastName(salary.getUser().getLastName());
+            response.setMonth(salary.getMonth());
+            response.setBaseSalary(salary.getBaseSalary());
+            response.setDeductions(salary.getDeductions());
+            response.setBonus(salary.getBonus());
+            response.setWorkingDays(salary.getWorkingDays());
+            response.setPaidDays(salary.getPaidDays());
+            response.setNetSalary(salary.getNetSalary());
+            response.setRemarks(salary.getRemarks());
+            response.setAmountStatus(salary.getAmountStatus());
+            response.setPaymentDate(salary.getPaymentDate());
+
+            return response;
+        }).collect(Collectors.toList());
+    }
+
+
 }

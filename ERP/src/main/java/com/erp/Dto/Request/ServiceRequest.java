@@ -8,6 +8,8 @@ import jakarta.validation.constraints.*;
 import lombok.Getter;
 import lombok.Setter;
 
+import java.util.List;
+
 @Getter
 @Setter
 public class ServiceRequest {
@@ -28,4 +30,6 @@ public class ServiceRequest {
 
     @NotNull(message = "Service category cannot be null")
     private ServiceCategory serviceCategory;
+
+    List<ServiceDocumentRequestDto> documents;
 }

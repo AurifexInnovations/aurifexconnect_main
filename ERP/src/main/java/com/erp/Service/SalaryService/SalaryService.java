@@ -20,4 +20,6 @@ public interface SalaryService {
     SalaryResponse deleteSalaryByUserAndMonth(SalaryRequest request);
     Map<String, Object> getSalaryOverview(int year, YearMonth startMonth, YearMonth endMonth);
     ResultDto<SalaryResponse> getSalaryDetails(FilterRequest filterRequest);
+    List<SalaryResponse> getAllSalaryData();
+
 }
