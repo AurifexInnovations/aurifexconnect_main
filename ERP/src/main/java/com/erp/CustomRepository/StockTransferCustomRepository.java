@@ -60,6 +60,44 @@ public class StockTransferCustomRepository {
         Map<String, String> filters = filterRequest.getFilterColumns();
         Map<String, String> search = filterRequest.getSearchColumns();
         Map<String, String> orderBy = filterRequest.getOrderByColumns();
+        Map<String, String> orderby = filterRequest.getOrderByColumns();
+
+        // ---- FILTERS ----
+        if (filters != null) {
+            if (filters.containsKey("status")) {
+                jpql.append(" AND s.status = :status");
+            }
+            if (filters.containsKey("startDate") && filters.containsKey("endDate")) {
+                jpql.append(" AND s.createdAt BETWEEN :startDate AND :endDate");
+            }
+
+            if (filters.containsKey("fromBranchId")) {
+                jpql.append(" AND s.fromBranch.branchId = :fromBranchId");
+            }
+
+            if (filters.containsKey("toBranchId")) {
+                jpql.append(" AND s.toBranch.branchId = :toBranchId");
+            }
+        }
+
+        // ---- SEARCH ----
+        if (search != null && search.containsKey("approverName")) {
+            jpql.append(" AND s.approvedBy LIKE :approverName");
+        }
+
+        // ---- ORDER BY ----
+        if (orderby != null && !orderby.isEmpty()) {
+            jpql.append(" ORDER BY ");
+            List<String> orderClause = new ArrayList<>();
+            orderby.forEach((column, direction) -> {
+                switch (column) {
+                    case "quantity" -> orderClause.add("s.quantity " + ("desc".equalsIgnoreCase(direction) ? "DESC" : "ASC"));
+                }
+            });
+            jpql.append(String.join(", ", orderClause));
+        }
+
+        TypedQuery<StockTransfer> query = entityManager.createQuery(jpql.toString(), StockTransfer.class);
 
         // ---------- FILTERS ----------
         if (filters != null) {
@@ -99,6 +137,19 @@ public class StockTransferCustomRepository {
                 sql.append(" AND LOWER(s.approved_by) LIKE LOWER(CONCAT('%', :approverName, '%'))");
                 countSql.append(" AND LOWER(s.approved_by) LIKE LOWER(CONCAT('%', :approverName, '%'))");
             }
+
+            if (filters.containsKey("fromBranchId")) {
+                countJpql.append(" AND s.fromBranch.branchId = :fromBranchId");
+            }
+
+            if (filters.containsKey("toBranchId")) {
+                countJpql.append(" AND s.toBranch.branchId = :toBranchId");
+            }
+
+
+        }
+        if (search != null && search.containsKey("approverName")) {
+            countJpql.append(" AND s.approvedBy LIKE :approverName");
         }
 
         // ---------- ORDER BY ----------
@@ -149,21 +200,9 @@ public class StockTransferCustomRepository {
             }
         }
 
-        // ---------- SET SEARCH PARAMS ----------
-        if (search != null) {
-            if (search.containsKey("itemName")) {
-                dataQuery.setParameter("itemName", search.get("itemName"));
-                countQuery.setParameter("itemName", search.get("itemName"));
-            }
-            if (search.containsKey("brandName")) {
-                dataQuery.setParameter("brandName", search.get("brandName"));
-                countQuery.setParameter("brandName", search.get("brandName"));
-            }
-            if (search.containsKey("approverName")) {
-                dataQuery.setParameter("approverName", search.get("approverName"));
-                countQuery.setParameter("approverName", search.get("approverName"));
-            }
-        }
+        ResultDto<StockTransferResponse> resultDto = new ResultDto<>();
+        resultDto.setCount(totalCount);
+        resultDto.setResults(responses);
 
         // ---------- PAGINATION ----------
         if (filterRequest.getPaginationRequest() != null) {
