@@ -2,6 +2,7 @@ package com.erp.Projection;
 
 import com.erp.Enum.ProductCategories;
 import com.erp.Enum.ProductStatus;
+import com.erp.Enum.TaxName;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -32,9 +33,12 @@ public class InventoryAndBranchProjection {
     private ProductStatus productStatus;
     private long branchId;
     private String branchName;
+    private String fileUrl;
+
 
     private int totalStockQuantity;
     private LocalDateTime latestExpiryDate;
+    private TaxName taxName;
 
 
 }

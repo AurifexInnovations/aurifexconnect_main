@@ -4,6 +4,7 @@ import com.erp.Dto.Request.FilterRequest;
 import com.erp.Dto.Response.ResultDto;
 import com.erp.Enum.ProductCategories;
 import com.erp.Enum.ProductStatus;
+import com.erp.Enum.TaxName;
 import com.erp.Projection.InventoryAndBranchProjection;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.PersistenceContext;
@@ -15,7 +16,6 @@ import java.sql.Timestamp;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
-
 @Repository
 @Slf4j
 public class InventoryCustomRepository {
@@ -43,10 +43,12 @@ public class InventoryCustomRepository {
                     i.last_modified_at,
                     COALESCE(SUM(v.stock_quantity), 0) AS totalStockQuantity,
                     MAX(v.expiry_date) AS latestExpiryDate,
-                    b.branch_name
+                    b.branch_name,
+                    t.tax_name
                 FROM inventory i
                 INNER JOIN branch b ON i.branch_id = b.branch_id
                 LEFT JOIN varients v ON i.item_id = v.item_id
+                LEFT JOIN tax t ON i.tax_id = t.id
                 WHERE i.active = true
                 """);
 
@@ -55,6 +57,7 @@ public class InventoryCustomRepository {
                 FROM inventory i
                 INNER JOIN branch b ON i.branch_id = b.branch_id
                 LEFT JOIN varients v ON i.item_id = v.item_id
+                LEFT JOIN tax t ON i.tax_id = t.id
                 WHERE i.active = true
                 """);
 
@@ -64,35 +67,29 @@ public class InventoryCustomRepository {
 
         // Filters
         if (filters != null) {
-
             if (filters.containsKey("itemName") && !filters.get("itemName").isEmpty()) {
                 sql.append(" AND i.item_name = :itemName");
                 countSql.append(" AND i.item_name = :itemName");
             }
-
             if (filters.containsKey("brandName") && !filters.get("brandName").isEmpty()) {
                 sql.append(" AND i.brand_name = :brandName");
                 countSql.append(" AND i.brand_name = :brandName");
             }
-
             if (filters.containsKey("productCategories") && !filters.get("productCategories").isEmpty()) {
                 sql.append(" AND i.product_categories = :productCategories");
                 countSql.append(" AND i.product_categories = :productCategories");
             }
-
-            // ✅ Only apply branch filter if branchId is provided & non-empty
-            if (filters.containsKey("branchId") && filters.get("branchId") != null && !filters.get("branchId").isEmpty()) {
+            if (filters.containsKey("branchId") && !filters.get("branchId").isEmpty()) {
                 sql.append(" AND i.branch_id = :branchId");
                 countSql.append(" AND i.branch_id = :branchId");
             }
-
+            if (filters.containsKey("itemId") && !filters.get("itemId").isEmpty()) {
+                sql.append(" AND i.item_id = :itemId ");
+                countSql.append(" AND i.item_id = :itemId ");
+            }
             if (filters.containsKey("startDate") && filters.containsKey("endDate")) {
                 sql.append(" AND i.created_at BETWEEN :startDate AND :endDate");
                 countSql.append(" AND i.created_at BETWEEN :startDate AND :endDate");
-            }
-            if (filters.containsKey("itemId") && filters.get("itemId") != null && !filters.get("itemId").isEmpty()) {
-                sql.append(" AND i.item_id = :itemId ");
-                countSql.append(" AND i.item_id = :itemId ");
             }
         }
 
@@ -103,11 +100,9 @@ public class InventoryCustomRepository {
         }
 
         // Group By
-        sql.append("""
-                GROUP BY i.item_id, b.branch_name
-                """);
+        sql.append(" GROUP BY i.item_id, b.branch_name, t.tax_name");
 
-        // Order by
+        // Order By
         if (orderBy != null && !orderBy.isEmpty()) {
             sql.append(" ORDER BY ");
             orderBy.forEach((column, dir) -> sql.append(" i.").append(column).append(" ").append(dir).append(","));
@@ -119,33 +114,28 @@ public class InventoryCustomRepository {
         Query dataQuery = entityManager.createNativeQuery(sql.toString());
         Query countQuery = entityManager.createNativeQuery(countSql.toString());
 
-        // Apply Params
+        // Set parameters
         if (filters != null) {
             if (filters.containsKey("itemName")) {
                 dataQuery.setParameter("itemName", filters.get("itemName"));
                 countQuery.setParameter("itemName", filters.get("itemName"));
             }
-
             if (filters.containsKey("brandName")) {
                 dataQuery.setParameter("brandName", filters.get("brandName"));
                 countQuery.setParameter("brandName", filters.get("brandName"));
             }
-
             if (filters.containsKey("productCategories")) {
                 dataQuery.setParameter("productCategories", filters.get("productCategories"));
                 countQuery.setParameter("productCategories", filters.get("productCategories"));
             }
-
             if (filters.containsKey("branchId") && !filters.get("branchId").isEmpty()) {
                 dataQuery.setParameter("branchId", Long.parseLong(filters.get("branchId")));
                 countQuery.setParameter("branchId", Long.parseLong(filters.get("branchId")));
             }
-
             if (filters.containsKey("itemId") && !filters.get("itemId").isEmpty()) {
                 dataQuery.setParameter("itemId", Long.parseLong(filters.get("itemId")));
                 countQuery.setParameter("itemId", Long.parseLong(filters.get("itemId")));
             }
-
             if (filters.containsKey("startDate") && filters.containsKey("endDate")) {
                 dataQuery.setParameter("startDate", Timestamp.valueOf(filters.get("startDate") + " 00:00:00"));
                 dataQuery.setParameter("endDate", Timestamp.valueOf(filters.get("endDate") + " 23:59:59"));
@@ -188,12 +178,15 @@ public class InventoryCustomRepository {
             obj.setTotalStockQuantity(((Number) r[14]).intValue());
             obj.setLatestExpiryDate(r[15] != null ? ((Timestamp) r[15]).toLocalDateTime() : null);
             obj.setBranchName((String) r[16]);
+            obj.setTaxName(r[17] != null ? TaxName.valueOf((String) r[17]) : null);
             responseList.add(obj);
         }
 
         ResultDto<InventoryAndBranchProjection> result = new ResultDto<>();
         result.setCount(totalCount);
         result.setResults(responseList);
+
         return result;
     }
 }
+

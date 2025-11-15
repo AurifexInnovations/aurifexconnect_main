@@ -9,7 +9,8 @@ import java.util.List;
 
 public interface StockTransferService {
 
-    StockTransferResponse createStockTransfer(StockTransferRequest request);
+    void createBulkStockTransfer(List<StockTransferRequest> requests);
+
 
     StockTransferResponse approveTransfer(TransferActionRequest request);
 

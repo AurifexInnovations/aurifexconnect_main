@@ -309,6 +309,12 @@ public class InventoryServiceImpl implements InventoryService {
             inventoryRepository.setInactiveByItemId(itemId);
             log.info("Successfully deleted Inventory with itemId={}", itemId);
 
+            ActivityDto activityDto=new ActivityDto();
+            activityDto.setAction(Action.DELETE_INVENTORY.toString());
+            activityDto.setInventoryId(itemId);
+            activityDto.setPerformedBy(userIdentity.getCurrentUsername());
+            activityService.addActivity(itemId,activityDto);
+
         } catch (ResourceNotFoundException e) {// rethrow to handle in controller
         } catch (Exception e) {
             log.error("Error deleting Inventory with itemId={}", itemId, e);
