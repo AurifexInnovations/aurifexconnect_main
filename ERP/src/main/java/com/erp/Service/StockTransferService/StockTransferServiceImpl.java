@@ -51,36 +51,36 @@ public class StockTransferServiceImpl implements StockTransferService
     private final ActivityRepository activityRepository;
 
     @Override
-    public StockTransferResponse createStockTransfer(StockTransferRequest request) {
+    public void createBulkStockTransfer(List<StockTransferRequest> requests) {
 
-        Branch fromBranch = branchRepository.findById(request.getFromBranchId())
-                .orElseThrow(() -> new ResourceNotFoundException("From Branch not found!"));
+        for (StockTransferRequest request : requests) {
 
-        Branch toBranch = branchRepository.findById(request.getToBranchId())
-                .orElseThrow(() -> new ResourceNotFoundException("To Branch not found!"));
+            Branch fromBranch = branchRepository.findById(request.getFromBranchId())
+                    .orElseThrow(() -> new ResourceNotFoundException("From Branch not found!"));
 
-        Inventory inventory = inventoryRepository.findById(request.getItemId())
-                .orElseThrow(() -> new ResourceNotFoundException("Inventory item not found!"));
+            Branch toBranch = branchRepository.findById(request.getToBranchId())
+                    .orElseThrow(() -> new ResourceNotFoundException("To Branch not found!"));
 
-        StockTransfer transfer = stockTransferMapper.mapToStockTransfer(request);
-        transfer.setFromBranch(fromBranch);
-        transfer.setToBranch(toBranch);
-        transfer.setInventory(inventory);
+            Inventory inventory = inventoryRepository.findById(request.getItemId())
+                    .orElseThrow(() -> new ResourceNotFoundException("Inventory item not found!"));
 
-        // note it
-        transfer.setInitiatedBy(userIdentity.getCurrentUsername()); // This Field's values changes After Role Based Authentication
-        transfer.setStatus(StockTransferStatus.PENDING);
-        transfer.setReason(request.getReason());
+            StockTransfer transfer = stockTransferMapper.mapToStockTransfer(request);
+            transfer.setFromBranch(fromBranch);
+            transfer.setToBranch(toBranch);
+            transfer.setInventory(inventory);
 
-        stockTransferRepository.save(transfer);
+            transfer.setInitiatedBy(userIdentity.getCurrentUsername());
+            transfer.setStatus(StockTransferStatus.PENDING);
+            transfer.setReason(request.getReason());
 
-        ActivityDto activityDto=new ActivityDto();
-        activityDto.setAction(Action.ADD_STOCK_TRANSFER.toString());
-        activityDto.setInventoryId(request.getItemId());
-        activityDto.setPerformedBy(userIdentity.getCurrentUsername());
-        activityService.addActivity(request.getItemId(),activityDto);
+            stockTransferRepository.save(transfer);
 
-        return stockTransferMapper.mapToStockTransferResponse(transfer);
+            ActivityDto activityDto = new ActivityDto();
+            activityDto.setAction(Action.ADD_STOCK_TRANSFER.toString());
+            activityDto.setInventoryId(request.getItemId());
+            activityDto.setPerformedBy(userIdentity.getCurrentUsername());
+            activityService.addActivity(request.getItemId(), activityDto);
+        }
     }
 
     @Override

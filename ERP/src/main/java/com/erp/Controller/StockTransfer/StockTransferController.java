@@ -30,14 +30,20 @@ public class StockTransferController {
     private final StockTransferService stockTransferService;
 
     @PostMapping("stocktransfer")
-    @Operation(description = "API to Create a New Stock Transfer",
-            responses = {
-                    @ApiResponse(responseCode = "201", description = "Stock Transfer Request Created")
-            })
-    public ResponseEntity<ResponseStructure<StockTransferResponse>> createTransfer(@Valid @RequestBody StockTransferRequest request) {
-        StockTransferResponse response = stockTransferService.createStockTransfer(request);
-        return ResponseBuilder.success(HttpStatus.CREATED, "Stock Transfer Created", response);
+    public ResponseEntity<ListResponseStructure<String>> createBulkTransfer(
+            @RequestBody List<StockTransferRequest> requests) {
+
+        stockTransferService.createBulkStockTransfer(requests);
+
+        ListResponseStructure<String> response = ListResponseStructure.<String>builder()
+                .status(HttpStatus.CREATED.value())
+                .message("Bulk Stock Transfer Created Successfully")
+                .data(List.of("Success"))
+                .build();
+
+        return new ResponseEntity<>(response, HttpStatus.CREATED);
     }
+
 
     @PostMapping("stocktransfer/approve")
     @Operation(description = "API to Approve a Stock Transfer Request",
