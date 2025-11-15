@@ -53,6 +53,14 @@ public class StockTransferCustomRepository {
             if (filters.containsKey("startDate") && filters.containsKey("endDate")) {
                 jpql.append(" AND s.createdAt BETWEEN :startDate AND :endDate");
             }
+
+            if (filters.containsKey("fromBranchId")) {
+                jpql.append(" AND s.fromBranch.branchId = :fromBranchId");
+            }
+
+            if (filters.containsKey("toBranchId")) {
+                jpql.append(" AND s.toBranch.branchId = :toBranchId");
+            }
         }
 
         // ---- SEARCH ----
@@ -129,6 +137,16 @@ public class StockTransferCustomRepository {
             if (filters.containsKey("startDate") && filters.containsKey("endDate")) {
                 countJpql.append(" AND s.createdAt BETWEEN :startDate AND :endDate");
             }
+
+            if (filters.containsKey("fromBranchId")) {
+                countJpql.append(" AND s.fromBranch.branchId = :fromBranchId");
+            }
+
+            if (filters.containsKey("toBranchId")) {
+                countJpql.append(" AND s.toBranch.branchId = :toBranchId");
+            }
+
+
         }
         if (search != null && search.containsKey("approverName")) {
             countJpql.append(" AND s.approvedBy LIKE :approverName");
