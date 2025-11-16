@@ -1,7 +1,11 @@
 package com.erp.Service.Cutomer;
 
+import com.erp.CustomRepository.CustomerDetailsCustomRepository;
 import com.erp.Dto.Request.CustomerDetailsRequestDto;
+import com.erp.Dto.Request.FilterRequest;
+import com.erp.Dto.Response.CustomerResponse;
 import com.erp.Dto.Response.CustomerResponseDtos;
+import com.erp.Dto.Response.ResultDto;
 import com.erp.Mapper.CustomerMapper;
 import com.erp.Model.CustomerDetails;
 import com.erp.Model.CustomerDetailsMapper;
@@ -24,6 +28,9 @@ public class CustomerDetailsServiceImpl implements com.erp.Service.Cutomer.Custo
 
     @Autowired
     private CustomerDetailsMapperRepository mapperRepo;
+
+    @Autowired
+    private CustomerDetailsCustomRepository customerDetailsCustomRepository;
 
     @Override
     @Transactional
@@ -65,4 +72,23 @@ public class CustomerDetailsServiceImpl implements com.erp.Service.Cutomer.Custo
                 .products(request.getProducts())
                 .build();
     }
+
+
+    @Override
+    public ResultDto<CustomerResponse> getFilteredCustomers(FilterRequest filterRequest) {
+        log.info("[CustomerServiceImpl] getFilteredCustomers() called with request: {}", filterRequest);
+
+        try {
+            ResultDto<CustomerResponse> result = customerDetailsCustomRepository.getFilteredCustomers(filterRequest);
+
+            log.info("[CustomerServiceImpl] getFilteredCustomers() successful. Total Records: {}",result.getCount());
+
+            return result;
+
+        } catch (Exception ex) {
+            log.error("[CustomerServiceImpl] Error in getFilteredCustomers(): {}", ex.getMessage(), ex);
+            throw new RuntimeException("Failed to fetch customer records. Please try again later.", ex);
+        }
+    }
+
 }

@@ -2,7 +2,10 @@ package com.erp.Controller.customer;
 
 import com.erp.Dto.Request.CustomerDetailsRequestDto;
 
+import com.erp.Dto.Request.FilterRequest;
+import com.erp.Dto.Response.CustomerResponse;
 import com.erp.Dto.Response.CustomerResponseDtos;
+import com.erp.Dto.Response.ResultDto;
 import com.erp.Service.Cutomer.CustomerDetailsService;
 
 import com.erp.Utility.ResponseBuilder;
@@ -27,5 +30,10 @@ public class CustomerDetailsController {
         CustomerResponseDtos response = customerService.addOrUpdateCustomer(request);
         log.info("Customer processed successfully, ID: {}", response.getId());
         return ResponseBuilder.success(HttpStatus.CREATED, "CustomerDetailsService added successfully", response);
+    }
+
+    @PostMapping("/filter")
+    public ResponseEntity<ResultDto<CustomerResponse>> filter(@RequestBody FilterRequest filterRequest) {
+        return ResponseEntity.ok(customerService.getFilteredCustomers(filterRequest));
     }
 }
