@@ -2,6 +2,7 @@ package com.erp.CustomRepository;
 
 import com.erp.Dto.Request.FilterRequest;
 import com.erp.Dto.Response.CustomerResponse;
+import com.erp.Dto.Response.ProductDetailDto;
 import com.erp.Dto.Response.ResultDto;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.PersistenceContext;
@@ -158,6 +159,9 @@ public class CustomerDetailsCustomRepository {
             if (row[15] instanceof java.sql.Timestamp t1) dto.setCreatedAt(t1.toLocalDateTime());
             if (row[16] instanceof java.sql.Timestamp t2) dto.setUpdatedAt(t2.toLocalDateTime());
 
+            Long customerId = ((Number) row[0]).longValue();
+            dto.setProductDetailDto( getProductsByCustomerId(customerId));
+
             results.add(dto);
         }
 
@@ -217,4 +221,30 @@ public class CustomerDetailsCustomRepository {
             });
         }
     }
+
+    @SuppressWarnings("unchecked")
+    private List<ProductDetailDto> getProductsByCustomerId(Long customerId) {
+
+        String sql = """
+            SELECT product_id, quantity 
+            FROM customer_details_mapper 
+            WHERE customer_id = :customerId
+            """;
+
+        Query query = entityManager.createNativeQuery(sql);
+        query.setParameter("customerId", customerId);
+
+        List<Object[]> rows = query.getResultList();
+        List<ProductDetailDto> products = new ArrayList<>();
+
+        for (Object[] row : rows) {
+            ProductDetailDto dto = new ProductDetailDto();
+            dto.setProductId(((Number) row[0]).longValue());
+            dto.setQuantity(row[1] != null ? ((Number) row[1]).intValue() : null);
+            products.add(dto);
+        }
+
+        return products;
+    }
+
 }

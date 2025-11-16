@@ -4,6 +4,7 @@ import lombok.Data;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.util.List;
 
 @Data
 public class CustomerResponse {
@@ -25,4 +26,5 @@ public class CustomerResponse {
     private LocalDate joinedDate;
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
+    private List<ProductDetailDto> productDetailDto;
 }
