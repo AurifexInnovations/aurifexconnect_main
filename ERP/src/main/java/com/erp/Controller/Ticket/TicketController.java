@@ -2,12 +2,16 @@ package com.erp.Controller.Ticket;
 
 import com.erp.Dto.Request.TicketRequestDTO;
 import com.erp.Dto.Request.TicketSearchRequest;
+import com.erp.Dto.Response.ResultDto;
 import com.erp.Dto.Response.TicketResponseDTO;
 import com.erp.Dto.Response.TicketSearchResponse;
 
 import com.erp.Service.Ticket.customerHelpTicket.TicketService;
+import com.erp.Utility.ResponseBuilder;
+import com.erp.Utility.ResponseStructure;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -43,5 +47,11 @@ public class TicketController {
         return ResponseEntity.ok(response);
     }
 
+    @GetMapping()
+    public ResponseEntity<ResponseStructure<ResultDto<TicketResponseDTO>>> allTickets(){
+        log.info("Received All Tickets");
+        ResultDto<TicketResponseDTO> resultDto = ticketService.getAll();
+        return ResponseBuilder.success(HttpStatus.OK, "All Tickets", resultDto);
+    }
 
 }

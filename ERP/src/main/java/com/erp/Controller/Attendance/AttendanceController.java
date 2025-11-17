@@ -131,7 +131,7 @@ public class AttendanceController {
         return ResponseBuilder.success(HttpStatus.OK, "Monthly attendance report fetched", responses);
     }
 
-    @PostMapping("/all")
+    @GetMapping("/all")
     @Operation(
             summary = "Get All Attendance Records",
             description = "Retrieve all attendance records"
@@ -140,8 +140,8 @@ public class AttendanceController {
             @ApiResponse(responseCode = "200", description = "All attendance records fetched"),
             @ApiResponse(responseCode = "404", description = "No attendance records found")
     })
-    public ResponseEntity<ListResponseStructure<AttendanceResponse>> getAllAttendances() {
-        List<AttendanceResponse> responses = attendanceService.getAllAttendances();
+    public ResponseEntity<ResponseStructure<ResultDto<AttendanceResponse>>> getAllAttendances() {
+        ResultDto<AttendanceResponse> responses = attendanceService.getAllAttendances();
         return ResponseBuilder.success(HttpStatus.OK, "All attendance records fetched", responses);
     }
 

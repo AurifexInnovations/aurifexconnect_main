@@ -42,4 +42,8 @@ public interface TaskService {
     List<TechnitianFeedbackDetailProjection> getTechnitianFeedbackDetails(long feedbackId);
 
      String  updateTaskLocation(Long taskId, TaskLocationUpdateRequest request) ;
+
+    ResultDto<TechnicianLeaderboardDto> getTechnicianLeaderboard(PaginationRequest paginationRequest);
+
+    ResultDto<GetAllTaskResponse> getAllTasks();
 }

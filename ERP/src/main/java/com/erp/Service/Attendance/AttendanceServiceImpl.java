@@ -185,12 +185,15 @@ public class AttendanceServiceImpl implements AttendanceService {
     }
 
     @Override
-    public List<AttendanceResponse> getAllAttendances() {
-        List<Attendance> attendances = attendanceRepository.findAll();
-        if (attendances.isEmpty()) {
-            throw new AttendanceNotFoundException("No attendance records found.");
-        }
-        return attendanceMapper.mapToAttendanceResponse(attendances);
+    public ResultDto<AttendanceResponse> getAllAttendances() {
+        List<AttendanceResponse> attendances = attendanceMapper.mapToAttendanceResponse(attendanceRepository.findAll());
+
+        ResultDto<AttendanceResponse> resultDto = new ResultDto<>();
+
+        resultDto.setResults(attendances != null ? attendances : List.of());
+        resultDto.setCount(attendances != null ? attendances.size() : 0);
+
+        return resultDto;
     }
 
     @Override

@@ -103,5 +103,57 @@ public interface TaskScheduleRepository extends JpaRepository<TaskSchedule,Long>
     TaskSchedule findByTaskId(Long taskId);
 
 
+    @Query(value = """
+    SELECT 
+        RANK() OVER (ORDER BY ROUND(AVG(sub.rating)::numeric, 2) DESC) AS rank,
+        tt.technician_id AS technicianId,
+        CONCAT(u.first_name, ' ', u.last_name) AS technicianName,
+        COUNT(DISTINCT t.task_id) AS completedTasks,
+        ROUND(AVG(sub.rating)::numeric, 2) AS avgRating
+    FROM task_schedule AS ts
+    INNER JOIN task AS t 
+        ON t.task_id = ts.task_id
+    INNER JOIN task_technicians AS tt 
+        ON tt.task_id = ts.task_id
+    INNER JOIN users AS u 
+        ON u.id = tt.technician_id
+    LEFT JOIN (
+        SELECT DISTINCT
+            tt_inner.technician_id,
+            f.rating,
+            f.id AS feedback_id
+        FROM task_technicians AS tt_inner
+        LEFT JOIN feedbacks AS f
+            ON f.id = tt_inner.feedback_id AND f.is_active = TRUE
+    ) AS sub
+        ON sub.technician_id = tt.technician_id
+    WHERE 
+        t.status = 'COMPLETED'
+    GROUP BY 
+        tt.technician_id, technicianName
+    ORDER BY rank
+    """, nativeQuery = true)
+    List<TechnicianLeaderboardProjection> findTechnicianLeaderboard();
 
+    @Query(value = """
+    SELECT 
+        tt.technician_id AS technicianId,
+        i.item_id AS productId,
+        i.item_name AS productName,
+        SUM(tm.quantity) AS totalQuantity,
+        tm.unit AS unit
+    FROM task_material AS tm
+    INNER JOIN inventory AS i 
+        ON i.item_id = tm.material_id
+    INNER JOIN task_technicians AS tt 
+        ON tt.task_id = tm.task_id
+    INNER JOIN task_schedule AS ts
+        ON ts.task_id = tm.task_id
+    WHERE 
+        tm.is_used = TRUE
+    GROUP BY 
+        tt.technician_id, i.item_id, i.item_name, tm.unit
+    ORDER BY tt.technician_id, i.item_name
+    """, nativeQuery = true)
+    List<TechnicianMaterialProjection> findTechnicianMaterialUsage();
 }

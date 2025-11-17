@@ -44,12 +44,12 @@ public class ContractController {
 
 
     @GetMapping
-    public ResponseEntity<ListResponseStructure<ContractResponseDto>> getAllContracts() {
+    public ResponseEntity<ResponseStructure<ResultDto<ContractResponseDto>>> getAllContracts() {
         log.info("Fetching all contracts");
 
-        List<ContractResponseDto> contracts = contractService.getAllContracts();
+        ResultDto<ContractResponseDto> contracts = contractService.getAllContracts();
 
-        log.debug("Fetched {} contracts", contracts.size());
+        log.debug("Fetched {} contracts", contracts.getResults().size());
         return ResponseBuilder.success(HttpStatus.OK, "Contract list retrieved successfully", contracts);
     }
 
@@ -61,9 +61,9 @@ public class ContractController {
         return ResponseEntity.ok(result);
     }
 
-    @GetMapping("/id/{contractId}")
+    @GetMapping("/id")
     public ResponseEntity<ResponseStructure<ContractResponseDto>> getContractById(
-            @PathVariable("contractId") Long contractId) {
+            @RequestParam Long contractId) {
         log.info("Fetching contract by ID: {}", contractId);
 
         ContractResponseDto response = contractService.getContractById(contractId);
@@ -73,9 +73,9 @@ public class ContractController {
     }
 
 
-    @DeleteMapping("/id/{contractId}")
+    @DeleteMapping("/id")
     public ResponseEntity<ResponseStructure<ContractResponseDto>> deleteContractById(
-            @PathVariable("contractId") Long contractId) {
+            @RequestParam("contractId") Long contractId) {
         log.info("Request to delete contract with ID: {}", contractId);
 
         contractService.deleteContractById(contractId);
@@ -84,8 +84,8 @@ public class ContractController {
         return ResponseBuilder.success(HttpStatus.OK, "Contract deleted successfully", (ContractResponseDto) null);
     }
 
-    @PostMapping("/convert/{quotationId}")
-    public ResponseEntity<ResponseStructure<Contract>> convertQuotationToContract(@PathVariable Long quotationId) {
+    @PostMapping("/convert")
+    public ResponseEntity<ResponseStructure<Contract>> convertQuotationToContract(@RequestParam Long quotationId) {
         Contract contract = contractService.convertQuotationToContract(quotationId);
         return ResponseBuilder.success(HttpStatus.CREATED, "Contract created successfully",contract);
     }

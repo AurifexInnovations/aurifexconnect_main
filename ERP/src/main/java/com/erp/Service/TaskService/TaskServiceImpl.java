@@ -89,14 +89,14 @@ public class TaskServiceImpl implements TaskService {
         try {
 
             if (Objects.isNull(taskRequest)) {
-                throw new GlobalMessageExceptionHandler("Add Task  request can not be empty",HttpStatus.BAD_REQUEST);
+                throw new GlobalMessageExceptionHandler("Add Task  request can not be empty", HttpStatus.BAD_REQUEST);
             }
 
-            GenericUser currentUser =  userIdentity.getCurrentUser();
+            GenericUser currentUser = userIdentity.getCurrentUser();
 
             if (taskRequest.getTaskId() != null) {
 
-                 task = taskRepository.findById(taskRequest.getTaskId())
+                task = taskRepository.findById(taskRequest.getTaskId())
                         .orElseThrow(() -> new TaskNoFoundException("Task not found with Id: " + taskRequest.getTaskId()));
 
                 taskMapper.mapToTaxEntity(taskRequest, task);
@@ -104,7 +104,7 @@ public class TaskServiceImpl implements TaskService {
                 task.setUpdatedAt(LocalDateTime.now());
 
 
-            }else {
+            } else {
                 task = taskMapper.mapToTask(taskRequest);
                 task.setCreatedBy(currentUser.getId());
                 task.setCreatedAt(LocalDateTime.now());
@@ -112,7 +112,7 @@ public class TaskServiceImpl implements TaskService {
 
             task.setLatitude(taskRequest.getLatitude());
             task.setLongitude(taskRequest.getLongitude());
-             task.setTaskDetails(taskRequest.getTaskDetails());
+            task.setTaskDetails(taskRequest.getTaskDetails());
             task = taskRepository.save(task);
             taskRequest.setTaskId(task.getTaskId());
             addTaskSchedule(taskRequest);
@@ -137,9 +137,10 @@ public class TaskServiceImpl implements TaskService {
         task.setLongitude(request.getLongitude());
         task.setUpdatedAt((LocalDateTime.now()));
 
-         taskRepository.save(task);
-         return "Location updated successfully";
+        taskRepository.save(task);
+        return "Location updated successfully";
     }
+
     private void addTaskSchedule(TaskRequest taskRequest) {
 
         log.info("Into add  TaskSchedule...");
@@ -258,12 +259,36 @@ public class TaskServiceImpl implements TaskService {
         }
     }
 
+
+    @Override
+    public ResultDto<GetAllTaskResponse> getAllTasks() {
+        log.info("[TaskService] [getAllTaskRequests] Entering with page: {}, size: {}");
+
+        try {
+
+            List<GetAllTaskResponse> tasks = taskRepository.findAllTask();
+
+            ResultDto<GetAllTaskResponse> resultDto = new ResultDto<>();
+
+            resultDto.setResults(tasks != null ? tasks : List.of());
+            resultDto.setCount(tasks != null ? tasks.size() : 0);
+
+            log.info("[TaskService] [getAllTaskRequests] Fetched {} tasks", tasks.size());
+            return resultDto;
+
+        } catch (Exception ex) {
+            log.error("[TaskService] [getAllTaskRequests] Error occurred while fetching tasks: {}", ex.getMessage(), ex);
+            throw new RuntimeException("While Fetching Tasks Data");
+        } finally {
+            log.info("[TaskService] [getAllTaskRequests] Exiting method");
+        }
+    }
+
     @Override
     public boolean getTask(long taskId) {
 
         return taskRepository.findById(taskId).isPresent();
     }
-
 
 
     @Override
@@ -286,16 +311,15 @@ public class TaskServiceImpl implements TaskService {
                 );
 
 
-
                 LocalDate startDate = technicianRequest.getStartDate();
                 LocalDate endDate = technicianRequest.getEndDate();
-                String  status = technicianRequest.getStatus();
+                String status = technicianRequest.getStatus();
                 Boolean isActive = Boolean.FALSE;
-                if(Objects.nonNull(status) && status.equals("active")){
-                    isActive= Boolean.TRUE;
+                if (Objects.nonNull(status) && status.equals("active")) {
+                    isActive = Boolean.TRUE;
                 }
 
-                  technicianList =  taskRepository.searchTasksWithScheduleAndTechnicians(
+                technicianList = taskRepository.searchTasksWithScheduleAndTechnicians(
                         startDate,
                         endDate,
                         isActive,
@@ -345,8 +369,71 @@ public class TaskServiceImpl implements TaskService {
     }
 
 
+    @Override
+    public ResultDto<TechnicianLeaderboardDto> getTechnicianLeaderboard(PaginationRequest paginationRequest) {
+        try {
+            ResultDto<TechnicianLeaderboardDto> resultDto = new ResultDto<>();
 
+            var leaderboardData = taskScheduleRepository.findTechnicianLeaderboard();
+            log.info("Fetched {} technicians for leaderboard", leaderboardData.size());
 
+            var materialData = taskScheduleRepository.findTechnicianMaterialUsage();
+            log.info("Fetched {} material usage records", materialData.size());
+
+            Map<Long, List<MaterialUsageDto>> materialsByTech = materialData.stream()
+                    .collect(Collectors.groupingBy(
+                            TechnicianMaterialProjection::getTechnicianId,
+                            Collectors.mapping(m -> new MaterialUsageDto(
+                                    m.getProductName(),
+                                    m.getTotalQuantity(),
+                                    m.getUnit()
+                            ), Collectors.toList())
+                    ));
+            log.debug("Grouped materials by technician: {}", materialsByTech);
+
+            List<TechnicianLeaderboardDto> result = leaderboardData.stream()
+                    .map(t -> {
+                        List<MaterialUsageDto> materials = materialsByTech.getOrDefault(t.getTechnicianId(), Collections.emptyList());
+                        log.debug("Mapping technicianId={} with {} materials", t.getTechnicianId(), materials.size());
+                        return new TechnicianLeaderboardDto(
+                                t.getTechnicianId(),
+                                t.getTechnicianName(),
+                                t.getCompletedTasks(),
+                                t.getAvgRating(),
+                                t.getRank(),
+                                materials
+                        );
+                    })
+                    .collect(Collectors.toList());
+
+            // -------------------------
+            // APPLY PAGINATION HERE
+            // -------------------------
+            int page = paginationRequest.getPageNumber();
+            int size = paginationRequest.getPageSize();
+            int fromIndex = page * size;
+            int toIndex = Math.min(fromIndex + size, result.size());
+
+            List<TechnicianLeaderboardDto> paginated;
+
+            if (fromIndex >= result.size()) {
+                paginated = Collections.emptyList();
+            }
+            else{
+                paginated = result.subList(fromIndex, toIndex);
+            }
+
+            resultDto.setResults(paginated);
+            resultDto.setCount(paginated.size());
+
+            log.info("Final leaderboard DTO list size: {}", result.size());
+            return resultDto;
+
+        } catch (Exception e) {
+            log.error("Error fetching technician leaderboard", e);
+            throw new GlobalMessageExceptionHandler(e.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+    }
 
     public List<TechnicianLeaderboardDto> getTechnicianLeaderboard(String startDate, String endDate) {
         try {
@@ -400,10 +487,8 @@ public class TaskServiceImpl implements TaskService {
     }
 
 
-
-
     @Override
-    public void updateTaskStatusTOInProgress(Long taskId,MultipartFile[] selfie) {
+    public void updateTaskStatusTOInProgress(Long taskId, MultipartFile[] selfie) {
         log.info("Updating status of task with ID: {}", taskId);
 
         validateTaskById(taskId);
@@ -412,8 +497,7 @@ public class TaskServiceImpl implements TaskService {
             throw new BadRequestException("Selfie file is required to update task status.");
         }
 
-        fileService.uploadFiles(taskId, FileUploadConstants.SELFIE,selfie);
-
+        fileService.uploadFiles(taskId, FileUploadConstants.SELFIE, selfie);
 
 
         int rowsUpdated = taskRepository.updateTaskStatus(taskId, TaskStatus.IN_PROGRESS);
@@ -452,9 +536,9 @@ public class TaskServiceImpl implements TaskService {
 
     @Transactional
     public OtpResponseDTO updateTaskMaterialForStatusProgress(Long taskId,
-            CompleteTaskRequestDTO completeTaskRequestDTO,
-            MultipartFile[] beforeImages,
-            MultipartFile[] afterImages) {
+                                                              CompleteTaskRequestDTO completeTaskRequestDTO,
+                                                              MultipartFile[] beforeImages,
+                                                              MultipartFile[] afterImages) {
 
         log.info("Starting updateTaskMaterialForStatusProgress for taskId: {}", taskId);
 
@@ -472,21 +556,21 @@ public class TaskServiceImpl implements TaskService {
         OtpResponseDTO otpResponseDTO = new OtpResponseDTO();
         try {
 
-             otpResponseDTO =
-                    otpService.validateOtp(completeTaskRequestDTO.getFeedbackList().getMobileNo(),completeTaskRequestDTO.getFeedbackList().getOtp());
+            otpResponseDTO =
+                    otpService.validateOtp(completeTaskRequestDTO.getFeedbackList().getMobileNo(), completeTaskRequestDTO.getFeedbackList().getOtp());
 
             log.info("Fetching existing task materials for taskId: {}", taskId);
             List<TaskMaterial> existingMaterials = taskMaterialRepository.findByTaskId(taskId);
             log.info("Found {} existing task materials for taskId: {}", existingMaterials.size(), taskId);
 
-            saveFeedbackList(completeTaskRequestDTO.getFeedbackList(),taskId);
+            saveFeedbackList(completeTaskRequestDTO.getFeedbackList(), taskId);
 
             // Save or update task materials
             saveTaskMaterials(taskId, completeTaskRequestDTO.getTaskMaterialList(), existingMaterials);
 
-            fileService.uploadFiles(taskId,FileUploadConstants.BEFORE_SERVICE,beforeImages);
+            fileService.uploadFiles(taskId, FileUploadConstants.BEFORE_SERVICE, beforeImages);
 
-            fileService.uploadFiles(taskId,FileUploadConstants.AFTER_SERVICE,afterImages);
+            fileService.uploadFiles(taskId, FileUploadConstants.AFTER_SERVICE, afterImages);
 
             updateTaskScheduleForCompletion(taskId);
             updateTaskStatusToCompleted(taskId);
@@ -499,14 +583,13 @@ public class TaskServiceImpl implements TaskService {
         return otpResponseDTO;
     }
 
-    private  void updateTaskScheduleForCompletion(Long taskId){
-       TaskSchedule taskSchedule =  taskScheduleRepository.findByTaskId(taskId);
-       if(Objects.nonNull(taskSchedule)){
-          taskSchedule.setTaskEndTime(LocalTime.now());
-           taskScheduleRepository.save(taskSchedule);
-       }
+    private void updateTaskScheduleForCompletion(Long taskId) {
+        TaskSchedule taskSchedule = taskScheduleRepository.findByTaskId(taskId);
+        if (Objects.nonNull(taskSchedule)) {
+            taskSchedule.setTaskEndTime(LocalTime.now());
+            taskScheduleRepository.save(taskSchedule);
+        }
     }
-
 
 
     private void saveFeedbackList(FeedbackRequest feedbackRequest, Long taskId) {
@@ -560,9 +643,9 @@ public class TaskServiceImpl implements TaskService {
         for (TaskMaterialDTO dto : taskMaterialDTOs) {
             log.debug("Processing DTO: materialId={}, unit={}, quantity={}, isUsed={}",
                     dto.getMaterialId(), dto.getUnit(), dto.getQuantity(), dto.getIsUsed());
-            TaskMaterial taskMaterial=null;
-            if(dto.getMaterialId()!=null) {
-                 taskMaterial = existingMap.get(dto.getMaterialId());
+            TaskMaterial taskMaterial = null;
+            if (dto.getMaterialId() != null) {
+                taskMaterial = existingMap.get(dto.getMaterialId());
             }
 
             if (taskMaterial != null) {

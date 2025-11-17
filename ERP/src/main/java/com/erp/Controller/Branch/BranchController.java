@@ -37,7 +37,6 @@ public class BranchController
     private final BranchService branchService;
 
 
-
     @PostMapping("branch")
     @Operation(description = "API Endpoint to Create a New Branch",
             responses = {
@@ -96,22 +95,12 @@ public class BranchController
 
 
 
-    @PostMapping("branch/all")
-    public ResponseEntity<Map<String, Object>> getAllBranches(@RequestBody PaginationRequest request) {
+    @GetMapping("branch/all")
+    public ResponseEntity<ResponseStructure<ResultDto<BranchResponse>>> getAllBranches() {
 
-        PaginationResponse<BranchResponse> pagination = branchService.getAllBranches(request);
+        ResultDto<BranchResponse> resultDto = branchService.getAllBranches();
 
-        Map<String, Object> response = new LinkedHashMap<>();
-        response.put("status", 200);
-        response.put("message", "Branches fetched successfully!");
-        response.put("pagination", Map.of(
-                "pageNumber", pagination.getPageNumber(),
-                "pageSize", pagination.getPageSize(),
-                "totalRecords", pagination.getTotalRecords(),
-                "totalPages", pagination.getTotalPages()
-        ));
-        response.put("data", pagination.getData());
-        return ResponseEntity.ok(response);
+        return ResponseBuilder.success(HttpStatus.OK, "All Branch Successfully", resultDto);
     }
 
 

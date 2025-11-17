@@ -17,7 +17,7 @@ public interface BranchService
 
     BranchResponse updateBranch(BranchRequest branchRequest);
 
-    PaginationResponse<BranchResponse> getAllBranches(PaginationRequest request);
+    ResultDto<BranchResponse> getAllBranches();
 
 //    PaginationResponse<BranchResponseId> getAllBranchesWithId(PaginationRequest request);
 

@@ -30,6 +30,18 @@ public interface TaskRepository extends JpaRepository<Task,Long> {
     List<GetAllTaskResponse> findTasksWithSchedule(@Param("limit") int limit, @Param("offset") int offset);
 
     @Query(value = """
+            SELECT t.task_id as taskId,
+                   t.task_name as taskName,
+                   t.status as status,
+                   s.assigned_date as assignedDate,
+                   s.service_location as serviceLocation
+            FROM task t
+            LEFT JOIN task_schedule s ON t.task_id = s.task_id
+            ORDER BY t.task_id DESC
+            """, nativeQuery = true)
+    List<GetAllTaskResponse> findAllTask();
+
+    @Query(value = """
     SELECT
         u.id AS id,
         t.task_category AS category,

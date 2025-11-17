@@ -46,6 +46,10 @@ public class GenericAuthServiceImpl implements AuthService {
     private  final TokenGenerationService tokenGenerationService;
     private final TokenGenerationServiceHelper generationServiceHelper;
 
+    // Constant Declaration '
+    public static final long ACCESS_TOKEN_SECONDS = 86400; // 24 Hours
+    public static final long REFRESH_TOKEN_SECONDS = 60L * 24 * 60 * 60; // 60 Days
+
     @Override
     @Transactional
     public AuthRecord login(LoginRequest loginRequest) {
@@ -127,7 +131,8 @@ public class GenericAuthServiceImpl implements AuthService {
                         .orElseThrow(() -> new UsernameNotFoundException("User not found in schema: " + schemaName));
             }
 
-            return buildRefreshRecord(user, schemaName, refreshExpiration);
+            long refreshExpirationTimestamp = claims.getExpiration().toInstant().toEpochMilli();
+            return buildRefreshRecord(user, schemaName, refreshExpirationTimestamp);
 
         } catch (Exception e) {
             log.error("Refresh token handling failed: {}", e.getMessage(), e);
@@ -136,7 +141,7 @@ public class GenericAuthServiceImpl implements AuthService {
     }
 
     private AuthRecord buildRefreshRecord(GenericUser user, String schemaName, long refreshExpiration) {
-        long accessExpiration = Instant.now().plusSeconds(3600).toEpochMilli();
+        long accessExpiration = Instant.now().plusSeconds(ACCESS_TOKEN_SECONDS).toEpochMilli();
         List<String> roles = user.getAuthorities().stream()
                 .map(auth -> auth.getAuthority())
                 .toList();
@@ -181,8 +186,8 @@ public class GenericAuthServiceImpl implements AuthService {
 
     private AuthRecord createAuthRecordFromUser(GenericUser user, String schemaName) {
         Instant now = Instant.now();
-        long accessExpiration = now.plusSeconds(3600).toEpochMilli();
-        long refreshExpiration = now.plusSeconds(60L * 60 * 24 * 60).toEpochMilli();
+        long accessExpiration = now.plusSeconds(ACCESS_TOKEN_SECONDS).toEpochMilli();
+        long refreshExpiration = now.plusSeconds(REFRESH_TOKEN_SECONDS).toEpochMilli();
 
         List<String> roles = user.getAuthorities().stream()
                 .map(grantedAuthority -> grantedAuthority.getAuthority())

@@ -144,6 +144,11 @@ public class InventoryController {
         return ResponseBuilder.success(HttpStatus.OK,"Inventories retrieved successfully!",inventoryAndBranchProjections);
     }
 
+    @GetMapping("/inventories")
+    public ResponseEntity<ResponseStructure<ResultDto<InventoryAndBranchProjection>>> getInventories(){
+        ResultDto<InventoryAndBranchProjection> inventoryAndBranchProjections = inventoryService.getInventoryDetails();
+        return ResponseBuilder.success(HttpStatus.OK,"Inventories retrieved successfully!",inventoryAndBranchProjections);
+    }
 
     @PostMapping("/inventory/save")
     public ResponseEntity<Inventory> createOrUpdateProduct(

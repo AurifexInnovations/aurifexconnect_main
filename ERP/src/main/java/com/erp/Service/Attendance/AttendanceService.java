@@ -24,7 +24,7 @@ public interface AttendanceService {
 
     List<AttendanceResponse> getByDate(LocalDate date);
 
-    List<AttendanceResponse> getAllAttendances();
+    ResultDto<AttendanceResponse> getAllAttendances();
 
     List<AttendanceResponse> getByUserId(Param param);
 

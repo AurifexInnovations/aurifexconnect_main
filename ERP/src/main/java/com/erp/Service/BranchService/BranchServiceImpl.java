@@ -31,6 +31,7 @@ import org.springframework.stereotype.Service;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 @Service
 @AllArgsConstructor
@@ -98,18 +99,16 @@ public class BranchServiceImpl implements BranchService
     }
 
     @Override
-    public PaginationResponse<BranchResponse> getAllBranches(PaginationRequest request) {
-        Pageable pageable = PageRequest.of(request.getPageNumber(), request.getPageSize());
-        Page<Branch> pageResult = branchRepository.findAll(pageable);
+    public ResultDto<BranchResponse> getAllBranches() {
 
-        PaginationResponse<BranchResponse> response = new PaginationResponse<>();
-        response.setPageNumber(pageResult.getNumber());
-        response.setPageSize(pageResult.getSize());
-        response.setTotalRecords(pageResult.getTotalElements());
-        response.setTotalPages(pageResult.getTotalPages());
-        response.setData(branchMapper.mapToBranchResponse(pageResult.getContent()));
+        ResultDto<BranchResponse> resultDto = new ResultDto<>();
 
-        return response;
+        List<BranchResponse> list = branchMapper.mapListToBranchResponse(branchRepository.findAll());
+
+        resultDto.setResults(list != null ? list : List.of());
+        resultDto.setCount(list != null ? list.size() : 0);
+
+        return resultDto;
     }
 
 //    @Override
