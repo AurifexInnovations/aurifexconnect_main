@@ -4,6 +4,7 @@ import com.erp.CustomRepository.TaxCustomRepository;
 import com.erp.Dto.Request.CommanParam;
 import com.erp.Dto.Request.FilterRequest;
 import com.erp.Dto.Request.TaxRequest;
+import com.erp.Dto.Response.ResultDto;
 import com.erp.Dto.Response.TaxResponse;
 import com.erp.Exception.Tax.TaxNotFoundException;
 import com.erp.Mapper.Tax.TaxMapper;
@@ -12,6 +13,7 @@ import com.erp.Projection.TaxProjection;
 import com.erp.Repository.Tax.TaxRepository;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.regexp.RE;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDate;
@@ -56,8 +58,15 @@ public class TaxServiceImpl implements TaxService {
     }
 
     @Override
-    public List<TaxResponse> getAllTaxes() {
-        return taxMapper.mapToTaxResponse(taxRepository.findAll());
+    public ResultDto<TaxResponse> getAllTaxes() {
+
+        ResultDto<TaxResponse> resultDto = new ResultDto<>();
+        List<TaxResponse> list = taxMapper.mapToTaxResponse(taxRepository.findAll());
+
+        resultDto.setResults(list != null ? list : List.of());
+        resultDto.setCount(list != null ? list.size() : 0);
+
+        return resultDto;
     }
 
     @Override

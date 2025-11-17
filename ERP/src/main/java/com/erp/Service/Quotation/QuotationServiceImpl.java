@@ -1,5 +1,6 @@
 package com.erp.Service.Quotation;
 
+import com.erp.Dto.Response.ResultDto;
 import com.erp.Model.Quotation;
 import com.erp.Repository.Quotation.QuotationRepository;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -19,8 +20,15 @@ public class QuotationServiceImpl implements QuotationService {
     }
 
     @Override
-    public List<Quotation> getAllQuotations() {
-        return quotationRepository.findAll();
+    public ResultDto<Quotation> getAllQuotations() {
+
+        List<Quotation> list = quotationRepository.findAll();
+        ResultDto<Quotation> resultDto = new ResultDto<>();
+
+        resultDto.setResults(list != null ? list : List.of());
+        resultDto.setCount(list != null ? list.size() : 0);
+
+        return resultDto;
     }
 
     @Override

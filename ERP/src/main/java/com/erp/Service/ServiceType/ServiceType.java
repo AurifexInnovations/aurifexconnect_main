@@ -21,7 +21,7 @@ public interface ServiceType {
 
     ServiceResponse deleteByServiceId(CommanParam param);
 
-    List<ServiceResponse> fetchAllServices();
+    ResultDto<ServiceResponse> fetchAllServices();
 
     List<ServiceResponse> findByStatus(ServiceRequest serviceRequest);
 

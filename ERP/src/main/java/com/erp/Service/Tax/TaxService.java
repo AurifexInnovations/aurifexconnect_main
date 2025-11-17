@@ -3,6 +3,7 @@ package com.erp.Service.Tax;
 import com.erp.Dto.Request.CommanParam;
 import com.erp.Dto.Request.FilterRequest;
 import com.erp.Dto.Request.TaxRequest;
+import com.erp.Dto.Response.ResultDto;
 import com.erp.Dto.Response.TaxResponse;
 import com.erp.Projection.TaxProjection;
 
@@ -14,7 +15,7 @@ public interface TaxService {
     TaxResponse addTax(TaxRequest taxRequest);
     TaxResponse updateTax(TaxRequest taxRequest);
     TaxResponse getTaxById(CommanParam param);
-    List<TaxResponse> getAllTaxes();
+    ResultDto<TaxResponse> getAllTaxes();
     TaxResponse deleteTax(CommanParam param);
     List<Map<String, Object>> getTotalTaxAnalytics(LocalDate startDate, LocalDate endDate);
     Map<String, Double> getTaxBreakupAnalytics(LocalDate startDate, LocalDate endDate);
