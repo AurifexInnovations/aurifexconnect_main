@@ -1,5 +1,6 @@
 package com.erp.Security.util;
 
+import com.erp.Exception.ResourceNotFoundException;
 import com.erp.Model.Admin;
 import com.erp.Model.GenericUser;
 import com.erp.Model.RootUser;
@@ -9,6 +10,7 @@ import com.erp.Repository.Admin.AdminUserRepository;
 import com.erp.Repository.GenericUserRepository;
 import com.erp.Repository.Rootuser.RootUserRepository;
 import com.erp.Repository.User.UserRepository;
+import com.erp.Repository.User.UserRepositoryImpl;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
@@ -23,6 +25,7 @@ public class UserRepositoryRegistry {
     private final RootUserRepository rootUserRepository;
     private final AdminUserRepository adminUserRepository;
     private final UserRepository userRepository;
+    private final UserRepositoryImpl userRepositoryImpl;
 
     public Optional<GenericUser> findUserByEmail(String email) {
         if (email == null || email.trim().isEmpty()) {
@@ -61,11 +64,21 @@ public class UserRepositoryRegistry {
     }
 
     private Optional<GenericUser> findUserByEmailInTenant(String email) {
-        Optional<User> user = userRepository.findByEmail(email);
-        if (user.isPresent()) {
-            log.debug("Found User with email: {} in tenant: {}", email, TenantContext.getCurrentTenant());
+
+        String tenant = TenantContext.getCurrentTenant();
+        if (tenant == null || tenant.isBlank()) {
+            throw new IllegalStateException("Tenant not set. Cannot query database.");
         }
-        return user.map(userObj -> userObj);
+
+        Optional<User> user = userRepositoryImpl.findByEmailWithSchema(email, tenant);
+
+        if (user.isEmpty()) {
+            throw new ResourceNotFoundException("User Not Found With " + email + " in Your Tenant");
+        }
+
+        log.debug("Found User with email: {} in tenant: {}", email, TenantContext.getCurrentTenant());
+
+        return user.map( u -> (GenericUser) u);
     }
 
     @SuppressWarnings("unchecked")

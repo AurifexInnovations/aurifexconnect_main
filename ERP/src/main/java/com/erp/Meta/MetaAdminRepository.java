@@ -15,4 +15,6 @@ public interface MetaAdminRepository extends JpaRepository<MetaAdmin, Long> {
     @Query("SELECT m.schemaName FROM MetaAdmin m WHERE m.adminEmail = :email")
     Optional<String> findSchemaNameByAdminEmail(@Param("email") String email);
 
+    boolean existsBySchemaName(String schemaName);
+
 }

@@ -2,6 +2,7 @@ package com.erp.Service.Auth;
 
 import com.erp.Dto.Request.AuthRecord;
 import com.erp.Dto.Request.LoginRequest;
+import com.erp.Exception.ResourceNotFoundException;
 import com.erp.Exception.User.UserInActiveException;
 import com.erp.Meta.MetaAdminRepository;
 import com.erp.Model.GenericUser;
@@ -43,8 +44,12 @@ public class GenericAuthServiceImpl implements AuthService {
     private final JWTService jwtService;
     private final CookieManager cookieManager;
     private final PasswordEncoder passwordEncoder;
-    private  final TokenGenerationService tokenGenerationService;
+    private final TokenGenerationService tokenGenerationService;
     private final TokenGenerationServiceHelper generationServiceHelper;
+
+    // Constant Declaration
+    public static final long ACCESS_TOKEN_SECONDS = 86400;                // 24 Hours
+    public static final long REFRESH_TOKEN_SECONDS = 60L * 24 * 60 * 60;  // 60 Days
 
     @Override
     @Transactional
@@ -75,9 +80,13 @@ public class GenericAuthServiceImpl implements AuthService {
         }
 
         // Step 3: Normal user — expect tenant auto-resolved from AuthFilter
-        String currentTenant = TenantContext.getCurrentTenant();
-        if (currentTenant == null || currentTenant.isBlank()) {
-            throw new IllegalArgumentException("No matching tenant found for email: " + email);
+        String currentTenant;
+
+        if (metaAdminRepository.existsBySchemaName(loginRequest.schema())) {
+            currentTenant = loginRequest.schema();
+            TenantContext.setCurrentTenant(currentTenant);
+        } else {
+            throw new ResourceNotFoundException("No matching tenant found for Schema Name: " + loginRequest.schema());
         }
 
         log.info("Login as NormalUser in tenant '{}'", currentTenant);
@@ -127,7 +136,8 @@ public class GenericAuthServiceImpl implements AuthService {
                         .orElseThrow(() -> new UsernameNotFoundException("User not found in schema: " + schemaName));
             }
 
-            return buildRefreshRecord(user, schemaName, refreshExpiration);
+            long refreshExpirationTimestamp = claims.getExpiration().toInstant().toEpochMilli();
+            return buildRefreshRecord(user, schemaName, refreshExpirationTimestamp);
 
         } catch (Exception e) {
             log.error("Refresh token handling failed: {}", e.getMessage(), e);
@@ -136,13 +146,13 @@ public class GenericAuthServiceImpl implements AuthService {
     }
 
     private AuthRecord buildRefreshRecord(GenericUser user, String schemaName, long refreshExpiration) {
-        long accessExpiration = Instant.now().plusSeconds(3600).toEpochMilli();
+        long accessExpiration = Instant.now().plusSeconds(ACCESS_TOKEN_SECONDS).toEpochMilli();
         List<String> roles = user.getAuthorities().stream()
                 .map(auth -> auth.getAuthority())
                 .toList();
 
-        AuthRecord authRecord = new AuthRecord(user.getId(), user.getEmail(),true,schemaName,accessExpiration,refreshExpiration,
-                roles,"","");
+        AuthRecord authRecord = new AuthRecord(user.getId(), user.getEmail(), true, schemaName, accessExpiration, refreshExpiration,
+                roles, "", "");
         Map<String, Object> claim = tokenGenerationService.setClaim(authRecord);
         String accessCookie = generationServiceHelper.generateToken(
                 TokenType.ACCESS, claim, Instant.ofEpochMilli(authRecord.accessExpiration()));
@@ -181,15 +191,15 @@ public class GenericAuthServiceImpl implements AuthService {
 
     private AuthRecord createAuthRecordFromUser(GenericUser user, String schemaName) {
         Instant now = Instant.now();
-        long accessExpiration = now.plusSeconds(3600).toEpochMilli();
-        long refreshExpiration = now.plusSeconds(60L * 60 * 24 * 60).toEpochMilli();
+        long accessExpiration = now.plusSeconds(ACCESS_TOKEN_SECONDS).toEpochMilli();
+        long refreshExpiration = now.plusSeconds(REFRESH_TOKEN_SECONDS).toEpochMilli();
 
         List<String> roles = user.getAuthorities().stream()
                 .map(grantedAuthority -> grantedAuthority.getAuthority())
                 .toList();
 
-        AuthRecord authRecord = new AuthRecord(user.getId(), user.getEmail(),true,schemaName,accessExpiration,refreshExpiration,
-                roles,"","");
+        AuthRecord authRecord = new AuthRecord(user.getId(), user.getEmail(), true, schemaName, accessExpiration, refreshExpiration,
+                roles, "", "");
         Map<String, Object> claim = tokenGenerationService.setClaim(authRecord);
         String accessCookie = generationServiceHelper.generateToken(
                 TokenType.ACCESS, claim, Instant.ofEpochMilli(authRecord.accessExpiration()));
