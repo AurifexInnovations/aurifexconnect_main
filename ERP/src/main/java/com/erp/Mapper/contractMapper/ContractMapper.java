@@ -7,6 +7,9 @@ import com.erp.Model.Contract;
 
 import org.springframework.stereotype.Component;
 
+import java.util.ArrayList;
+import java.util.List;
+
 @Component
 public class ContractMapper {
 
@@ -51,5 +54,17 @@ public class ContractMapper {
                 .lastModifiedBy(entity.getLastModifiedBy())
                 .lastModifiedAt(entity.getLastModifiedAt())
                 .build();
+    }
+
+    public List<ContractResponseDto> toContractResponseList(List<Contract> list) {
+
+        List<ContractResponseDto> res = new ArrayList<>();
+
+        for (Contract contract : list) {
+            res.add(toResponse(contract));
+        }
+
+        return res;
+
     }
 }

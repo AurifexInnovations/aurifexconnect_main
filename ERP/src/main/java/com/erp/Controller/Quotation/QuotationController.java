@@ -1,8 +1,13 @@
 package com.erp.Controller.Quotation;
 
+import com.erp.Dto.Response.ResultDto;
 import com.erp.Model.Quotation;
 import com.erp.Service.Quotation.QuotationService;
+import com.erp.Utility.ResponseBuilder;
+import com.erp.Utility.ResponseStructure;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import java.util.List;
 import java.util.Map;
@@ -22,8 +27,9 @@ public class QuotationController {
 
     // 🔹 2. Get all quotations
     @GetMapping("/all")
-    public List<Quotation> getAll() {
-        return quotationService.getAllQuotations();
+    public ResponseEntity<ResponseStructure<ResultDto<Quotation>>> getAll() {
+        ResultDto<Quotation> resultDto = quotationService.getAllQuotations();
+        return ResponseBuilder.success(HttpStatus.OK, "All Quatation Fetched", resultDto);
     }
 
     // 🔹 3. Get single quotation

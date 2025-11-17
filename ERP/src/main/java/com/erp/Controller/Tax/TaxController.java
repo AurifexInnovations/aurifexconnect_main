@@ -3,6 +3,7 @@ package com.erp.Controller.Tax;
 import com.erp.Dto.Request.CommanParam;
 import com.erp.Dto.Request.FilterRequest;
 import com.erp.Dto.Request.TaxRequest;
+import com.erp.Dto.Response.ResultDto;
 import com.erp.Dto.Response.TaxResponse;
 import com.erp.Projection.TaxProjection;
 import com.erp.Service.Tax.TaxService;
@@ -92,8 +93,8 @@ public class TaxController {
                             @Content(schema = @Schema(implementation = SimpleErrorResponse.class))
                     })
             })
-    public ResponseEntity<ListResponseStructure<TaxResponse>> getAllTaxes() {
-        List<TaxResponse> response = taxService.getAllTaxes();
+    public ResponseEntity<ResponseStructure<ResultDto<TaxResponse>>> getAllTaxes() {
+        ResultDto<TaxResponse> response = taxService.getAllTaxes();
         return ResponseBuilder.success(HttpStatus.OK, "All Taxes Found Successfully!", response);
     }
 

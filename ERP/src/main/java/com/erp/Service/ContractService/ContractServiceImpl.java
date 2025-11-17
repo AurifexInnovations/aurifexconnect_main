@@ -19,6 +19,7 @@ import com.erp.Security.util.UserIdentity;
 import com.erp.Utility.ObjectMapperUtils;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -41,7 +42,6 @@ public class ContractServiceImpl implements com.erp.Service.ContractService.Cont
     private final ContractCustomRepository contractCustomRepository;
 
     private final UserIdentity userIdentity;
-
 
     @Override
     @Transactional
@@ -99,15 +99,18 @@ public class ContractServiceImpl implements com.erp.Service.ContractService.Cont
 
 
     @Override
-    public List<ContractResponseDto> getAllContracts() {
+    public ResultDto<ContractResponseDto> getAllContracts() {
         log.info("Fetching all contracts from database");
 
         List<Contract> contracts = contractRepository.findAll();
         log.debug("Fetched {} contracts", contracts.size());
 
-        return contracts.stream()
-                .map(contractMapper::toResponse)
-                .collect(Collectors.toList());
+        ResultDto<ContractResponseDto> resultDto = new ResultDto<>();
+
+        resultDto.setResults(contracts != null ? contractMapper.toContractResponseList(contracts) : List.of());
+        resultDto.setCount(contracts != null ? contracts.size() : 0);
+
+        return resultDto;
     }
 
     @Override

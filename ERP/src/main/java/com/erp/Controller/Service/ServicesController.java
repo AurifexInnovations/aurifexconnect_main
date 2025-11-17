@@ -117,9 +117,9 @@ public class ServicesController
                             content = @Content(schema = @Schema(implementation = SimpleErrorResponse.class)))
             }
     )
-    public ResponseEntity<ListResponseStructure<ServiceResponse>> fetchAllServices()
+    public ResponseEntity<ResponseStructure<ResultDto<ServiceResponse>>> fetchAllServices()
     {
-        List<ServiceResponse> servicesResponse = serviceTypeService.fetchAllServices();
+        ResultDto<ServiceResponse> servicesResponse = serviceTypeService.fetchAllServices();
         return ResponseBuilder.success(HttpStatus.OK, "All services fetched successfully!!", servicesResponse);
     }
 

@@ -113,4 +113,6 @@ public interface InventoryService {
     public Inventory createOrUpdateProduct(ProductRequest productRequest, MultipartFile[] files);
 
     void deleteInventoryByItemId(Long itemId);
+
+    ResultDto<InventoryAndBranchProjection> getInventoryDetails();
 }

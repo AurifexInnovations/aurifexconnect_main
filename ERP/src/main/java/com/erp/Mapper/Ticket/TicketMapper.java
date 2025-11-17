@@ -20,4 +20,6 @@ public interface TicketMapper {
     TicketResponseDTO mapToTicketResponse(Ticket ticket);
 
     List<TicketResponseDTO> mapToTicketResponse(List<Ticket> ticketList);
+
+    List<TicketResponseDTO> mapToListTicketResponse(List<Ticket> tickets);
 }

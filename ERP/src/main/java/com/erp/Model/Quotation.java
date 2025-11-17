@@ -1,6 +1,7 @@
 package com.erp.Model;
 
 import jakarta.persistence.*;
+
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 
@@ -45,43 +46,107 @@ public class Quotation {
     private LocalDateTime createdAt = LocalDateTime.now();
 
     // Getters and Setters
-    public Long getId() { return id; }
+    public Long getId() {
+        return id;
+    }
 
-    public String getQuotationId() { return quotationId; }
-    public void setQuotationId(String quotationId) { this.quotationId = quotationId; }
+    public String getQuotationId() {
+        return quotationId;
+    }
 
-    public String getType() { return type; }
-    public void setType(String type) { this.type = type; }
+    public void setQuotationId(String quotationId) {
+        this.quotationId = quotationId;
+    }
 
-    public Long getCustomerId() { return customerId; }
-    public void setCustomerId(Long customerId) { this.customerId = customerId; }
+    public String getType() {
+        return type;
+    }
 
-    public String getAddress() { return address; }
-    public void setAddress(String address) { this.address = address; }
+    public void setType(String type) {
+        this.type = type;
+    }
 
-    public String getContactPerson() { return contactPerson; }
-    public void setContactPerson(String contactPerson) { this.contactPerson = contactPerson; }
+    public Long getCustomerId() {
+        return customerId;
+    }
 
-    public LocalDate getQuotationDate() { return quotationDate; }
-    public void setQuotationDate(LocalDate quotationDate) { this.quotationDate = quotationDate; }
+    public void setCustomerId(Long customerId) {
+        this.customerId = customerId;
+    }
 
-    public LocalDate getValidityDate() { return validityDate; }
-    public void setValidityDate(LocalDate validityDate) { this.validityDate = validityDate; }
+    public String getAddress() {
+        return address;
+    }
 
-    public String getPaymentTerms() { return paymentTerms; }
-    public void setPaymentTerms(String paymentTerms) { this.paymentTerms = paymentTerms; }
+    public void setAddress(String address) {
+        this.address = address;
+    }
 
-    public Double getTotalAmount() { return totalAmount; }
-    public void setTotalAmount(Double totalAmount) { this.totalAmount = totalAmount; }
+    public String getContactPerson() {
+        return contactPerson;
+    }
 
-    public String getStatus() { return status; }
-    public void setStatus(String status) { this.status = status; }
+    public void setContactPerson(String contactPerson) {
+        this.contactPerson = contactPerson;
+    }
 
-    public String getNotes() { return notes; }
-    public void setNotes(String notes) { this.notes = notes; }
+    public LocalDate getQuotationDate() {
+        return quotationDate;
+    }
 
-    public String getLanguage() { return language; }
-    public void setLanguage(String language) { this.language = language; }
+    public void setQuotationDate(LocalDate quotationDate) {
+        this.quotationDate = quotationDate;
+    }
 
-    public LocalDateTime getCreatedAt() { return createdAt; }
+    public LocalDate getValidityDate() {
+        return validityDate;
+    }
+
+    public void setValidityDate(LocalDate validityDate) {
+        this.validityDate = validityDate;
+    }
+
+    public String getPaymentTerms() {
+        return paymentTerms;
+    }
+
+    public void setPaymentTerms(String paymentTerms) {
+        this.paymentTerms = paymentTerms;
+    }
+
+    public Double getTotalAmount() {
+        return totalAmount;
+    }
+
+    public void setTotalAmount(Double totalAmount) {
+        this.totalAmount = totalAmount;
+    }
+
+    public String getStatus() {
+        return status;
+    }
+
+    public void setStatus(String status) {
+        this.status = status;
+    }
+
+    public String getNotes() {
+        return notes;
+    }
+
+    public void setNotes(String notes) {
+        this.notes = notes;
+    }
+
+    public String getLanguage() {
+        return language;
+    }
+
+    public void setLanguage(String language) {
+        this.language = language;
+    }
+
+    public LocalDateTime getCreatedAt() {
+        return createdAt;
+    }
 }

@@ -2,6 +2,7 @@ package com.erp.Service.Ticket.customerHelpTicket;
 
 import com.erp.Dto.Request.TicketRequestDTO;
 import com.erp.Dto.Request.TicketSearchRequest;
+import com.erp.Dto.Response.ResultDto;
 import com.erp.Dto.Response.TicketResponseDTO;
 import com.erp.Dto.Response.TicketSearchResponse;
 import com.erp.Enum.TicketStatus;
@@ -188,5 +189,18 @@ public class TicketServiceImpl implements TicketService {
         }
     }
 
+    @Override
+    public ResultDto<TicketResponseDTO> getAll() {
 
+        ResultDto<TicketResponseDTO> resultDto = new ResultDto<>();
+
+        List<Ticket> tickets = ticketRepository.findAll();
+
+        List<TicketResponseDTO> result = ticketMapper.mapToListTicketResponse(tickets);
+
+        resultDto.setResults(result);
+        resultDto.setCount(result.size());
+
+        return resultDto;
+    }
 }

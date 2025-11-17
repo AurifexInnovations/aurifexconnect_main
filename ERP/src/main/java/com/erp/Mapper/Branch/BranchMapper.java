@@ -21,12 +21,11 @@ public interface BranchMapper {
 
     BranchResponse mapToBranchResponse(Branch branch);
 
-    BranchResponseId mapToBranchResponseId(Branch branch);
-
     @Mapping(target = "editedBy", ignore = true)
     void mapToBranchEntityForUpdate(BranchRequest branchRequest, @MappingTarget Branch branch);
 
     List<BranchResponse> mapToBranchResponse(List<Branch> branchList);
 
-    List<BranchResponseId> mapToBranchResponseId(List<Branch> branchList);
+    List<BranchResponse> mapListToBranchResponse(List<Branch> list);
+
 }

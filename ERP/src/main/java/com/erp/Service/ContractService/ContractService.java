@@ -14,7 +14,7 @@ public interface ContractService {
     ContractResponseDto addOrUpdateContract(ContractRequestDto request);
 
 
-    List<ContractResponseDto> getAllContracts();
+    ResultDto<ContractResponseDto> getAllContracts();
 
 
     ContractResponseDto getContractById(Long id);

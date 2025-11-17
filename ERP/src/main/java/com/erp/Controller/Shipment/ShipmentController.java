@@ -35,7 +35,7 @@ public class ShipmentController
 
 
     @GetMapping("/{id}")
-    public ResponseEntity<ShipmentResponseDto> getShipmentById(@PathVariable Long id) {
+    public ResponseEntity<ShipmentResponseDto> getShipmentById(@RequestParam Long id) {
         log.info("Controller: getShipmentById called for shipmentId={}", id);
         ShipmentResponseDto response = shipmentService.getShipmentById(id);
         return ResponseEntity.ok(response);

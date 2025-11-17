@@ -89,7 +89,25 @@ public class TaskController {
         );
     }
 
+    @GetMapping("/all/tasks")
+    @Operation(
+            summary = "Get All Task Requests",
+            description = "Retrieve all task requests with optional pagination.",
+            responses = {
+                    @ApiResponse(responseCode = "200", description = "Task requests retrieved successfully"),
+                    @ApiResponse(responseCode = "400", description = "Invalid request data")
+            }
+    )
+    public ResponseEntity<ResponseStructure<ResultDto<GetAllTaskResponse>>> getAllTasks() {
 
+        log.info("[TaskController] [getAllTaskRequests] Fetching tasks, page: {}, size: {}");
+
+        ResultDto<GetAllTaskResponse> response = taskService.getAllTasks();
+
+        log.info("[TaskController] [getAllTaskRequests] Fetched {} tasks", response.getResults().size());
+
+        return ResponseBuilder.success(HttpStatus.OK, "All Tasks Details", response);
+    }
 
 
     @PostMapping("/technician/search")
@@ -168,6 +186,22 @@ public class TaskController {
                 technicianLeaderboardDto
         );
     }
+
+    @GetMapping("task/performance/reports")
+    public ResponseEntity<ResponseStructure<ResultDto<TechnicianLeaderboardDto>>> getTechnicianPerformanceReport(@RequestBody PaginationRequest paginationRequest){
+        log.info("[TechnicianPerformanceController] Entering getTechnicianPerformanceReport");
+
+        ResultDto<TechnicianLeaderboardDto> technicianLeaderboardDtos = taskService.getTechnicianLeaderboard(paginationRequest);
+
+        log.info("[TechnicianPerformanceController] Returning response with {} technicians", technicianLeaderboardDtos.getResults().size());
+
+        return ResponseBuilder.success(
+                HttpStatus.OK,
+                "Technician performance report retrieved successfully",
+                technicianLeaderboardDtos
+        );
+    }
+
 
     @PostMapping("/task/start/{taskId}")
     @Operation(

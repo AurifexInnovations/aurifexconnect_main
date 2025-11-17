@@ -79,16 +79,15 @@ public class ServiceTypeImpl implements ServiceType
 
 
     @Override
-    public List<ServiceResponse> fetchAllServices()
+    public ResultDto<ServiceResponse> fetchAllServices()
     {
-        List<Service> services = repository.findAll();
+        List<ServiceResponse> services = serviceMapper.mapToServiceResponse(repository.findAll());
+        ResultDto<ServiceResponse> resultDto = new ResultDto<>();
 
-        if(services.isEmpty())
-        {
-            throw new ResourceNotFoundException("Services Not Found !!");
-        }
+        resultDto.setResults(services != null ? services : List.of());
+        resultDto.setCount(services != null ? services.size() : 0);
 
-        return serviceMapper.mapToServiceResponse(services);
+        return resultDto;
     }
 
 

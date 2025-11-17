@@ -209,6 +209,24 @@ public class InventoryServiceImpl implements InventoryService {
         return inventoryAndBranchProjections;
     }
 
+    @Override
+    public ResultDto<InventoryAndBranchProjection> getInventoryDetails() {
+        log.info("Into [InventoryServiceImpl] [getInventoryDetails] ");
+
+
+        ResultDto<InventoryAndBranchProjection> inventoryAndBranchProjections = new ResultDto<>();
+
+        try {
+            inventoryAndBranchProjections = inventoryCustomRepository.getAllInventory();
+        } catch (Exception exception) {
+            log.error("Error [InventoryServiceImpl] [getInventoryDetails] :: {} {} ", exception.getMessage(), exception);
+        }
+
+        log.info("Exit [InventoryServiceImpl] [getInventoryDetails] ");
+
+        return inventoryAndBranchProjections;
+    }
+
     public boolean findById(long inventoryId) {
         log.info("Into [InventoryServiceImpl] [findById] ");
 
