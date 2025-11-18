@@ -4,10 +4,12 @@ import com.erp.CustomRepository.ShipmentCustomRepository;
 import com.erp.Dto.Request.FilterRequest;
 import com.erp.Dto.Request.ShipmentDetailsRequestDto;
 import com.erp.Dto.Response.ResultDto;
+import com.erp.Dto.Response.ShipmentDetailsResponseDTO;
 import com.erp.Dto.Response.ShipmentResponseDto;
 import com.erp.Enum.ShipmentStatus;
 import com.erp.Exception.ResourceNotFoundException;
 
+import com.erp.Exception.ShipmentException.ShipmentNotFoundException;
 import com.erp.Mapper.shipment.ShipmentMapper;
 import com.erp.Model.GenericUser;
 import com.erp.Model.ShipmentDetails;
@@ -26,8 +28,7 @@ import java.util.Optional;
 @Slf4j
 @Service
 @RequiredArgsConstructor
-public class ShipmentServiceImpl implements ShipmentService
-{
+public class ShipmentServiceImpl implements ShipmentService {
     private final ShipmentCustomRepository shipmentCustomRepository;
     private final ShipmentRepository shipmentRepository;
     private final ShipmentMapper shipmentMapper;
@@ -37,7 +38,7 @@ public class ShipmentServiceImpl implements ShipmentService
     private static final String SHIPMENT_UPDATED_MESSAGE = "Shipment updated successfully";
 
     @Override
-    public ShipmentResponseDto createShipment(ShipmentDetailsRequestDto requestDto) {
+    public ShipmentDetailsResponseDTO createShipment(ShipmentDetailsRequestDto requestDto) {
 
         if (Objects.isNull(requestDto)) {
             log.error("Cannot create or update shipment — request body is null");
@@ -45,8 +46,6 @@ public class ShipmentServiceImpl implements ShipmentService
         }
 
         GenericUser user = userIdentity.getCurrentUser();
-        ShipmentResponseDto response = new ShipmentResponseDto();
-        response.setMessage(SHIPMENT_CREATION_MESSAGE);
 
         if (Objects.nonNull(requestDto.getShipmentId())) {
             log.info("Updating shipment with ID: {}", requestDto.getShipmentId());
@@ -62,15 +61,11 @@ public class ShipmentServiceImpl implements ShipmentService
             existingShipment.setUpdatedBy(user.getId());
 
             ShipmentDetails updatedShipment = shipmentRepository.save(existingShipment);
-            response.setDto(shipmentMapper.update(null, updatedShipment));
-            response.setMessage(SHIPMENT_UPDATED_MESSAGE);
 
             log.info("Shipment updated successfully with ID: {}", updatedShipment.getShipmentId());
-            return response;
+            return shipmentMapper.shipmentDetailsResponseDTO(updatedShipment);
 
-        }
-        else
-        {
+        } else {
             log.info("Creating new shipment with reference ID: {}", requestDto.getReferenceId());
 
             ShipmentDetails newShipment = shipmentMapper.map(requestDto);
@@ -79,53 +74,50 @@ public class ShipmentServiceImpl implements ShipmentService
             newShipment.setUpdatedBy(user.getId());
 
             ShipmentDetails savedShipment = shipmentRepository.save(newShipment);
-            response.setDto(shipmentMapper.update(null, savedShipment));
 
             log.info("Shipment created successfully with ID: {}", savedShipment.getShipmentId());
-            return response;
+            return shipmentMapper.shipmentDetailsResponseDTO(savedShipment);
         }
     }
 
     @Override
-    public ShipmentResponseDto getShipmentById(Long id) {
+    public ShipmentDetailsResponseDTO getShipmentById(Long id) {
         log.info("Fetching shipment by ID: {}", id);
 
-        ShipmentDetails shipment = shipmentRepository.findById(id)
-                .orElseThrow(() -> {
-                    log.error("Shipment not found with ID: {}", id);
-                    return new ResourceNotFoundException("Shipment not found with ID: " + id);
-                });
+        ShipmentDetails shipment = shipmentRepository.findByShipmentId(id);
+
+        if (shipment == null) throw new ShipmentNotFoundException("Shipment Not Found With Id : " + id);
 
         log.info("Shipment found with ID: {}", id);
-        ShipmentDetailsRequestDto shipmentDetailsRequestDto =
-                shipmentMapper.map( shipment);
-        ShipmentResponseDto shipmentResponseDto = new ShipmentResponseDto();
-        shipmentResponseDto.setMessage("Shipment details fetched successfully");
-        shipmentResponseDto.setDto(shipmentDetailsRequestDto);
-        return shipmentResponseDto;
+
+        return shipmentMapper.shipmentDetailsResponseDTO(shipment);
     }
 
     @Override
-    public List<ShipmentDetails> getAllShipmentsWithPagination(int limit, int offset) {
-        log.info("Fetching paginated shipments with limit: {} and offset: {}", limit, offset);
-         //TO-DO  need to write query when for all linked data will do when all requirement will come
-        List<ShipmentDetails> shipments = shipmentRepository.findAll();
+    public ResultDto<ShipmentDetailsResponseDTO> getAllShipmentsWithPagination() {
+        log.info("Fetching paginated shipments with limit: {} and offset: {}");
+        //TO-DO  need to write query when for all linked data will do when all requirement will come
+        List<ShipmentDetailsResponseDTO> shipments = shipmentMapper.toList(shipmentRepository.findAll());
+
+        ResultDto<ShipmentDetailsResponseDTO> resultDto = new ResultDto<>();
+        resultDto.setResults(shipments != null ? shipments : List.of());
+        resultDto.setCount(shipments != null ? shipments.size() : 0);
 
         log.info("Fetched {} shipments", shipments.size());
-        return shipments;
+        return resultDto;
     }
 
     @Override
     public String deleteShipmentById(Long id) {
         log.info("Attempting to delete shipment with ID: {}", id);
 
-        Optional<ShipmentDetails> shipmentDetails =  shipmentRepository.findById(id);
+        Optional<ShipmentDetails> shipmentDetails = shipmentRepository.findById(id);
         if (shipmentDetails.isEmpty()) {
             log.error("Cannot delete — Shipment not found with ID: {}", id);
-            throw new ResourceNotFoundException("Shipment not found with ID: " + id);
+            throw new ShipmentNotFoundException("Shipment not found with ID: " + id);
         }
 
-        ShipmentDetails  shipmentDetails1 = shipmentDetails.get();
+        ShipmentDetails shipmentDetails1 = shipmentDetails.get();
         shipmentDetails1.setShipmentStatus(ShipmentStatus.CANCELLED);
         shipmentRepository.save(shipmentDetails1);
         log.info("Shipment deleted successfully with ID: {}", id);
@@ -133,15 +125,8 @@ public class ShipmentServiceImpl implements ShipmentService
     }
 
     @Override
-    public ResultDto<ShipmentDetails> getAllShipments(FilterRequest filterRequest)
-    {
-        ResultDto<ShipmentDetails> list = shipmentCustomRepository.getShipmentsPagination(filterRequest);
-
-        if(list.getResults().isEmpty())
-        {
-            throw new ResourceNotFoundException("No Data Found For Shipments");
-        }
-
+    public ResultDto<ShipmentDetailsResponseDTO> getAllShipments(FilterRequest filterRequest) {
+        ResultDto<ShipmentDetailsResponseDTO> list = shipmentCustomRepository.getShipmentsPagination(filterRequest);
         return list;
     }
 

@@ -1,18 +1,20 @@
 package com.erp.Service.Quotation;
 
+import com.erp.Dto.Request.QuotationRequest;
+import com.erp.Dto.Response.QuotationResponse;
 import com.erp.Dto.Response.ResultDto;
 import com.erp.Model.Quotation;
 import java.util.List;
 
 public interface QuotationService {
 
-    Quotation createQuotation(Quotation quotation);
+    QuotationResponse createQuotation(QuotationRequest quotation);
 
-    ResultDto<Quotation> getAllQuotations();
+    ResultDto<QuotationResponse> getAllQuotations();
 
-    Quotation getQuotationById(String quotationId);
+    QuotationResponse getQuotationById(String quotationId);
 
-    Quotation updateQuotation(String quotationId, Quotation quotation);
+    QuotationResponse updateQuotation(QuotationRequest quotation);
 
     void deleteQuotation(String quotationId);
 }

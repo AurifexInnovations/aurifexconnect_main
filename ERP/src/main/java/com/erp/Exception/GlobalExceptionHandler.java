@@ -7,6 +7,10 @@ import com.erp.Exception.AccountSubGroup.AccountSubGroupAlreadyExistsException;
 import com.erp.Exception.AccountSubGroup.AccountSubGroupNotFoundException;
 import com.erp.Exception.Ledger.LedgerAlreadyExistsException;
 import com.erp.Exception.Ledger.LedgerNotFoundException;
+import com.erp.Exception.Quotation.QuotationNotFoundException;
+import com.erp.Exception.ShipmentException.ShipmentNotFoundException;
+import com.erp.Utility.ResponseBuilder;
+import com.erp.Utility.SimpleErrorResponse;
 import lombok.extern.slf4j.Slf4j;
 import com.erp.Exception.Ledger.LedgerNotFoundException;
 import lombok.extern.slf4j.Slf4j;
@@ -294,5 +298,27 @@ public class GlobalExceptionHandler  {
 //                .build();
 //        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(error);
 //    }
+
+    @ExceptionHandler(ShipmentNotFoundException.class)
+    ResponseEntity<SimpleErrorResponse> shipmentNotFoundHandler(ShipmentNotFoundException e){
+
+        SimpleErrorResponse simpleErrorResponse = new SimpleErrorResponse();
+        simpleErrorResponse.setMessage(e.getMessage());
+        simpleErrorResponse.setStatus(HttpStatus.NOT_FOUND.value());
+        simpleErrorResponse.setType("Shipment Not Found");
+
+        return ResponseEntity.status(HttpStatus.NOT_FOUND).body(simpleErrorResponse);
+    }
+
+    @ExceptionHandler(QuotationNotFoundException.class)
+    ResponseEntity<SimpleErrorResponse> quotationNotFoundHandler(QuotationNotFoundException e){
+
+        SimpleErrorResponse simpleErrorResponse = new SimpleErrorResponse();
+        simpleErrorResponse.setMessage(e.getMessage());
+        simpleErrorResponse.setStatus(HttpStatus.NOT_FOUND.value());
+        simpleErrorResponse.setType("Quotation Not Found");
+
+        return ResponseEntity.status(HttpStatus.NOT_FOUND).body(simpleErrorResponse);
+    }
 }
 
