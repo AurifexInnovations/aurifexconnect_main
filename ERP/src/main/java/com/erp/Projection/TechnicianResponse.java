@@ -35,4 +35,8 @@ public interface TechnicianResponse {
     String getTaskName();
 
     Long getServiceId();
+
+    Double getLatitude();
+
+    Double getLongitude();
 }

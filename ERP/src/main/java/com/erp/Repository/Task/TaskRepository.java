@@ -89,7 +89,9 @@ public interface TaskRepository extends JpaRepository<Task,Long> {
         ts.assigned_date as assignedDate ,
         ts.google_location_link as googleLocationLink ,
         t.task_name as taskName ,
-        tser.service_id as serviceId
+        tser.service_id as serviceId , 
+        t.latitude as latitude , 
+        t.longitude as longitude
     FROM task t
     LEFT JOIN task_services tser ON tser.task_id = t.task_id
     LEFT JOIN task_technicians tt ON t.task_id = tt.task_id
