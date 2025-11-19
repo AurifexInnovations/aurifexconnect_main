@@ -100,8 +100,8 @@ public interface TaskRepository extends JpaRepository<Task,Long> {
     WHERE 
         -- Optional Status Filter
         (:status IS NULL 
-            OR (u.is_active = TRUE AND :status = 'Active') 
-            OR (u.is_active = FALSE AND :status = 'Inactive')
+            OR (u.is_active = TRUE AND :status = true) 
+            OR (u.is_active = FALSE AND :status = false)
         )
 
         -- Optional Category Filter
