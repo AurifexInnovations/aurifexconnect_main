@@ -26,4 +26,6 @@ public interface BranchRepository extends JpaRepository<Branch, Long>
 
 
     List<Branch> findBranchByInventories_ItemName(String itemName);
+
+    long countByBranchStatus(BranchStatus status);
 }

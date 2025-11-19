@@ -2,14 +2,19 @@ package com.erp.Service.User;
 
 import com.erp.Dto.Request.*;
 import com.erp.Dto.Response.UserResponse;
+import com.erp.Exception.Admin.AdminNotFoundException;
 import com.erp.Exception.ResourceNotFoundException;
 import com.erp.Exception.SameEmail.SameEmailFoundException;
+import com.erp.Exception.User.AccountManagerLimitExceededException;
+import com.erp.Exception.User.TechnicianLimitExceededException;
 import com.erp.Exception.User.UserNotFoundException;
 import com.erp.Mapper.User.UserMapper;
+import com.erp.Meta.MetaAdminRepository;
 import com.erp.Model.*;
 import com.erp.Multitenancy.TenantContext;
 import com.erp.Repository.Role.RoleRepository;
 import com.erp.Repository.RoleActionPermission.RoleActionPermissionRepository;
+import com.erp.Repository.SubscriptionModule.SubscriptionRepository;
 import com.erp.Repository.User.UserRepository;
 import com.erp.Repository.UserPermission.UserPermissionRepository;
 import com.erp.Security.util.UserIdentity;
@@ -32,6 +37,8 @@ public class UserServiceImpl implements UserServices {
     private final PasswordEncoder passwordEncoder;
     private final RoleRepository roleRepository;
     private final UserIdentity userIdentity;
+    private final MetaAdminRepository metaAdminRepository;
+    private final SubscriptionRepository subscriptionRepository;
     private final static String DEFAULT_ROLE = "EMPLOYEE";
 
 
@@ -48,10 +55,37 @@ public class UserServiceImpl implements UserServices {
         String schemaName = currentAdmin.getSchemaName();
         TenantContext.setCurrentTenant(schemaName);
 
-        try {
-            if (userRepository.findByEmail(userRequest.getEmail()).isPresent()) {
-                throw new SameEmailFoundException("Employee already exists with this email");
+        SubscriptionEntity subscription = getSubscriptionDetails();
+
+        if (userRepository.findByEmail(userRequest.getEmail()).isPresent()) {
+            throw new SameEmailFoundException("Employee already exists with this email");
+        }
+
+        boolean isTechnician = userRequest.getRoles().stream()
+                .anyMatch(r -> r.getRoleName().equalsIgnoreCase("TECHNICIAN"));
+
+        if(isTechnician)
+        {
+            long totalTechnicians = userRepository.countByIsActiveTrueAndRoles_RoleName("TECHNICIAN");
+            if(totalTechnicians >= Integer.parseInt(subscription.getTotalTechnicians()))
+            {
+                throw new TechnicianLimitExceededException("You purchased only "+subscription.getTotalTechnicians()+" Technicians, You have already "+subscription.getTotalTechnicians()+" ACTIVE Technicians, Now You can not create more than this");
             }
+        }
+
+        boolean isAccountManager = userRequest.getRoles().stream()
+                .anyMatch(r -> r.getRoleName().equalsIgnoreCase("ACCOUNTMANAGER"));
+
+        if(isAccountManager)
+        {
+            long totalAccountManager = userRepository.countByIsActiveTrueAndRoles_RoleName("ACCOUNTMANAGER");
+            if(totalAccountManager >= Integer.parseInt(subscription.getAccountUser()))
+            {
+                throw new AccountManagerLimitExceededException("You purchased only "+subscription.getAccountUser()+" Account Manager, You have already "+subscription.getAccountUser()+" ACTIVE Account Manager, Now You can not create more than this");
+            }
+        }
+
+        try {
 
             User user = userMapper.mapToUser(userRequest);
             user.setPassword(passwordEncoder.encode(userRequest.getPassword()));
@@ -122,7 +156,6 @@ public class UserServiceImpl implements UserServices {
         }else {
             throw new UserNotFoundException("With this user id: "+ userUpdateRequest.getId() + "user is currently not login !");
         }
-
 
         Set<Role> updatedRoles = new HashSet<>();
         for (RoleRequest roleReq : userUpdateRequest.getRoles()) {
@@ -251,5 +284,18 @@ public class UserServiceImpl implements UserServices {
 
         return userMapper.mapToListOfUserResponse(users);
 
+    }
+
+    private SubscriptionEntity getSubscriptionDetails()
+    {
+        String schemaName = TenantContext.getCurrentTenant();
+
+        String email = metaAdminRepository.findAdminEmailBySchemaName(schemaName)
+                .orElseThrow( () -> new AdminNotFoundException("Schema Not Found With : "+schemaName));
+
+        SubscriptionEntity subscription = subscriptionRepository.findByUserId(email)
+                .orElseThrow( () -> new ResourceNotFoundException("Subscription Not Found for Email : "+email));
+
+        return subscription;
     }
 }
