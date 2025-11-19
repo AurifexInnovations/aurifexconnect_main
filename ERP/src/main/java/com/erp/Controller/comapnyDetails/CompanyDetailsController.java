@@ -35,10 +35,11 @@ public class CompanyDetailsController {
                     @ApiResponse(responseCode = "400", description = "Invalid request data")
             }
     )
-    public ResponseEntity<CompanyDetailsResponseDto> getById(@RequestParam final String id) {
-        return service.findById(Long.valueOf(id))
-                .map(ResponseEntity::ok)
-                .orElse(ResponseEntity.notFound().build());
+    public ResponseEntity<ResponseStructure<CompanyDetailsResponseDto>> getById(@RequestParam final Long id) {
+//        return service.findById(Long.valueOf(id))
+//                .map(ResponseEntity::ok)
+//                .orElse(ResponseEntity.notFound().build());
+        return ResponseBuilder.success(HttpStatus.OK, "Company Details Fetched Successfully", service.findBySingleId(id));
     }
 
     @PostMapping
@@ -53,6 +54,13 @@ public class CompanyDetailsController {
                 service.saveAndUpdate(companyDetails));
     }
 
+    @PutMapping("/review")
+    public ResponseEntity<ResponseStructure<CompanyDetailsResponseDto>> reviewCompnayDeatils(@RequestBody CompanyDetailsRequestDto companyDetailsRequestDto){
+        return ResponseBuilder.success(HttpStatus.OK,
+                "Company Reviewed successfully!!",
+                service.reviewCompany(companyDetailsRequestDto));
+    }
+
     @PostMapping("/filter")
     public ResponseEntity<ResponseStructure<ResultDto<CompanyDetailsResponseDto>>> filterCompanyDetails(
             @RequestBody FilterRequest filterRequest) {
@@ -61,4 +69,9 @@ public class CompanyDetailsController {
                 service.getFilterData(filterRequest));
     }
 
+    @GetMapping("/email")
+    public ResponseEntity<ResponseStructure<CompanyDetailsResponseDto>> getByCompanyEmail()
+    {
+        return ResponseBuilder.success(HttpStatus.OK, "Company Details Retrieved", service.getByEmail());
+    }
 }

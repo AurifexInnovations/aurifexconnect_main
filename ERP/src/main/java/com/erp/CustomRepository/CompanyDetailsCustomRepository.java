@@ -1,5 +1,6 @@
 package com.erp.CustomRepository;
 
+import com.erp.Dto.Request.DocumentDetailsRequestDto;
 import com.erp.Dto.Request.FilterRequest;
 import com.erp.Dto.Response.CompanyDetailsResponse;
 import com.erp.Dto.Response.CompanyDetailsResponseDto;
@@ -8,12 +9,16 @@ import com.erp.Enum.IndustryType;
 import com.erp.Enum.ReviewStatus;
 import com.erp.Enum.ShipmentReferenceType;
 import com.erp.Enum.ShipmentStatus;
+import com.erp.Exception.ResourceNotFoundException;
 import com.erp.Mapper.companyDetails.CompanyDetailsMapper;
 import com.erp.Model.CompanyDetails;
+import com.erp.Model.SubscriptionEntity;
+import com.erp.Repository.SubscriptionModule.SubscriptionRepository;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.PersistenceContext;
 import jakarta.persistence.TypedQuery;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.batik.svggen.font.table.CmapFormat;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Repository;
 
@@ -36,6 +41,8 @@ public class CompanyDetailsCustomRepository {
 
     @Autowired
     private CompanyDetailsMapper companyDetailsMapper;
+
+    @Autowired private SubscriptionRepository subscriptionRepository;
 
     public ResultDto<CompanyDetailsResponseDto> getFilterData(FilterRequest filterRequest) {
 
@@ -157,10 +164,60 @@ public class CompanyDetailsCustomRepository {
         ResultDto<CompanyDetailsResponseDto> resultDto = new ResultDto<>();
         resultDto.setCount(totalCount);
 
-        // ---- Convert to Response
-        List<CompanyDetailsResponseDto> res = companyDetailsMapper.toResponseDtoList(companies);
+        List<CompanyDetailsResponseDto> responseList = new ArrayList<>();
 
-        resultDto.setResults(res);
+        for (CompanyDetails company : companies) {
+
+            // Fetch subscription details using company email
+            SubscriptionEntity subscription = subscriptionRepository
+                    .findByUserId(company.getCompanyEmail())
+                    .orElse(null);
+
+            // Convert DocumentDetails -> DocumentDetailsRequestDto
+            List<DocumentDetailsRequestDto> docs = company.getDocumentDetails()
+                    .stream()
+                    .map(doc -> new DocumentDetailsRequestDto(
+                            doc.getDocumentName(),
+                            doc.getDocumentUrl()
+                    ))
+                    .toList();
+
+            CompanyDetailsResponseDto dto = new CompanyDetailsResponseDto(
+                    company.getId(),
+                    company.getName(),
+                    company.getOfficeNo(),
+                    company.getAddressLine1(),
+                    company.getAddressLine2(),
+                    company.getDescription(),
+                    company.getGstNumber(),
+                    company.getPanNumber(),
+                    company.getIndustryType() != null ? company.getIndustryType().name() : null,
+                    company.getReviewStatus() != null ? company.getReviewStatus().name() : null,
+                    company.getReviewComment(),
+                    company.getContactPersonName(),
+                    company.getContactPersonEmail(),
+                    company.getContactPersonPhone(),
+                    company.getPincode(),
+                    company.getCity(),
+                    company.getState(),
+                    company.getReviewedBy(),
+                    company.getCompanyEmail(),
+                    company.getCreatedDate(),
+
+                    // Subscription data
+                    subscription != null ? subscription.getPlanStartDate().toString() : null,
+                    subscription != null ? subscription.getPlanEndDate().toString() : null,
+                    subscription != null ? subscription.getTotalTechnicians() : null,
+                    subscription != null ? subscription.getTotalBranches() : null,
+                    subscription != null ? subscription.getAccountUser() : null,
+
+                    docs
+            );
+
+            responseList.add(dto);
+        }
+
+        resultDto.setResults(responseList);
 
         log.info("Exit [ShipmentCustomRepository] with count = {}, pageResults = {}", totalCount, companies.size());
         return resultDto;
