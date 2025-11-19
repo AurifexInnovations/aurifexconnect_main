@@ -17,6 +17,10 @@ public class TechnicianRequest {
 
     private LocalDate startDate;
     private LocalDate endDate;
+    private LocalDate day;
+    private Integer month;
+    private long taskId;
+    private long technicianId;
 
     // Pagination parameters
     private Integer page = 0;   // default to page 0

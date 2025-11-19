@@ -2,6 +2,7 @@ package com.erp.Projection;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 
 public interface TechnicianResponse {
 
@@ -24,4 +25,14 @@ public interface TechnicianResponse {
 
     @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd")
     LocalDate getUpdatedAt();
+
+    String getLocation();
+
+    LocalDateTime getAssignedDate();
+
+    String getGoogleLocationLink();
+
+    String getTaskName();
+
+    Long getServiceId();
 }

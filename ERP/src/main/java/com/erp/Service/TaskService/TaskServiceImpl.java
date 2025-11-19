@@ -320,10 +320,14 @@ public class TaskServiceImpl implements TaskService {
                 }
 
                 technicianList = taskRepository.searchTasksWithScheduleAndTechnicians(
-                        startDate,
-                        endDate,
                         isActive,
-                        technicianRequest.getCategory()
+                        technicianRequest.getCategory(),
+                        technicianRequest.getDay(),
+                        technicianRequest.getMonth(),
+                        technicianRequest.getTaskId(),
+                        technicianRequest.getTechnicianId(),
+                        startDate,
+                        endDate
                 );
 
             }
