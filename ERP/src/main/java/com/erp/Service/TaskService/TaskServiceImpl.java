@@ -1,5 +1,6 @@
 package com.erp.Service.TaskService;
 
+import com.erp.CustomRepository.TaskTechnicianCustomRepository;
 import com.erp.Dto.Request.*;
 import com.erp.Dto.Response.*;
 import com.erp.Dto.Response.TechnicianResponse;
@@ -70,6 +71,8 @@ public class TaskServiceImpl implements TaskService {
     private final TaskDetailsMapper taskDetailsMapper;
 
     private final FeedbackRepository feedbackRepository;
+
+    private final TaskTechnicianCustomRepository taskTechnicianCustomRepository;
 
     @Lazy
     @Autowired
@@ -293,49 +296,45 @@ public class TaskServiceImpl implements TaskService {
 
     @Override
     public List<com.erp.Projection.TechnicianResponse> getTechnicians(TechnicianRequest technicianRequest) {
+
         log.info("[TaskService] [getTechnicians] Entered with request: {}", technicianRequest);
 
-        List<com.erp.Projection.TechnicianResponse> technicianList = new ArrayList<>();
+        List<com.erp.Projection.TechnicianResponse> technicianList;
 
         try {
-
-            if (technicianRequest.getStatus() != null
-                    && technicianRequest.getCategory() != null
-                    && technicianRequest.getStartDate() != null
-                    && technicianRequest.getEndDate() != null) {
-
-                Pageable pageable = PageRequest.of(
-                        technicianRequest.getOffset() / technicianRequest.getSize(), // page number
-                        technicianRequest.getSize(),
-                        Sort.by(Sort.Direction.DESC, "task_id")
-                );
-
-
-                LocalDate startDate = technicianRequest.getStartDate();
-                LocalDate endDate = technicianRequest.getEndDate();
-                String status = technicianRequest.getStatus();
-                Boolean isActive = Boolean.FALSE;
-                if (Objects.nonNull(status) && status.equals("active")) {
+            // Convert status string -> Boolean
+            Boolean isActive = null;
+            if (technicianRequest.getStatus() != null) {
+                if ("active".equalsIgnoreCase(technicianRequest.getStatus())) {
                     isActive = Boolean.TRUE;
+                } else if ("inactive".equalsIgnoreCase(technicianRequest.getStatus())) {
+                    isActive = Boolean.FALSE;
                 }
-
-                technicianList = taskRepository.searchTasksWithScheduleAndTechnicians(
-                        startDate,
-                        endDate,
-                        isActive,
-                        technicianRequest.getCategory()
-                );
-
             }
+
+            // ALWAYS call repository – your SQL handles NULL filters.
+            technicianList = taskRepository.searchTasksWithScheduleAndTechnicians(
+                    isActive,
+                    technicianRequest.getCategory(),
+                    technicianRequest.getDay(),
+                    technicianRequest.getMonth(),
+                    technicianRequest.getTaskId(),
+                    technicianRequest.getTechnicianId(),
+                    technicianRequest.getStartDate(),
+                    technicianRequest.getEndDate()
+            );
+
             log.info("[TaskService] [getTechnicians] Found {} technicians", technicianList.size());
+
         } catch (Exception e) {
             log.error("[TaskService] [getTechnicians] Error while fetching technicians", e);
-            throw new RuntimeException("Failed to fetch technicians", e);
+            throw new ResourceNotFoundException(e.getMessage());
         }
 
         log.info("[TaskService] [getTechnicians] Exiting method");
         return technicianList;
     }
+
 
     @Override
     public List<TechnicianTaskProjection> getTechniciansByDateAndAssigenDate(TechnicianTaskRequest technicianTaskRequest) {
@@ -702,6 +701,19 @@ public class TaskServiceImpl implements TaskService {
 
         return technicianTaskMapperRepository.getTechnitianFeedbackDetails(feedbackId);
     }
+
+    @Override
+    public ResultDto<TechnicianResponseDTO> searchTasks(FilterRequest filterRequest) {
+        log.info("[TaskTechnicianService] [searchTasks] called with request: {}", filterRequest);
+
+        try {
+            return taskTechnicianCustomRepository.searchTasks(filterRequest);
+        } catch (Exception ex) {
+            log.error("Error in searchTasks: {}", ex.getMessage());
+            throw ex; // rethrow if you want the controller/global handler to catch it
+        }
+    }
+
 }
 
 
