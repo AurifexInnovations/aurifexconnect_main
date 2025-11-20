@@ -46,4 +46,7 @@ public interface TaskService {
     ResultDto<TechnicianLeaderboardDto> getTechnicianLeaderboard(PaginationRequest paginationRequest);
 
     ResultDto<GetAllTaskResponse> getAllTasks();
+
+    ResultDto<TechnicianResponseDTO> searchTasks(FilterRequest filterRequest);
+
 }
