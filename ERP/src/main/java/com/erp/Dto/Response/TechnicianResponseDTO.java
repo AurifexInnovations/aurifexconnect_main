@@ -1,5 +1,6 @@
 package com.erp.Dto.Response;
 
+import com.erp.Enum.TaskStatus;
 import com.fasterxml.jackson.annotation.JsonFormat;
 import lombok.Getter;
 import lombok.Setter;
@@ -17,7 +18,7 @@ public class TechnicianResponseDTO {
     private String phone;
     private String category;
     private String designation;
-    private Boolean status;
+    private TaskStatus status;
 
     @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd")
     private LocalDate createdAt;
@@ -33,4 +34,6 @@ public class TechnicianResponseDTO {
     private String serviceName;
     private Double latitude;
     private Double longitude;
+    private String customerName;
+    private String customerAddress;
 }
