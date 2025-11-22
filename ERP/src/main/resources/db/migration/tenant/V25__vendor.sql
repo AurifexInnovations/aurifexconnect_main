@@ -11,3 +11,31 @@ CREATE TABLE IF NOT EXISTS vendors (
     created_date TIMESTAMP,
     updated_date TIMESTAMP
 );
+
+
+CREATE TABLE IF NOT EXISTS purchase_orders (
+    po_id BIGSERIAL PRIMARY KEY,
+    vendor_id BIGINT REFERENCES vendors(vendor_id),
+    date_issued DATE NOT NULL,
+    expected_delivery_date DATE NOT NULL,
+    shipping_cost DECIMAL(15,2),
+    total_value DECIMAL(15,2),
+    status VARCHAR(30) DEFAULT 'Draft',
+    po_number VARCHAR(50) UNIQUE,
+    is_active BOOLEAN DEFAULT TRUE,
+    created_by BIGINT,
+    created_date TIMESTAMP,
+    updated_date TIMESTAMP
+);
+
+CREATE TABLE purchase_order_items (
+    item_id BIGSERIAL PRIMARY KEY,
+    po_id BIGINT REFERENCES purchase_orders(po_id),
+    product_id BIGINT NOT NULL,
+    quantity DECIMAL(15,2) NOT NULL,
+    unit_price DECIMAL(15,2),
+    discount_percent DECIMAL(5,2),
+    subtotal DECIMAL(15,2),
+    is_active BOOLEAN DEFAULT TRUE
+);
+
