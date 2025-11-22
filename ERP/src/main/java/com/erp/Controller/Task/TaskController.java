@@ -243,6 +243,12 @@ public class TaskController {
         );
     }
 
+    @PostMapping("/task/search")
+    public ResultDto<TechnicianResponseDTO> searchTasks(@RequestBody FilterRequest filterRequest) {
+        log.info("[TaskTechnicianController] /search called");
+        return taskService.searchTasks(filterRequest);
+    }
+
 
 
 
