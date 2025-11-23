@@ -39,3 +39,29 @@ CREATE TABLE purchase_order_items (
     is_active BOOLEAN DEFAULT TRUE
 );
 
+
+    CREATE TABLE IF NOT EXISTS bills (
+        bill_id BIGSERIAL PRIMARY KEY,
+        po_id BIGINT REFERENCES purchase_orders(po_id),
+        vendor_id BIGINT REFERENCES vendors(vendor_id),
+        bill_date DATE NOT NULL,
+        due_date DATE NOT NULL,
+        total_amount DECIMAL(15,2),
+        status VARCHAR(30) DEFAULT 'Pending',
+        bill_number VARCHAR(50) UNIQUE,
+        is_active BOOLEAN DEFAULT TRUE,
+        created_date TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        updated_date TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    );
+
+    CREATE TABLE IF NOT EXISTS bill_items (
+        item_id BIGSERIAL PRIMARY KEY,
+        bill_id BIGINT REFERENCES bills(bill_id),
+        product_id BIGINT NOT NULL,
+        quantity DECIMAL(15,2) NOT NULL,
+        unit_price DECIMAL(15,2),
+        discount_percent DECIMAL(5,2),
+        subtotal DECIMAL(15,2),
+        tax_rate DECIMAL(5,2),
+        is_active BOOLEAN DEFAULT TRUE
+    );
