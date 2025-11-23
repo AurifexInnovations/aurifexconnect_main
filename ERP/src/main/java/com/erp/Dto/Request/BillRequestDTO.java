@@ -13,6 +13,8 @@ public class BillRequestDTO {
     @NotNull
     private Long vendorId;
 
+    private Long taxId;
+
     @NotNull
     private Long purchaseOrderId;
 

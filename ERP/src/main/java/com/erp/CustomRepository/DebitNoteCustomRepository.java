@@ -23,28 +23,33 @@ public class DebitNoteCustomRepository {
 
         StringBuilder sql = new StringBuilder("""
                 SELECT 
-                    dn.dn_id,
-                    dn.bill_id,
-                    dn.vendor_id,
-                    dn.date_issued,
-                    dn.reason,
-                    dn.amount_debited,
-                    dn.dn_number,
-                    dn.inventory_adjustment,
-                    dn.tax_adjustment_amount,
-                    dn.status
+                    dn.dn_id,                 -- 0
+                    dn.bill_id,               -- 1
+                    dn.vendor_id,             -- 2
+                    dn.date_issued,           -- 3
+                    dn.reason,                -- 4
+                    dn.amount_debited,        -- 5
+                    dn.dn_number,             -- 6
+                    dn.inventory_adjustment,  -- 7
+                    dn.tax_adjustment_amount, -- 8
+                    dn.status,                -- 9
+                    v.vendor_name             -- 10   <-- NEW
                 FROM debit_notes dn
+                JOIN vendors v ON v.vendor_id = dn.vendor_id
                 WHERE dn.is_active = TRUE
                 """);
 
         StringBuilder countSql = new StringBuilder("""
-                SELECT COUNT(*) FROM debit_notes dn 
+                SELECT COUNT(*) 
+                FROM debit_notes dn
+                JOIN vendors v ON v.vendor_id = dn.vendor_id
                 WHERE dn.is_active = TRUE
                 """);
 
         Map<String,String> filters = filterRequest.getFilterColumns();
         Map<String,String> search = filterRequest.getSearchColumns();
 
+        // ---------------- FILTERS ----------------
         if (filters != null) {
             if (filters.containsKey("dnId")) {
                 sql.append(" AND dn.dn_id = :dnId");
@@ -56,10 +61,17 @@ public class DebitNoteCustomRepository {
             }
         }
 
+        // ---------------- SEARCH ----------------
         if (search != null) {
+
             if (search.containsKey("reason")) {
                 sql.append(" AND LOWER(dn.reason) LIKE :reasonSearch");
                 countSql.append(" AND LOWER(dn.reason) LIKE :reasonSearch");
+            }
+
+            if (search.containsKey("vendorName")) {
+                sql.append(" AND LOWER(v.vendor_name) LIKE :vendorNameSearch");
+                countSql.append(" AND LOWER(v.vendor_name) LIKE :vendorNameSearch");
             }
         }
 
@@ -68,6 +80,7 @@ public class DebitNoteCustomRepository {
         Query dataQuery = entityManager.createNativeQuery(sql.toString());
         Query countQuery = entityManager.createNativeQuery(countSql.toString());
 
+        // ---------------- SET FILTER PARAMS ----------------
         if (filters != null) {
             if (filters.containsKey("dnId")) {
                 Long id = Long.parseLong(filters.get("dnId"));
@@ -81,13 +94,25 @@ public class DebitNoteCustomRepository {
             }
         }
 
-        if (search != null && search.containsKey("reason")) {
-            dataQuery.setParameter("reasonSearch",
-                    "%" + search.get("reason").toLowerCase() + "%");
-            countQuery.setParameter("reasonSearch",
-                    "%" + search.get("reason").toLowerCase() + "%");
+        // ---------------- SET SEARCH PARAMS ----------------
+        if (search != null) {
+
+            if (search.containsKey("reason")) {
+                dataQuery.setParameter("reasonSearch",
+                        "%" + search.get("reason").toLowerCase() + "%");
+                countQuery.setParameter("reasonSearch",
+                        "%" + search.get("reason").toLowerCase() + "%");
+            }
+
+            if (search.containsKey("vendorName")) {
+                dataQuery.setParameter("vendorNameSearch",
+                        "%" + search.get("vendorName").toLowerCase() + "%");
+                countQuery.setParameter("vendorNameSearch",
+                        "%" + search.get("vendorName").toLowerCase() + "%");
+            }
         }
 
+        // ---------------- PAGINATION ----------------
         if (filterRequest.getPaginationRequest() != null) {
             int page = filterRequest.getPaginationRequest().getPageNumber();
             int size = filterRequest.getPaginationRequest().getPageSize();
@@ -113,6 +138,7 @@ public class DebitNoteCustomRepository {
             dto.setInventoryAdjustment((Boolean) r[7]);
             dto.setTaxAdjustmentAmount(r[8] != null ? new BigDecimal(r[8].toString()) : null);
             dto.setStatus((String) r[9]);
+            dto.setVendorName((String) r[10]);
 
             results.add(dto);
         }

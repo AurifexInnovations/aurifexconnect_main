@@ -41,6 +41,7 @@ public class DebitNoteServiceImpl implements DebitNoteService {
         dn.setInventoryAdjustment(dto.getInventoryAdjustment());
         dn.setTaxAdjustmentAmount(dto.getTaxAdjustmentAmount());
         dn.setDnNumber("DN-" + System.currentTimeMillis());
+        dn.setVendorId(dto.getVendorId());
 
         debitNoteRepository.save(dn);
 

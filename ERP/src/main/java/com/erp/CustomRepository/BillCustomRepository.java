@@ -25,12 +25,13 @@ public class BillCustomRepository {
     public ResultDto<BillResponseDTO> getFilteredBills(FilterRequest filterRequest) {
         log.info("Into [BillCustomRepository] [getFilteredBills]");
 
-        // ========= BASE QUERY =========
+        // ========= BASE QUERY WITH JOIN =========
         StringBuilder sql = new StringBuilder("""
                 SELECT 
                     b.bill_id,
                     b.po_id,
                     b.vendor_id,
+                    v.vendor_name,
                     b.bill_date,
                     b.due_date,
                     b.total_amount,
@@ -40,6 +41,7 @@ public class BillCustomRepository {
                     b.created_date,
                     b.updated_date
                 FROM bills b
+                LEFT JOIN vendors v ON v.vendor_id = b.vendor_id
                 WHERE b.is_active = TRUE
                 """);
 
@@ -124,14 +126,15 @@ public class BillCustomRepository {
             dto.setBillId(((Number) row[0]).longValue());
             dto.setPoId(((Number) row[1]).longValue());
             dto.setVendorId(((Number) row[2]).longValue());
-            dto.setBillDate(row[3] != null ? ((java.sql.Date) row[3]).toLocalDate() : null);
-            dto.setDueDate(row[4] != null ? ((java.sql.Date) row[4]).toLocalDate() : null);
-            dto.setTotalAmount(row[5] != null ? new BigDecimal(row[5].toString()) : null);
-            dto.setBillNumber((String) row[6]);
-            dto.setStatus((String) row[7]);
-            dto.setIsActive((Boolean) row[8]);
-            dto.setCreatedDate(row[9] != null ? ((java.sql.Timestamp) row[9]).toLocalDateTime() : null);
-            dto.setUpdatedDate(row[10] != null ? ((java.sql.Timestamp) row[10]).toLocalDateTime() : null);
+            dto.setVendorName((String) row[3]);  // NEW FIELD
+            dto.setBillDate(row[4] != null ? ((java.sql.Date) row[4]).toLocalDate() : null);
+            dto.setDueDate(row[5] != null ? ((java.sql.Date) row[5]).toLocalDate() : null);
+            dto.setTotalAmount(row[6] != null ? new BigDecimal(row[6].toString()) : null);
+            dto.setBillNumber((String) row[7]);
+            dto.setStatus((String) row[8]);
+            dto.setIsActive((Boolean) row[9]);
+            dto.setCreatedDate(row[10] != null ? ((java.sql.Timestamp) row[10]).toLocalDateTime() : null);
+            dto.setUpdatedDate(row[11] != null ? ((java.sql.Timestamp) row[11]).toLocalDateTime() : null);
             return dto;
         }).collect(Collectors.toList());
 

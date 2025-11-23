@@ -45,6 +45,7 @@ CREATE TABLE purchase_order_items (
         po_id BIGINT REFERENCES purchase_orders(po_id),
         vendor_id BIGINT REFERENCES vendors(vendor_id),
         bill_date DATE NOT NULL,
+        tax_id BIGINT NOT NULL,
         due_date DATE NOT NULL,
         total_amount DECIMAL(15,2),
         status VARCHAR(30) DEFAULT 'Pending',

@@ -10,6 +10,7 @@ public class DebitNoteRequestDTO {
     private Long billId;
     private String dateIssued;
     private String reason;
+    private Long vendorId;
     private BigDecimal amountDebited;
     private Boolean inventoryAdjustment;
     private BigDecimal taxAdjustmentAmount;

@@ -12,8 +12,6 @@ public class BillResponseDTO {
 
     private Long billId;
 
-    private Long purchaseOrderId;
-
     private Long vendorId;
 
     private LocalDate billDate;
@@ -35,6 +33,10 @@ public class BillResponseDTO {
     private LocalDateTime updatedDate;
 
     private Boolean isActive;
+
+    private Long taxId;
+
+    private String vendorName;
 
     private List<BillLineItemDTO> lineItems;
 }

@@ -17,4 +17,5 @@ public class UpdateBillRequestDTO {
     private String billNumber;
     private String outstandingPayablesStatus;
     private List<BillLineItemDTO> lineItems;
+    private Long taxId;
 }

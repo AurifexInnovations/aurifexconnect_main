@@ -17,4 +17,6 @@ public class DebitNoteResponseDTO {
     private Boolean inventoryAdjustment;
     private BigDecimal taxAdjustmentAmount;
     private String status;
+    private String vendorName;
+
 }

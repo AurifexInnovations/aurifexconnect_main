@@ -47,6 +47,7 @@ public class BillServiceImpl implements BillService {
             bill.setDueDate(dto.getDueDate());
             bill.setTotalAmount(dto.getTotalAmount());
             bill.setBillNumber(dto.getBillNumber());
+            bill.setTaxId(dto.getTaxId());
             bill.setStatus("Pending");
 
             billRepository.save(bill);
@@ -120,7 +121,7 @@ public class BillServiceImpl implements BillService {
             if (dto.getDueDate() != null) bill.setDueDate(dto.getDueDate());
             if (dto.getTotalAmount() != null) bill.setTotalAmount(dto.getTotalAmount());
             if (dto.getStatus() != null) bill.setStatus(dto.getStatus());
-
+            if(dto.getTaxId()!=null)bill.setTaxId(dto.getTaxId());
             billRepository.save(bill);
             log.info("Bill {} updated successfully", id);
 
@@ -232,6 +233,7 @@ public class BillServiceImpl implements BillService {
         dto.setIsActive(bill.getIsActive());
         dto.setCreatedDate(bill.getCreatedDate());
         dto.setUpdatedDate(bill.getUpdatedDate());
+        dto.setTaxId(bill.getTaxId());
 
         try {
             List<BillItem> items = billItemRepository.findByBillIdAndIsActiveTrue(bill.getBillId());
