@@ -65,3 +65,33 @@ CREATE TABLE purchase_order_items (
         tax_rate DECIMAL(5,2),
         is_active BOOLEAN DEFAULT TRUE
     );
+
+
+CREATE TABLE IF NOT EXISTS payments (
+    payment_id BIGSERIAL PRIMARY KEY,
+    bill_id BIGINT,
+    vendor_id BIGINT,
+    date_paid DATE,
+    amount_paid DECIMAL(15,2),
+    voucher_id BIGINT,
+    payment_method VARCHAR(100),
+    payment_number VARCHAR(100),
+    notes TEXT,
+    is_active BOOLEAN,
+    created_date DATE,
+    updated_date DATE
+);
+
+CREATE TABLE IF NOT EXISTS debit_notes (
+    dn_id BIGSERIAL PRIMARY KEY,
+    bill_id BIGINT,
+    vendor_id BIGINT,
+    date_issued DATE,
+    reason TEXT,
+    amount_debited DECIMAL(15,2),
+    dn_number VARCHAR(50),
+    inventory_adjustment BOOLEAN,
+    tax_adjustment_amount DECIMAL(15,2),
+    status VARCHAR(30),
+    is_active BOOLEAN
+);
