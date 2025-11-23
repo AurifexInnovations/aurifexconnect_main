@@ -25,6 +25,9 @@ public class Bill {
     @Column(name = "po_id")
     private Long poId;
 
+    @Column(name = "tax_id")
+    private Long taxId;
+
     @Column(name = "vendor_id")
     private Long vendorId;
 
