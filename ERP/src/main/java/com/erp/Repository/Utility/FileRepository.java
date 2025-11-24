@@ -16,5 +16,9 @@ public interface FileRepository extends JpaRepository<File , Long> {
             "   category = :category and active = true  order by sequence" ,nativeQuery = true)
     List<File> findByGenIdAndCategoryAndOrderBySequence(long genId , String category);
 
+    @Query(value = "select file_url from files where gen_id = :genId and " +
+            "   category = :category and active = true  order by sequence" ,nativeQuery = true)
+    List<String> findByGenIdAndCategory(long genId , String category);
+
 
 }
