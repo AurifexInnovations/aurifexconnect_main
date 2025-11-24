@@ -79,7 +79,6 @@ public class TaskServiceImpl implements TaskService {
 
     private final InventoryCustomRepository inventoryCustomRepository;
 
-    private final InventoryService inventoryService;
 
 
     @Lazy
@@ -720,43 +719,34 @@ public class TaskServiceImpl implements TaskService {
 
         for (TechnicianResponseDTO task : tasks) {
 
-            Long itemId = task.getId();
+            task.setSalfie(setImageSelfie(task.getTaskId()));
+            task.setSalfie(setImageUrAfter(task.getTaskId()));
+            task.setSalfie(setImageUrlBefore(task.getTaskId()));
 
-            // Step 1: Build FilterRequest
-            FilterRequest inventoryFilter = new FilterRequest();
-            Map<String, String> filterMap = new HashMap<>();
-            filterMap.put("itemId", itemId.toString());
-            inventoryFilter.setFilterColumns(filterMap);
-
-            // Step 2: Fetch inventory list
-            ResultDto<InventoryAndBranchProjection> inventoryResponse =
-                    inventoryCustomRepository.getInventoryDetails(inventoryFilter);
-
-            // Step 3: Convert inventory list → productResponse list
-            List<ProductResponse> productList = inventoryResponse.getResults()
-                    .stream()
-                    .map(this::setMaterialDto)  // convert each entity
-                    .collect(Collectors.toList());
-
-            // Step 4: Set productList to the task
-            task.setProductList(productList);
         }
 
         return resultDto;
     }
 
 
-    private  ProductResponse setMaterialDto(InventoryAndBranchProjection inventoryResponse){
-        ProductResponse productResponse = new ProductResponse();
-        productResponse.setItemId(inventoryResponse.getItemId());
-        productResponse.setItemName(inventoryResponse.getItemName());
-        productResponse.setTotalStockQuantity(inventoryResponse.getTotalStockQuantity());
-        productResponse.setImageUrl(setImageUrl(inventoryResponse.getItemId()));
-        return productResponse;
+
+
+    public List<String> setImageUrlBefore(Long itemId) {
+        return fileService.getAllFiles(itemId, FileUploadConstants.BEFORE_SERVICE)
+                .stream()
+                .map(FileResponse::getUrl)   // extract only URL
+                .collect(Collectors.toList());
     }
 
-    public List<String> setImageUrl(Long itemId) {
-        return fileService.getAllFiles(itemId, "INVENTORY")
+    public List<String> setImageUrAfter(Long itemId) {
+        return fileService.getAllFiles(itemId, FileUploadConstants.AFTER_SERVICE)
+                .stream()
+                .map(FileResponse::getUrl)   // extract only URL
+                .collect(Collectors.toList());
+    }
+
+    public List<String> setImageSelfie(Long itemId) {
+        return fileService.getAllFiles(itemId, FileUploadConstants.SELFIE)
                 .stream()
                 .map(FileResponse::getUrl)   // extract only URL
                 .collect(Collectors.toList());

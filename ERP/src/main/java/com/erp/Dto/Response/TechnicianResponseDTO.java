@@ -38,5 +38,14 @@ public class TechnicianResponseDTO {
     private String customerName;
     private String customerAddress;
 
-    private List<ProductResponse> productList;
+    private List<String> afterImagerUrl;
+
+    private List<String> beforeImageUrl;
+
+    private List<String> salfie;
+
+    private  Long taskId;
+
+
+
 }

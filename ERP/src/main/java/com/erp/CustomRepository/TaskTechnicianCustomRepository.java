@@ -43,7 +43,7 @@ public class TaskTechnicianCustomRepository {
 
                 -- CUSTOMER DETAILS (ONLY NAME & ADDRESS)
                 c.customer_name AS customerName,              -- 13
-                c.phone AS phone , 
+              
                 CONCAT(
                     COALESCE(c.address_line_1, ''), ' ',
                     COALESCE(c.address_line_2, ''), ' ',
@@ -56,7 +56,8 @@ public class TaskTechnicianCustomRepository {
                 COALESCE(tser.service_id, 0) AS serviceId,                 -- 16
                 t.latitude AS latitude,                      -- 17
                 t.longitude AS longitude ,                    -- 18
-                 c.phone AS customerPhone 
+                 c.phone AS customerPhone ,
+                 t.task_id as taskId 
                 
 
             FROM task t
@@ -149,7 +150,7 @@ public class TaskTechnicianCustomRepository {
             GROUP BY u.id, t.task_id, ts.service_location, ts.assigned_date,
             ts.google_location_link, t.latitude, t.longitude, t.task_name,
             c.customer_name, c.address_line_1, c.address_line_2,
-            c.city, c.state, c.pincode, tser.service_name, tser.service_id
+            c.city, c.state, c.pincode, tser.service_name, tser.service_id,c.phone,t.task_id
             ORDER BY t.task_id DESC
         """);
 
@@ -196,6 +197,7 @@ public class TaskTechnicianCustomRepository {
             r.setLatitude(getDouble(row[17]));
             r.setLongitude(getDouble(row[18]));
             r.setCustomerPhone(getString(row[19]));
+            r.setTaskId(getLong(row[20]));
 
             results.add(r);
         }

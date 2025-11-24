@@ -18,5 +18,5 @@ public class ProductResponse {
     private String hsnCode;
     private int totalStockQuantity;
     private LocalDate nearestExpiryDate;
-    private List<String> imageUrl;
+
 }
