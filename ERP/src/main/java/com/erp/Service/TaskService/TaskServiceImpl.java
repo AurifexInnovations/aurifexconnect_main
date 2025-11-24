@@ -1,5 +1,6 @@
 package com.erp.Service.TaskService;
 
+import com.erp.CustomRepository.InventoryCustomRepository;
 import com.erp.CustomRepository.TaskTechnicianCustomRepository;
 import com.erp.Dto.Request.*;
 import com.erp.Dto.Response.*;
@@ -20,8 +21,10 @@ import com.erp.Model.*;
 import com.erp.Projection.*;
 import com.erp.Repository.Feedback.FeedbackRepository;
 import com.erp.Repository.Task.*;
+import com.erp.Repository.Utility.FileRepository;
 import com.erp.Security.util.UserIdentity;
 
+import com.erp.Service.InventoryService.InventoryService;
 import com.erp.Service.Otp.OtpService;
 import com.erp.Service.Utility.FileService;
 import com.erp.constants.FileUploadConstants;
@@ -73,6 +76,11 @@ public class TaskServiceImpl implements TaskService {
     private final FeedbackRepository feedbackRepository;
 
     private final TaskTechnicianCustomRepository taskTechnicianCustomRepository;
+
+    private final InventoryCustomRepository inventoryCustomRepository;
+
+    private final InventoryService inventoryService;
+
 
     @Lazy
     @Autowired
@@ -704,15 +712,56 @@ public class TaskServiceImpl implements TaskService {
 
     @Override
     public ResultDto<TechnicianResponseDTO> searchTasks(FilterRequest filterRequest) {
-        log.info("[TaskTechnicianService] [searchTasks] called with request: {}", filterRequest);
 
-        try {
-            return taskTechnicianCustomRepository.searchTasks(filterRequest);
-        } catch (Exception ex) {
-            log.error("Error in searchTasks: {}", ex.getMessage());
-            throw ex; // rethrow if you want the controller/global handler to catch it
+        ResultDto<TechnicianResponseDTO> resultDto =
+                taskTechnicianCustomRepository.searchTasks(filterRequest);
+
+        List<TechnicianResponseDTO> tasks = resultDto.getResults();
+
+        for (TechnicianResponseDTO task : tasks) {
+
+            Long itemId = task.getId();
+
+            // Step 1: Build FilterRequest
+            FilterRequest inventoryFilter = new FilterRequest();
+            Map<String, String> filterMap = new HashMap<>();
+            filterMap.put("itemId", itemId.toString());
+            inventoryFilter.setFilterColumns(filterMap);
+
+            // Step 2: Fetch inventory list
+            ResultDto<InventoryAndBranchProjection> inventoryResponse =
+                    inventoryCustomRepository.getInventoryDetails(inventoryFilter);
+
+            // Step 3: Convert inventory list → productResponse list
+            List<ProductResponse> productList = inventoryResponse.getResults()
+                    .stream()
+                    .map(this::setMaterialDto)  // convert each entity
+                    .collect(Collectors.toList());
+
+            // Step 4: Set productList to the task
+            task.setProductList(productList);
         }
+
+        return resultDto;
     }
+
+
+    private  ProductResponse setMaterialDto(InventoryAndBranchProjection inventoryResponse){
+        ProductResponse productResponse = new ProductResponse();
+        productResponse.setItemId(inventoryResponse.getItemId());
+        productResponse.setItemName(inventoryResponse.getItemName());
+        productResponse.setTotalStockQuantity(inventoryResponse.getTotalStockQuantity());
+        productResponse.setImageUrl(setImageUrl(inventoryResponse.getItemId()));
+        return productResponse;
+    }
+
+    public List<String> setImageUrl(Long itemId) {
+        return fileService.getAllFiles(itemId, "INVENTORY")
+                .stream()
+                .map(FileResponse::getUrl)   // extract only URL
+                .collect(Collectors.toList());
+    }
+
 
 }
 

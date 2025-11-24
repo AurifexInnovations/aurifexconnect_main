@@ -43,6 +43,7 @@ public class TaskTechnicianCustomRepository {
 
                 -- CUSTOMER DETAILS (ONLY NAME & ADDRESS)
                 c.customer_name AS customerName,              -- 13
+                c.phone AS phone , 
                 CONCAT(
                     COALESCE(c.address_line_1, ''), ' ',
                     COALESCE(c.address_line_2, ''), ' ',
@@ -54,7 +55,9 @@ public class TaskTechnicianCustomRepository {
                 COALESCE(tser.service_name, 'No Service') AS serviceName,  -- 15
                 COALESCE(tser.service_id, 0) AS serviceId,                 -- 16
                 t.latitude AS latitude,                      -- 17
-                t.longitude AS longitude                     -- 18
+                t.longitude AS longitude ,                    -- 18
+                 c.phone AS customerPhone 
+                
 
             FROM task t
             LEFT JOIN customer c ON c.id = t.customer_id
@@ -192,6 +195,7 @@ public class TaskTechnicianCustomRepository {
             r.setServiceId(getLong(row[16]));
             r.setLatitude(getDouble(row[17]));
             r.setLongitude(getDouble(row[18]));
+            r.setCustomerPhone(getString(row[19]));
 
             results.add(r);
         }
