@@ -96,3 +96,40 @@ CREATE TABLE IF NOT EXISTS debit_notes (
     status VARCHAR(30),
     is_active BOOLEAN
 );
+
+CREATE TABLE IF NOT EXISTS sales_orders (
+    so_id BIGSERIAL PRIMARY KEY,
+
+    quotation_id BIGINT,
+    customer_id BIGINT NOT NULL,
+
+    status VARCHAR(50) DEFAULT 'Draft',
+
+    total_value DECIMAL(15,2),
+
+    order_date DATE NOT NULL,
+
+    delivery_terms TEXT,
+    sales_notes TEXT,
+
+    created_by BIGINT,
+    is_active BOOLEAN,
+    updated_at TIMESTAMP
+);
+
+CREATE TABLE IF NOT EXISTS sales_order_items (
+    id BIGSERIAL PRIMARY KEY,
+
+    so_id BIGINT REFERENCES sales_orders(so_id),
+
+    product_id BIGINT NOT NULL,
+
+    quantity DECIMAL(15,2),
+
+    unit_price DECIMAL(15,2),
+
+    discount_percent DECIMAL(5,2),
+    is_active BOOLEAN,
+
+    sub_total DECIMAL(15,2)
+);
