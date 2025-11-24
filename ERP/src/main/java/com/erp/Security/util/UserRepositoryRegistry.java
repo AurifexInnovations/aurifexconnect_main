@@ -36,7 +36,7 @@ public class UserRepositoryRegistry {
 
         return findRootUserByEmail(email)
                 .or(() -> findAdminByEmail(email, tenantId))
-                .or(() -> findUserByEmailInTenant(email));
+                .or(() -> findUserByEmailInTenant(email, tenantId));
     }
 
     private Optional<GenericUser> findRootUserByEmail(String email) {
@@ -53,6 +53,7 @@ public class UserRepositoryRegistry {
             return Optional.empty();
         }
 
+//        TenantContext.setCurrentTenant(tenantId);
         Optional<Admin> admin = adminUserRepository.findByEmailWithSchema(email, tenantId);
         if (admin.isPresent()) {
             log.debug("Found Admin with email: {} in tenant: {}", email, tenantId);
@@ -60,8 +61,8 @@ public class UserRepositoryRegistry {
         return admin.map(user -> user);
     }
 
-    private Optional<GenericUser> findUserByEmailInTenant(String email) {
-        Optional<User> user = userRepository.findByEmail(email);
+    private Optional<GenericUser> findUserByEmailInTenant(String email, String tenantId) {
+        Optional<User> user = userRepository.findByEmailWithSchema(email, tenantId);
         if (user.isPresent()) {
             log.debug("Found User with email: {} in tenant: {}", email, TenantContext.getCurrentTenant());
         }
