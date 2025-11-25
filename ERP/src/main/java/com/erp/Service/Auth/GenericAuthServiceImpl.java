@@ -2,6 +2,7 @@ package com.erp.Service.Auth;
 
 import com.erp.Dto.Request.AuthRecord;
 import com.erp.Dto.Request.LoginRequest;
+import com.erp.Exception.Schema.SchemaNotFound;
 import com.erp.Exception.User.UserInActiveException;
 import com.erp.Exception.User.UserNotFoundException;
 import com.erp.Meta.MetaAdminRepository;
@@ -82,13 +83,15 @@ public class GenericAuthServiceImpl implements AuthService {
         }
 
         // Step 3: Normal user — expect tenant auto-resolved from AuthFilter
+        if(loginRequest.schema() == null || loginRequest.schema().equals(""))
+            throw new SchemaNotFound("Schema Not Found For "+loginRequest.schema());
 
-        Optional<String> resolvedTenantUser = metaUserRepository.findSchemaNameByUserEmail(email);
+        String resolvedTenant = loginRequest.schema().trim();
+        boolean existsSchema = metaAdminRepository.existsBySchemaName(resolvedTenant);
 
-        if (!resolvedTenantUser.isPresent())
-            throw new UserNotFoundException("User Or Admin Not Found For Email : " + email);
+        if(!existsSchema)
+            throw new SchemaNotFound("Schema Not Found For "+loginRequest.schema());
 
-        String resolvedTenant = resolvedTenantUser.get();
         TenantContext.setCurrentTenant(resolvedTenant);
 
         log.info("Login as NormalUser in tenant '{}'", resolvedTenant);

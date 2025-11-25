@@ -29,7 +29,7 @@ public class UserRepositoryImpl implements UserRepositoryCustom{
         });
 
         // Build native SQL with schema injected directly
-        String sql = "SELECT * FROM " + schemaName + ".users WHERE email = :email";
+        String sql = "SELECT * FROM " + schemaName + ".users WHERE email = :email AND is_active = true";
 
         Query query = entityManager
                 .createNativeQuery(sql, User.class)
@@ -40,6 +40,8 @@ public class UserRepositoryImpl implements UserRepositoryCustom{
             user = (User) query.getSingleResult();
         } catch (Exception e) {
             return Optional.empty();
+
+
         }
 
         return Optional.of(user);

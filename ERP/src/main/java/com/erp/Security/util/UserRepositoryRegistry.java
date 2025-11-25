@@ -1,5 +1,6 @@
 package com.erp.Security.util;
 
+import com.erp.Exception.User.UserNotFoundException;
 import com.erp.Model.Admin;
 import com.erp.Model.GenericUser;
 import com.erp.Model.RootUser;
@@ -63,9 +64,10 @@ public class UserRepositoryRegistry {
 
     private Optional<GenericUser> findUserByEmailInTenant(String email, String tenantId) {
         Optional<User> user = userRepository.findByEmailWithSchema(email, tenantId);
-        if (user.isPresent()) {
-            log.debug("Found User with email: {} in tenant: {}", email, TenantContext.getCurrentTenant());
+        if (!user.isPresent()) {
+            throw new UserNotFoundException("User Not Found In "+tenantId);
         }
+        log.debug("Found User with email: {} in tenant: {}", email, TenantContext.getCurrentTenant());
         return user.map(userObj -> userObj);
     }
 

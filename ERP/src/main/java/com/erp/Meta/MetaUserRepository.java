@@ -12,6 +12,8 @@ public interface MetaUserRepository extends JpaRepository<MetaUser, Long> {
 
     boolean existsByUserEmail(String email);
 
+    boolean existsBySchemaName(String schemaName);
+
     @Query("SELECT m.schemaName FROM MetaUser m WHERE m.userEmail = :email")
     Optional<String> findSchemaNameByUserEmail(@Param("email") String email);
 }

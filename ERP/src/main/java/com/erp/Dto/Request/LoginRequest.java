@@ -21,7 +21,13 @@ public record LoginRequest(
                 regexp = "^(?=.*[A-Z])(?=.*[a-z])(?=.*\\d)(?=.*[@$!%*?&])[A-Za-z\\d@$!%*?&]{8,}$",
                 message = "Password must have 8+ characters, with uppercase, lowercase, number, and special character"
         )
-         String password
+        String password,
+
+        @Pattern(
+                regexp = "^(?=.*[A-Za-z])(?=.*\\d)(?=.*[^A-Za-z0-9]).+$",
+                message = "Schema must contain alphabets, digits, and special characters"
+        )
+        String schema
 
 ) {
 }
