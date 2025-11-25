@@ -6,7 +6,7 @@ import lombok.Getter;
 import lombok.Setter;
 
 import java.time.LocalDate;
-import java.time.LocalDateTime;
+import java.util.List;
 
 @Getter
 @Setter
@@ -16,6 +16,7 @@ public class TechnicianResponseDTO {
     private String name;
     private String email;
     private String phone;
+    private String customerPhone;
     private String category;
     private String designation;
     private TaskStatus status;
@@ -36,4 +37,15 @@ public class TechnicianResponseDTO {
     private Double longitude;
     private String customerName;
     private String customerAddress;
+
+    private List<String> afterImagerUrl;
+
+    private List<String> beforeImageUrl;
+
+    private List<String> salfie;
+
+    private  Long taskId;
+
+
+
 }

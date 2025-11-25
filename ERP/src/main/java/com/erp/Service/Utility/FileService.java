@@ -106,6 +106,7 @@ public class FileService {
 
 
     public  List<FileResponse>  getAllFiles(long genId , String category){
+
         List<File> files =
                 fileRepository.findByGenIdAndCategoryAndOrderBySequence(genId ,category );
 

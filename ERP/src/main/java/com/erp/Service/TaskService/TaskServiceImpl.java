@@ -1,5 +1,6 @@
 package com.erp.Service.TaskService;
 
+import com.erp.CustomRepository.InventoryCustomRepository;
 import com.erp.CustomRepository.TaskTechnicianCustomRepository;
 import com.erp.Dto.Request.*;
 import com.erp.Dto.Response.*;
@@ -20,8 +21,10 @@ import com.erp.Model.*;
 import com.erp.Projection.*;
 import com.erp.Repository.Feedback.FeedbackRepository;
 import com.erp.Repository.Task.*;
+import com.erp.Repository.Utility.FileRepository;
 import com.erp.Security.util.UserIdentity;
 
+import com.erp.Service.InventoryService.InventoryService;
 import com.erp.Service.Otp.OtpService;
 import com.erp.Service.Utility.FileService;
 import com.erp.constants.FileUploadConstants;
@@ -30,6 +33,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
 
+import org.apache.regexp.RE;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.data.domain.PageRequest;
@@ -73,6 +77,11 @@ public class TaskServiceImpl implements TaskService {
     private final FeedbackRepository feedbackRepository;
 
     private final TaskTechnicianCustomRepository taskTechnicianCustomRepository;
+
+    private final InventoryCustomRepository inventoryCustomRepository;
+
+    private  final FileRepository fileRepository;
+
 
     @Lazy
     @Autowired
@@ -702,18 +711,70 @@ public class TaskServiceImpl implements TaskService {
         return technicianTaskMapperRepository.getTechnitianFeedbackDetails(feedbackId);
     }
 
-    @Override
     public ResultDto<TechnicianResponseDTO> searchTasks(FilterRequest filterRequest) {
-        log.info("[TaskTechnicianService] [searchTasks] called with request: {}", filterRequest);
 
-        try {
-            return taskTechnicianCustomRepository.searchTasks(filterRequest);
-        } catch (Exception ex) {
-            log.error("Error in searchTasks: {}", ex.getMessage());
-            throw ex; // rethrow if you want the controller/global handler to catch it
+        ResultDto<TechnicianResponseDTO> resultDto =
+                taskTechnicianCustomRepository.searchTasks(filterRequest);
+
+        List<TechnicianResponseDTO> tasks = resultDto.getResults();
+
+        for (int i = 0; i < tasks.size(); i++) {
+            TechnicianResponseDTO task = tasks.get(i);
+
+            task.setSalfie(fileRepository.findByGenIdAndCategory(task.getTaskId(), FileUploadConstants.SELFIE));
+            task.setAfterImagerUrl(fileRepository.findByGenIdAndCategory(task.getTaskId(), FileUploadConstants.AFTER_SERVICE));
+            task.setBeforeImageUrl(fileRepository.findByGenIdAndCategory(task.getTaskId(), FileUploadConstants.BEFORE_SERVICE));
         }
+
+        return resultDto;
     }
 
+
+    public List<String> setImageUrlBefore(Long itemId) {
+
+        List<FileResponse> files = fileService.getAllFiles(itemId, FileUploadConstants.BEFORE_SERVICE);
+        List<String> urls = new ArrayList<String>();
+
+        if (files != null) {
+            for (int i = 0; i < files.size(); i++) {
+                FileResponse f = files.get(i);
+                if (f != null && f.getUrl() != null) {
+                    urls.add(f.getUrl());
+                }
+            }
+        }
+
+        return urls;
+    }
+
+    public List<String> setImageUrAfter(Long itemId) {
+
+        List<FileResponse> files = fileService.getAllFiles(itemId, FileUploadConstants.AFTER_SERVICE);
+        List<String> urls = new ArrayList<String>();
+
+        if (files != null) {
+            for (int i = 0; i < files.size(); i++) {
+                FileResponse f = files.get(i);
+                if (f != null && f.getUrl() != null) {
+                    urls.add(f.getUrl());
+                }
+            }
+        }
+
+        return urls;
+    }
+
+    public List<String> setImageSelfie(Long itemId) {
+
+        List<String> files = fileRepository.findByGenIdAndCategory(itemId, FileUploadConstants.SELFIE);
+        return files;
+
+
+
+
+    }
 }
+
+
 
 
