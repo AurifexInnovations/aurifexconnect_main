@@ -133,3 +133,33 @@ CREATE TABLE IF NOT EXISTS sales_order_items (
 
     sub_total DECIMAL(15,2)
 );
+
+
+CREATE TABLE IF NOT EXISTS payslips (
+    payslip_id BIGSERIAL PRIMARY KEY,
+    employee_id BIGINT,
+
+    pay_period_start DATE,
+    pay_period_end DATE,
+    generation_date DATE,
+
+    gross_salary DECIMAL(15,2),
+    total_deductions DECIMAL(15,2),
+    net_pay DECIMAL(15,2),
+
+    status VARCHAR(50),
+    payslip_number VARCHAR(100),
+
+    voucher_id BIGINT,
+    is_active BOOLEAN DEFAULT TRUE
+);
+
+CREATE TABLE IF NOT EXISTS payslip_deductions (
+    deduction_id BIGSERIAL PRIMARY KEY,
+
+    payslip_id BIGINT REFERENCES payslips(payslip_id),
+
+    deduction_type VARCHAR(100),
+    amount DECIMAL(15,2)
+);
+
