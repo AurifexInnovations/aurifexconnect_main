@@ -1,5 +1,6 @@
 package com.erp.Dto.Response;
 
+import com.erp.Dto.Request.MaterialDto;
 import com.erp.Enum.TaskStatus;
 import com.fasterxml.jackson.annotation.JsonFormat;
 import lombok.Getter;
@@ -39,13 +40,14 @@ public class TechnicianResponseDTO {
     private String customerAddress;
 
     private List<String> afterImagerUrl;
-
     private List<String> beforeImageUrl;
-
     private List<String> salfie;
 
-    private  Long taskId;
+    private Long taskId;
 
-
+    // ===============================
+    // MATERIAL FIELDS (ADDED)
+    // ===============================
+    private List<MaterialDtoResponse> materials;
 
 }

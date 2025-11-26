@@ -543,12 +543,10 @@ public class TaskServiceImpl implements TaskService {
 
 
     @Transactional
-    public OtpResponseDTO updateTaskMaterialForStatusProgress(Long taskId,
-                                                              CompleteTaskRequestDTO completeTaskRequestDTO,
-                                                              MultipartFile[] beforeImages,
-                                                              MultipartFile[] afterImages) {
+    public OtpResponseDTO submitCompletionDetails(Long taskId,
+                                                  CompleteTaskRequestDTO completeTaskRequestDTO) {
 
-        log.info("Starting updateTaskMaterialForStatusProgress for taskId: {}", taskId);
+        log.info("Starting submitCompletionDetails for taskId: {}", taskId);
 
         if (completeTaskRequestDTO.getTaskMaterialList() == null
                 || completeTaskRequestDTO.getTaskMaterialList().isEmpty()) {
@@ -557,39 +555,40 @@ public class TaskServiceImpl implements TaskService {
             );
         }
 
-        if ((beforeImages == null || beforeImages.length == 0)
-                && (afterImages == null || afterImages.length == 0)) {
-            throw new BadRequestException("Both before and after images are required to update task status.");
-        }
-        OtpResponseDTO otpResponseDTO = new OtpResponseDTO();
-        try {
+        OtpResponseDTO otpResponseDTO =
+                otpService.validateOtp(
+                        completeTaskRequestDTO.getFeedbackList().getMobileNo(),
+                        completeTaskRequestDTO.getFeedbackList().getOtp()
+                );
 
-            otpResponseDTO =
-                    otpService.validateOtp(completeTaskRequestDTO.getFeedbackList().getMobileNo(), completeTaskRequestDTO.getFeedbackList().getOtp());
+        List<TaskMaterial> existingMaterials = taskMaterialRepository.findByTaskId(taskId);
 
-            log.info("Fetching existing task materials for taskId: {}", taskId);
-            List<TaskMaterial> existingMaterials = taskMaterialRepository.findByTaskId(taskId);
-            log.info("Found {} existing task materials for taskId: {}", existingMaterials.size(), taskId);
+        saveFeedbackList(completeTaskRequestDTO.getFeedbackList(), taskId);
 
-            saveFeedbackList(completeTaskRequestDTO.getFeedbackList(), taskId);
+        saveTaskMaterials(taskId, completeTaskRequestDTO.getTaskMaterialList(), existingMaterials);
 
-            // Save or update task materials
-            saveTaskMaterials(taskId, completeTaskRequestDTO.getTaskMaterialList(), existingMaterials);
+        updateTaskScheduleForCompletion(taskId);
+        updateTaskStatusToCompleted(taskId);
 
-            fileService.uploadFiles(taskId, FileUploadConstants.BEFORE_SERVICE, beforeImages);
-
-            fileService.uploadFiles(taskId, FileUploadConstants.AFTER_SERVICE, afterImages);
-
-            updateTaskScheduleForCompletion(taskId);
-            updateTaskStatusToCompleted(taskId);
-
-
-        } catch (Exception e) {
-            log.error("Error updating task materials for taskId: {}", taskId, e);
-            throw e;
-        }
         return otpResponseDTO;
     }
+
+    @Transactional
+    public void uploadCompletionImages(Long taskId,
+                                       MultipartFile[] beforeImages,
+                                       MultipartFile[] afterImages) {
+
+        log.info("Uploading completion images for taskId: {}", taskId);
+
+        if ((beforeImages == null || beforeImages.length == 0)
+                && (afterImages == null || afterImages.length == 0)) {
+            throw new BadRequestException("Both before and after images are required.");
+        }
+
+        fileService.uploadFiles(taskId, FileUploadConstants.BEFORE_SERVICE, beforeImages);
+        fileService.uploadFiles(taskId, FileUploadConstants.AFTER_SERVICE, afterImages);
+    }
+
 
     private void updateTaskScheduleForCompletion(Long taskId) {
         TaskSchedule taskSchedule = taskScheduleRepository.findByTaskId(taskId);
