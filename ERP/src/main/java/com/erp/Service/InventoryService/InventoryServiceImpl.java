@@ -284,8 +284,9 @@ public class InventoryServiceImpl implements InventoryService {
             log.info("Product saved successfully with id={}", product.getItemId());
 
             if (productRequest.getVarientList() != null && !productRequest.getVarientList().isEmpty()) {
+                final long productItemId = product.getItemId();
 
-                productRequest.getVarientList().forEach(dto -> dto.setItemId(itemId));
+                productRequest.getVarientList().forEach(dto -> dto.setItemId(productItemId));
 
                 if (isNewProduct) {
 
