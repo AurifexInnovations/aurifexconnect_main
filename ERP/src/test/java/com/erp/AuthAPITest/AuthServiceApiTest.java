@@ -43,7 +43,7 @@ public class AuthServiceApiTest {
 
         String baseUrl = env.getBaseUrl();
 
-        LoginRequest loginRequest = new LoginRequest("vishal369@gmail.com", "Vishal@369");
+        LoginRequest loginRequest = new LoginRequest("vishal369@gmail.com", "Vishal@369","");
 
 
         MockHttpServletResponse response = mockMvc.perform(post(baseUrl+"/login")
