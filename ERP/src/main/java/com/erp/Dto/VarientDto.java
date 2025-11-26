@@ -22,4 +22,20 @@ public class VarientDto {
     private String measurementType;
     private double measurement;
     private LocalDateTime expiryDate;
+
+    public VarientDto(long id, int stockQuantity, String sellingPriceType, double sellingPrice, String purchasePriceType,
+                      double purchasePrice, String unitType, double unitTypeValue, String measurementType,
+                      double measurement, LocalDateTime expiryDate) {
+        this.id = id;
+        this.stockQuantity = stockQuantity;
+        this.sellingPriceType = sellingPriceType;
+        this.sellingPrice = sellingPrice;
+        this.purchasePriceType = purchasePriceType;
+        this.purchasePrice = purchasePrice;
+        this.unitType = unitType;
+        this.unitTypeValue = unitTypeValue;
+        this.measurementType = measurementType;
+        this.measurement = measurement;
+        this.expiryDate = expiryDate;
+    }
 }
