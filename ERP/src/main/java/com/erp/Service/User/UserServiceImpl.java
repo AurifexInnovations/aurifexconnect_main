@@ -55,6 +55,9 @@ public class UserServiceImpl implements UserServices {
             if (userRepository.findByEmail(userRequest.getEmail()).isPresent()) {
                 throw new SameEmailFoundException("Employee already exists with this email");
             }
+            if (metaUserRepository.findByUserEmail(userRequest.getEmail()).isPresent()) {
+                throw new SameEmailFoundException("Employee already exists with this email");
+            }
 
             MetaUser metaUser = new MetaUser();
 
@@ -94,14 +97,14 @@ public class UserServiceImpl implements UserServices {
             user.setRoles(attachedRoles);
             user = userRepository.save(user);
 
-            for (Role role  : user.getRoles()){
-                userPermissionService.addUserPermisionBasedOnRole(user.getId() ,  role.getRoleName());
+            for (Role role : user.getRoles()) {
+                userPermissionService.addUserPermisionBasedOnRole(user.getId(), role.getRoleName());
             }
 
             return userMapper.mapToUserResponse(user);
 
         } catch (Exception e) {
-            throw new ResourceNotFoundException( e.getMessage());
+            throw new ResourceNotFoundException(e.getMessage());
         } finally {
             TenantContext.clear();
         }
@@ -112,13 +115,13 @@ public class UserServiceImpl implements UserServices {
     @Transactional()
     public List<UserResponse> getListOfUsers() {
 
-        List<User> users = userRepository.findByIsActiveTrue() ;
+        List<User> users = userRepository.findByIsActiveTrue();
         return userMapper.mapToListOfUserResponse(users);
     }
 
     @Transactional
     @Override
-    public UserResponse updateUserById(UserUpdateRequest userUpdateRequest) throws Exception{
+    public UserResponse updateUserById(UserUpdateRequest userUpdateRequest) throws Exception {
 
         Admin currentAdmin = (Admin) userIdentity.getCurrentUser();
 
@@ -127,10 +130,10 @@ public class UserServiceImpl implements UserServices {
         User user
                 = userRepository.findByIdAndIsActiveTrue(userUpdateRequest.getId());
 
-        if(user.getId() == userUpdateRequest.getId()){
-            userMapper.mapTOUserEntity(userUpdateRequest,user);
-        }else {
-            throw new UserNotFoundException("With this user id: "+ userUpdateRequest.getId() + "user is currently not login !");
+        if (user.getId() == userUpdateRequest.getId()) {
+            userMapper.mapTOUserEntity(userUpdateRequest, user);
+        } else {
+            throw new UserNotFoundException("With this user id: " + userUpdateRequest.getId() + "user is currently not login !");
         }
 
 
@@ -159,9 +162,9 @@ public class UserServiceImpl implements UserServices {
         userRepository.save(user);
 
         List<String> roleNames =
-            userUpdateRequest.getRoles().stream().map(RoleRequest::getRoleName).collect(Collectors.toList());
+                userUpdateRequest.getRoles().stream().map(RoleRequest::getRoleName).collect(Collectors.toList());
 
-        userPermissionService.updateUserRolePermissionByRoleName(roleNames , user.getId());
+        userPermissionService.updateUserRolePermissionByRoleName(roleNames, user.getId());
 
 //        updateUserModuleActionPermissions(user, updatedRoles, userUpdateRequest.getPermissions(), currentAdmin);
         return userMapper.mapToUserResponse(user);
@@ -174,7 +177,7 @@ public class UserServiceImpl implements UserServices {
                                                    Admin currentAdmin) {
 
         // Fetch existing user permissions
-        List<UserPermission> existingPermissions = userPermissionRepository. findByUserId(user.getId());
+        List<UserPermission> existingPermissions = userPermissionRepository.findByUserId(user.getId());
         Set<Long> newPermissionIds = new HashSet<>();
 
         for (PermissionRequest permission : permissionRequests) {
@@ -230,7 +233,6 @@ public class UserServiceImpl implements UserServices {
     }
 
 
-
     @Override
     public UserResponse deleteUserById(CommanParam commanParamId) {
 
@@ -240,7 +242,7 @@ public class UserServiceImpl implements UserServices {
         }
 
         User user = userRepository.findById(commanParamId.getId())
-                .orElseThrow(()-> new UserNotFoundException("User not found with this id: "+ commanParamId.getId()));
+                .orElseThrow(() -> new UserNotFoundException("User not found with this id: " + commanParamId.getId()));
 
         user.setActive(false);
         userRepository.save(user);
