@@ -734,17 +734,17 @@ public class TaskServiceImpl implements TaskService {
     }
 
 
-    private  List<MaterialResponseDto> getTaskMaterial(Long taskId){
+    private  List<MaterialDtoResponse> getTaskMaterial(Long taskId){
         List<TaskMaterial> taskMaterialList = taskMaterialRepository.findByTaskId(taskId);
-        List<MaterialResponseDto> list = new ArrayList<>();
-        MaterialResponseDto materialResponseDto = new MaterialResponseDto();
+        List<MaterialDtoResponse> list = new ArrayList<>();
+        MaterialDtoResponse materialResponseDto = new MaterialDtoResponse();
         for( TaskMaterial  task :taskMaterialList){
             Inventory  item = inventoryRepository.findByItemId(task.getMaterialId());
             if(item!=null){
                 materialResponseDto.setMaterialId(item.getItemId());
                 materialResponseDto.setMaterialName(item.getItemName());
-                materialResponseDto.setUnit(task.getUnit());
-                materialResponseDto.setQuantity(task.getQuantity());
+                materialResponseDto.setMaterialUnit(task.getUnit());
+                materialResponseDto.setMaterialQuantity(task.getQuantity());
             }
             list.add(materialResponseDto);
 

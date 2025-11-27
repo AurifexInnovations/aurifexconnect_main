@@ -8,6 +8,6 @@ import lombok.Setter;
 public class MaterialDtoResponse {
     private Long materialId;
     private String materialName;
-    private Long materialQuantity;
+    private Double materialQuantity;
     private String materialUnit;
 }

@@ -167,7 +167,7 @@ public class TaskTechnicianCustomRepository {
                 MaterialDtoResponse material = new MaterialDtoResponse();
                 material.setMaterialId(materialId);
                 material.setMaterialName(getString(row[22]));
-                material.setMaterialQuantity(getLong(row[23]));
+                material.setMaterialQuantity(getDouble(row[23]));
                 material.setMaterialUnit(getString(row[24]));
                 r.getMaterials().add(material);
             }
