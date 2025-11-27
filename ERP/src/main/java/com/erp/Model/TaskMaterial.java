@@ -31,7 +31,7 @@ public class TaskMaterial {
     private  Boolean isUsed;
 
     @Column(name ="quantity" )
-    private Long quantity;
+    private Double quantity;
 
 
 

@@ -170,7 +170,7 @@ public class SecurityConfig {
                 .cors(cors -> cors.configurationSource(corsConfigurationSource()))
                 .authorizeHttpRequests(authorize -> authorize
                         // allow root/default URLs without auth
-                        .requestMatchers("/", baseUrl + "/").permitAll()
+                        .requestMatchers("/", baseUrl + "/", baseUrl + "/admins").permitAll()
                         .requestMatchers(baseUrl + "/admins/**").hasAnyAuthority("ROLE_ROOT")
                         .requestMatchers(baseUrl + "/roles/**").hasAnyAuthority("ROLE_ROOT", "ROLE_ADMIN")
                         .requestMatchers(baseUrl + "/user", baseUrl + "/user/delete/**").hasAnyAuthority("ROLE_ADMIN")
@@ -192,7 +192,7 @@ public class SecurityConfig {
     {
         CorsConfiguration config = new CorsConfiguration();
         config.setAllowCredentials(true);
-        config.setAllowedOrigins(List.of("http://localhost:3000","http://localhost:5174","https://magenta-cranachan-beb97b.netlify.app"));
+        config.setAllowedOrigins(List.of("http://localhost:3000","https://seravionerp.netlify.app","http://localhost:5174","https://magenta-cranachan-beb97b.netlify.app"));
         config.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS"));
         config.setAllowedHeaders(List.of("*"));
         config.setExposedHeaders(List.of("Authorization"));

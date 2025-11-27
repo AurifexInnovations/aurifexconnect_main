@@ -7,6 +7,7 @@ import com.erp.Exception.AccountSubGroup.AccountSubGroupAlreadyExistsException;
 import com.erp.Exception.AccountSubGroup.AccountSubGroupNotFoundException;
 import com.erp.Exception.Ledger.LedgerAlreadyExistsException;
 import com.erp.Exception.Ledger.LedgerNotFoundException;
+import com.erp.Exception.SameEmail.SameEmailFoundException;
 import lombok.extern.slf4j.Slf4j;
 import com.erp.Exception.Ledger.LedgerNotFoundException;
 import lombok.extern.slf4j.Slf4j;
@@ -280,6 +281,19 @@ public class GlobalExceptionHandler  {
                 .path("/api/v1")
                 .build();
         return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(error);
+    }
+
+    @ExceptionHandler(SameEmailFoundException.class)
+    public ResponseEntity<ErrorResponse> handleNullPointer(SameEmailFoundException ex) {
+        log.error("Null pointer exception: {}", ex.getMessage(), ex);
+        ErrorResponse error = ErrorResponse.builder()
+                .timestamp(LocalDateTime.now())
+                .status(HttpStatus.CONFLICT.value())
+                .error("Same Email")
+                .message(ex.getMessage())
+                .path("/api/v1")
+                .build();
+        return ResponseEntity.status(HttpStatus.CONFLICT).body(error);
     }
 
 //    @ExceptionHandler(Exception.class)

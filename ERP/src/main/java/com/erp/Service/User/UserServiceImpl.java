@@ -6,6 +6,8 @@ import com.erp.Exception.ResourceNotFoundException;
 import com.erp.Exception.SameEmail.SameEmailFoundException;
 import com.erp.Exception.User.UserNotFoundException;
 import com.erp.Mapper.User.UserMapper;
+import com.erp.Meta.MetaUser;
+import com.erp.Meta.MetaUserRepository;
 import com.erp.Model.*;
 import com.erp.Multitenancy.TenantContext;
 import com.erp.Repository.Role.RoleRepository;
@@ -32,6 +34,7 @@ public class UserServiceImpl implements UserServices {
     private final PasswordEncoder passwordEncoder;
     private final RoleRepository roleRepository;
     private final UserIdentity userIdentity;
+    private final MetaUserRepository metaUserRepository;
     private final static String DEFAULT_ROLE = "EMPLOYEE";
 
 
@@ -52,6 +55,16 @@ public class UserServiceImpl implements UserServices {
             if (userRepository.findByEmail(userRequest.getEmail()).isPresent()) {
                 throw new SameEmailFoundException("Employee already exists with this email");
             }
+            if (metaUserRepository.findByUserEmail(userRequest.getEmail()).isPresent()) {
+                throw new SameEmailFoundException("Employee already exists with this email");
+            }
+
+            MetaUser metaUser = new MetaUser();
+
+            metaUser.setUserEmail(userRequest.getEmail());
+            metaUser.setSchemaName(schemaName);
+
+            metaUserRepository.save(metaUser);
 
             User user = userMapper.mapToUser(userRequest);
             user.setPassword(passwordEncoder.encode(userRequest.getPassword()));
@@ -59,9 +72,11 @@ public class UserServiceImpl implements UserServices {
             user.setDesignation(userRequest.getDesignation());
             user.setCreatedByAdminId(currentAdmin.getId());
             user.setSchemaName(schemaName);
+
             user.setBranchName(userRequest.getBranchName());
-            user.setModuleName(userRequest.getModuleName());
             user.setReportingTo(userRequest.getReportingTo());
+            user.setModuleName(userRequest.getModuleName());
+
             user = userRepository.save(user);
 
             Set<Role> attachedRoles = new HashSet<>();

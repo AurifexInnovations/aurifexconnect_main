@@ -31,10 +31,10 @@ public interface TaskService {
 
      void updateTaskStatusToCompleted(Long taskId);
 
-    OtpResponseDTO updateTaskMaterialForStatusProgress(Long taskId,
-            CompleteTaskRequestDTO completeTaskRequestDTO,
-            MultipartFile[] beforeImages,
-            MultipartFile[] afterImages);
+    OtpResponseDTO submitCompletionDetails(Long taskId, CompleteTaskRequestDTO completeTaskRequestDTO);
+
+    void uploadCompletionImages(Long taskId, MultipartFile[] beforeImages, MultipartFile[] afterImages);
+
 
     List<TechnicianTaskMapper> getTechnitianByTaskId(long taskId);
 
@@ -46,4 +46,7 @@ public interface TaskService {
     ResultDto<TechnicianLeaderboardDto> getTechnicianLeaderboard(PaginationRequest paginationRequest);
 
     ResultDto<GetAllTaskResponse> getAllTasks();
+
+    ResultDto<TechnicianResponseDTO> searchTasks(FilterRequest filterRequest);
+
 }
