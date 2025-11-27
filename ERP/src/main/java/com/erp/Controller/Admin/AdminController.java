@@ -21,7 +21,7 @@ public class AdminController {
 
     private final AdminService adminService;
 
-    @PreAuthorize("hasAuthority('ROLE_ROOT')")
+//    @PreAuthorize("hasAuthority('ROLE_ROOT')")
     @PostMapping("/admins")
     public ResponseEntity<ResponseStructure<AdminResponse>> createAdmin(@Valid @RequestBody AdminRequest adminRequest){
         AdminResponse adminResponse = adminService.createAdmin(adminRequest);
