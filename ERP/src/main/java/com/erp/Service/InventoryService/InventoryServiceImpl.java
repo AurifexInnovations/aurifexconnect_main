@@ -232,7 +232,7 @@ public class InventoryServiceImpl implements InventoryService {
 
         log.info("[InventoryServiceImpl] [findById] :: id {} ", inventoryId);
 
-        boolean isExits = inventoryRepository.findByItemId(inventoryId);
+        boolean isExits = inventoryRepository.findByItemIds(inventoryId);
 
         log.info("Exit [InventoryServiceImpl] [findById] ");
 

@@ -46,6 +46,7 @@ public class TechnicianResponseDTO {
 
     private  Long taskId;
 
+    private List<MaterialResponseDto> materials;
 
 
 }

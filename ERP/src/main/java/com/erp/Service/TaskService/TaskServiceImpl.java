@@ -20,6 +20,7 @@ import com.erp.Model.Task;
 import com.erp.Model.*;
 import com.erp.Projection.*;
 import com.erp.Repository.Feedback.FeedbackRepository;
+import com.erp.Repository.Inventory.InventoryRepository;
 import com.erp.Repository.Task.*;
 import com.erp.Repository.Utility.FileRepository;
 import com.erp.Security.util.UserIdentity;
@@ -82,6 +83,7 @@ public class TaskServiceImpl implements TaskService {
 
     private  final FileRepository fileRepository;
 
+    private final InventoryRepository inventoryRepository;
 
     @Lazy
     @Autowired
@@ -724,55 +726,39 @@ public class TaskServiceImpl implements TaskService {
             task.setSalfie(fileRepository.findByGenIdAndCategory(task.getTaskId(), FileUploadConstants.SELFIE));
             task.setAfterImagerUrl(fileRepository.findByGenIdAndCategory(task.getTaskId(), FileUploadConstants.AFTER_SERVICE));
             task.setBeforeImageUrl(fileRepository.findByGenIdAndCategory(task.getTaskId(), FileUploadConstants.BEFORE_SERVICE));
+
+            task.setMaterials(getTaskMaterial(task.getTaskId()));
         }
+
 
         return resultDto;
     }
 
 
-    public List<String> setImageUrlBefore(Long itemId) {
-
-        List<FileResponse> files = fileService.getAllFiles(itemId, FileUploadConstants.BEFORE_SERVICE);
-        List<String> urls = new ArrayList<String>();
-
-        if (files != null) {
-            for (int i = 0; i < files.size(); i++) {
-                FileResponse f = files.get(i);
-                if (f != null && f.getUrl() != null) {
-                    urls.add(f.getUrl());
-                }
+    private  List<MaterialResponseDto> getTaskMaterial(Long taskId){
+        List<TaskMaterial> taskMaterialList = taskMaterialRepository.findByTaskId(taskId);
+        List<MaterialResponseDto> list = new ArrayList<>();
+        MaterialResponseDto materialResponseDto = new MaterialResponseDto();
+        for( TaskMaterial  task :taskMaterialList){
+            Inventory  item = inventoryRepository.findByItemId(task.getMaterialId());
+            if(item!=null){
+                materialResponseDto.setMaterialId(item.getItemId());
+                materialResponseDto.setMaterialName(item.getItemName());
+                materialResponseDto.setUnit(task.getUnit());
+                materialResponseDto.setQuantity(task.getQuantity());
             }
+            list.add(materialResponseDto);
+
         }
 
-        return urls;
+        return list;
     }
 
-    public List<String> setImageUrAfter(Long itemId) {
-
-        List<FileResponse> files = fileService.getAllFiles(itemId, FileUploadConstants.AFTER_SERVICE);
-        List<String> urls = new ArrayList<String>();
-
-        if (files != null) {
-            for (int i = 0; i < files.size(); i++) {
-                FileResponse f = files.get(i);
-                if (f != null && f.getUrl() != null) {
-                    urls.add(f.getUrl());
-                }
-            }
-        }
-
-        return urls;
-    }
-
-    public List<String> setImageSelfie(Long itemId) {
-
-        List<String> files = fileRepository.findByGenIdAndCategory(itemId, FileUploadConstants.SELFIE);
-        return files;
 
 
 
 
-    }
+
 }
 
 

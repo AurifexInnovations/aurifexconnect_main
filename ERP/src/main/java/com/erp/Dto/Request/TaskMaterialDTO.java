@@ -16,5 +16,5 @@ public class TaskMaterialDTO {
 
     private  Boolean isUsed;
 
-    private Long quantity;
+    private Double quantity;
 }
