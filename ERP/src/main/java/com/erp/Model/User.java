@@ -47,6 +47,15 @@ public class User implements GenericUser {
     @Column(name = "schema_name")
     private String schemaName;
 
+    @Column(name = "branch_name")
+    private String branchName;
+
+    @Column(name = "module_name")
+    private String moduleName;
+
+    @Column(name = "reporting_to")
+    private String reportingTo;
+
     @Column(name = "created_by_admin_id")
     private long createdByAdminId;
 

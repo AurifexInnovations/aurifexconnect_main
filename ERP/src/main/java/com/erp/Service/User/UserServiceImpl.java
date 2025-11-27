@@ -72,6 +72,11 @@ public class UserServiceImpl implements UserServices {
             user.setDesignation(userRequest.getDesignation());
             user.setCreatedByAdminId(currentAdmin.getId());
             user.setSchemaName(schemaName);
+
+            user.setBranchName(userRequest.getBranchName());
+            user.setReportingTo(userRequest.getReportingTo());
+            user.setModuleName(userRequest.getModuleName());
+
             user = userRepository.save(user);
 
             Set<Role> attachedRoles = new HashSet<>();
@@ -116,7 +121,14 @@ public class UserServiceImpl implements UserServices {
     public List<UserResponse> getListOfUsers() {
 
         List<User> users = userRepository.findByIsActiveTrue();
-        return userMapper.mapToListOfUserResponse(users);
+        List<UserResponse> list = new ArrayList<>();
+
+        for (User user : users) {
+
+            list.add(toResponse(user));
+        }
+
+        return list;
     }
 
     @Transactional
@@ -167,7 +179,7 @@ public class UserServiceImpl implements UserServices {
         userPermissionService.updateUserRolePermissionByRoleName(roleNames, user.getId());
 
 //        updateUserModuleActionPermissions(user, updatedRoles, userUpdateRequest.getPermissions(), currentAdmin);
-        return userMapper.mapToUserResponse(user);
+        return toResponse(user);
 
     }
 
@@ -246,7 +258,7 @@ public class UserServiceImpl implements UserServices {
 
         user.setActive(false);
         userRepository.save(user);
-        return userMapper.mapToUserResponse(user);
+        return toResponse(user);
 
     }
 
@@ -263,5 +275,36 @@ public class UserServiceImpl implements UserServices {
 
         return userMapper.mapToListOfUserResponse(users);
 
+    }
+
+    // Utility Function
+    private UserResponse toResponse(User user) {
+        UserResponse response = new UserResponse();
+
+        response.setId(user.getId());
+        response.setFirstName(user.getFirstName());
+        response.setLastName(user.getLastName());
+        response.setEmail(user.getEmail());
+        response.setPhoneNo(user.getPhoneNo());
+        response.setActive(user.isActive());
+        response.setSchemaName(user.getSchemaName());
+        response.setCreatedAt(user.getCreatedAt());
+        response.setLastModifiedAt(user.getLastModifiedAt());
+        response.setBranchName(user.getBranchName());
+        response.setModuleName(user.getModuleName());
+        response.setReportingTo(user.getReportingTo());
+
+        // Full name
+        response.setFullName(user.getFirstName() + " " + user.getLastName());
+
+        // Roles → List<String>
+        List<String> roleNames = user.getRoles()
+                .stream()
+                .map(role -> role.getRoleName())
+                .toList();
+
+        response.setRoleNames(roleNames);
+
+        return response;
     }
 }
