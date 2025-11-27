@@ -732,6 +732,23 @@ public class TaskServiceImpl implements TaskService {
 
         return resultDto;
     }
+    @Override
+    public ResultDto<TechnicianResponseDTO> searchTasks() {
+        ResultDto<TechnicianResponseDTO> resultDto =
+                taskTechnicianCustomRepository.searchTasks();
+
+        List<TechnicianResponseDTO> tasks = resultDto.getResults();
+
+        for (int i = 0; i < tasks.size(); i++) {
+            TechnicianResponseDTO task = tasks.get(i);
+
+            task.setSalfie(fileRepository.findByGenIdAndCategory(task.getTaskId(), FileUploadConstants.SELFIE));
+            task.setAfterImagerUrl(fileRepository.findByGenIdAndCategory(task.getTaskId(), FileUploadConstants.AFTER_SERVICE));
+            task.setBeforeImageUrl(fileRepository.findByGenIdAndCategory(task.getTaskId(), FileUploadConstants.BEFORE_SERVICE));
+        }
+
+        return resultDto;
+    }
 
 
     private  List<MaterialDtoResponse> getTaskMaterial(Long taskId){

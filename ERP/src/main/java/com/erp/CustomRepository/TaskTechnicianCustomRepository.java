@@ -208,4 +208,123 @@ public class TaskTechnicianCustomRepository {
         if (o instanceof java.sql.Timestamp ts) return ts.toLocalDateTime().toLocalDate();
         return null;
     }
+    public ResultDto<TechnicianResponseDTO> searchTasks() {
+        log.info("Into [TaskTechnicianCustomRepository] [searchTasks]");
+
+        // ----------------- SELECT QUERY -----------------
+        StringBuilder sql = new StringBuilder("""
+            SELECT 
+                u.id AS technicianId,                         -- 0
+                t.task_category AS category,                  -- 1
+                CONCAT(u.first_name, ' ', u.last_name) AS technicianName,  -- 2
+                u.email AS technicianEmail,                   -- 3
+                u.phone_no AS technicianPhone,                -- 4
+                u.designation AS designation,                 -- 5
+                t.status AS status,                           -- 6
+                u.created_at AS createdAt,                    -- 7
+                u.last_modified_at AS updatedAt,              -- 8
+                ts.service_location AS location,              -- 9
+                ts.assigned_date AS assignedDate,             -- 10
+                ts.google_location_link AS googleLocationLink,-- 11
+                t.task_name AS taskName,                      -- 12
+
+                -- CUSTOMER DETAILS (ONLY NAME & ADDRESS)
+                c.customer_name AS customerName,              -- 13
+              
+                CONCAT(
+                    COALESCE(c.address_line_1, ''), ' ',
+                    COALESCE(c.address_line_2, ''), ' ',
+                    COALESCE(c.city, ''), ' ',
+                    COALESCE(c.state, ''), ' ',
+                    COALESCE(c.pincode, '')
+                ) AS customerAddress,                        -- 14
+
+                COALESCE(tser.service_name, 'No Service') AS serviceName,  -- 15
+                COALESCE(tser.service_id, 0) AS serviceId,                 -- 16
+                t.latitude AS latitude,                      -- 17
+                t.longitude AS longitude ,                    -- 18
+                 c.phone AS customerPhone ,
+                 t.task_id as taskId 
+                
+
+            FROM task t
+            LEFT JOIN customer c ON c.id = t.customer_id
+
+            LEFT JOIN (
+                SELECT DISTINCT ON (task_id) *
+                FROM task_schedule
+                ORDER BY task_id, assigned_date
+            ) ts ON ts.task_id = t.task_id
+
+            LEFT JOIN LATERAL (
+                SELECT tser.service_id, s.service_name
+                FROM task_services tser
+                LEFT JOIN service s ON s.service_id = tser.service_id
+                WHERE tser.task_id = t.task_id
+                ORDER BY tser.service_id ASC
+                LIMIT 1
+            ) tser ON TRUE
+
+            LEFT JOIN task_technicians tt ON t.task_id = tt.task_id
+            LEFT JOIN users u ON tt.technician_id = u.id
+
+            WHERE 1=1
+        """);
+
+        // ----------------- COUNT QUERY -----------------
+        StringBuilder countSql = new StringBuilder("""
+            SELECT COUNT(DISTINCT ROW(u.id, t.task_id))
+            FROM task t
+            LEFT JOIN customer c ON c.id = t.customer_id
+            LEFT JOIN task_technicians tt ON t.task_id = tt.task_id
+            LEFT JOIN users u ON tt.technician_id = u.id
+            LEFT JOIN task_schedule ts ON t.task_id = ts.task_id
+            WHERE 1=1
+        """);
+
+        Query dataQuery = entityManager.createNativeQuery(sql.toString());
+        Query countQuery = entityManager.createNativeQuery(countSql.toString());
+
+        long total = ((Number) countQuery.getSingleResult()).longValue();
+
+        List<Object[]> rows = dataQuery.getResultList();
+        List<TechnicianResponseDTO> results = new ArrayList<>();
+
+        for (Object[] row : rows) {
+            TechnicianResponseDTO r = new TechnicianResponseDTO();
+
+            r.setId(getLong(row[0]));
+            r.setCategory(getString(row[1]));
+            r.setName(getString(row[2]));
+            r.setEmail(getString(row[3]));
+            r.setPhone(getString(row[4]));
+            r.setDesignation(getString(row[5]));
+            r.setStatus(getEnum(row[6]));
+            r.setCreatedAt(getLocalDate(row[7]));
+            r.setUpdatedAt(getLocalDate(row[8]));
+            r.setLocation(getString(row[9]));
+            r.setAssignedDate(getLocalDate(row[10]));
+            r.setGoogleLocationLink(getString(row[11]));
+            r.setTaskName(getString(row[12]));
+
+            // CUSTOMER DETAILS
+            r.setCustomerName(getString(row[13]));
+            r.setCustomerAddress(getString(row[14]));
+
+            r.setServiceName(getString(row[15]));
+            r.setServiceId(getLong(row[16]));
+            r.setLatitude(getDouble(row[17]));
+            r.setLongitude(getDouble(row[18]));
+            r.setCustomerPhone(getString(row[19]));
+            r.setTaskId(getLong(row[20]));
+
+            results.add(r);
+        }
+
+        ResultDto<TechnicianResponseDTO> dto = new ResultDto<>();
+        dto.setResults(results);
+        dto.setCount(total);
+
+        return dto;
+    }
 }

@@ -49,4 +49,6 @@ public interface TaskService {
 
     ResultDto<TechnicianResponseDTO> searchTasks(FilterRequest filterRequest);
 
+    ResultDto<TechnicianResponseDTO> searchTasks();
+
 }

@@ -274,4 +274,9 @@ public class TaskController {
         log.info("[TaskTechnicianController] /search called");
         return taskService.searchTasks(filterRequest);
     }
+    @GetMapping ("/task/all")
+    public ResultDto<TechnicianResponseDTO> searchTasks() {
+        log.info("[TaskTechnicianController] /search called");
+        return taskService.searchTasks();
+    }
 }
