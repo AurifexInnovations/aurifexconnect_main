@@ -211,41 +211,43 @@ public class TaskTechnicianCustomRepository {
     public ResultDto<TechnicianResponseDTO> searchTasks() {
         log.info("Into [TaskTechnicianCustomRepository] [searchTasks]");
 
-        // ----------------- SELECT QUERY -----------------
+        // SELECT QUERY (unchanged except material fields already included)
         StringBuilder sql = new StringBuilder("""
             SELECT 
-                u.id AS technicianId,                         -- 0
-                t.task_category AS category,                  -- 1
-                CONCAT(u.first_name, ' ', u.last_name) AS technicianName,  -- 2
-                u.email AS technicianEmail,                   -- 3
-                u.phone_no AS technicianPhone,                -- 4
-                u.designation AS designation,                 -- 5
-                t.status AS status,                           -- 6
-                u.created_at AS createdAt,                    -- 7
-                u.last_modified_at AS updatedAt,              -- 8
-                ts.service_location AS location,              -- 9
-                ts.assigned_date AS assignedDate,             -- 10
-                ts.google_location_link AS googleLocationLink,-- 11
-                t.task_name AS taskName,                      -- 12
+                u.id AS technicianId,
+                t.task_category AS category,
+                CONCAT(u.first_name, ' ', u.last_name) AS technicianName,
+                u.email AS technicianEmail,
+                u.phone_no AS technicianPhone,
+                u.designation AS designation,
+                t.status AS status,
+                u.created_at AS createdAt,
+                u.last_modified_at AS updatedAt,
+                ts.service_location AS location,
+                ts.assigned_date AS assignedDate,
+                ts.google_location_link AS googleLocationLink,
+                t.task_name AS taskName,
 
-                -- CUSTOMER DETAILS (ONLY NAME & ADDRESS)
-                c.customer_name AS customerName,              -- 13
-              
+                c.customer_name AS customerName,
                 CONCAT(
                     COALESCE(c.address_line_1, ''), ' ',
                     COALESCE(c.address_line_2, ''), ' ',
                     COALESCE(c.city, ''), ' ',
                     COALESCE(c.state, ''), ' ',
                     COALESCE(c.pincode, '')
-                ) AS customerAddress,                        -- 14
+                ) AS customerAddress,
 
-                COALESCE(tser.service_name, 'No Service') AS serviceName,  -- 15
-                COALESCE(tser.service_id, 0) AS serviceId,                 -- 16
-                t.latitude AS latitude,                      -- 17
-                t.longitude AS longitude ,                    -- 18
-                 c.phone AS customerPhone ,
-                 t.task_id as taskId 
-                
+                COALESCE(tser.service_name, 'No Service') AS serviceName,
+                COALESCE(tser.service_id, 0) AS serviceId,
+                t.latitude AS latitude,
+                t.longitude AS longitude,
+                c.phone AS customerPhone,
+                t.task_id AS taskId,
+
+                COALESCE(tm.material_id, 0) AS materialId,
+                COALESCE(i.item_name, 'No Material') AS materialName,
+                COALESCE(tm.quantity, 0) AS materialQuantity,
+                COALESCE(tm.unit, '') AS materialUnit
 
             FROM task t
             LEFT JOIN customer c ON c.id = t.customer_id
@@ -267,13 +269,15 @@ public class TaskTechnicianCustomRepository {
 
             LEFT JOIN task_technicians tt ON t.task_id = tt.task_id
             LEFT JOIN users u ON tt.technician_id = u.id
+            LEFT JOIN task_material tm ON tm.task_id = t.task_id
+            LEFT JOIN inventory i ON i.item_id = tm.material_id
 
             WHERE 1=1
         """);
 
-        // ----------------- COUNT QUERY -----------------
+        // COUNT QUERY (unchanged)
         StringBuilder countSql = new StringBuilder("""
-            SELECT COUNT(DISTINCT ROW(u.id, t.task_id))
+            SELECT COUNT(DISTINCT t.task_id)
             FROM task t
             LEFT JOIN customer c ON c.id = t.customer_id
             LEFT JOIN task_technicians tt ON t.task_id = tt.task_id
@@ -282,47 +286,69 @@ public class TaskTechnicianCustomRepository {
             WHERE 1=1
         """);
 
+        sql.append("""
+            ORDER BY t.task_id DESC
+        """);
+
         Query dataQuery = entityManager.createNativeQuery(sql.toString());
         Query countQuery = entityManager.createNativeQuery(countSql.toString());
 
         long total = ((Number) countQuery.getSingleResult()).longValue();
 
         List<Object[]> rows = dataQuery.getResultList();
-        List<TechnicianResponseDTO> results = new ArrayList<>();
+
+        // ========================
+        // GROUPING LOGIC HERE
+        // ========================
+        Map<Long, TechnicianResponseDTO> taskMap = new LinkedHashMap<>();
 
         for (Object[] row : rows) {
-            TechnicianResponseDTO r = new TechnicianResponseDTO();
 
-            r.setId(getLong(row[0]));
-            r.setCategory(getString(row[1]));
-            r.setName(getString(row[2]));
-            r.setEmail(getString(row[3]));
-            r.setPhone(getString(row[4]));
-            r.setDesignation(getString(row[5]));
-            r.setStatus(getEnum(row[6]));
-            r.setCreatedAt(getLocalDate(row[7]));
-            r.setUpdatedAt(getLocalDate(row[8]));
-            r.setLocation(getString(row[9]));
-            r.setAssignedDate(getLocalDate(row[10]));
-            r.setGoogleLocationLink(getString(row[11]));
-            r.setTaskName(getString(row[12]));
+            Long taskId = getLong(row[20]);
 
-            // CUSTOMER DETAILS
-            r.setCustomerName(getString(row[13]));
-            r.setCustomerAddress(getString(row[14]));
+            TechnicianResponseDTO r = taskMap.get(taskId);
+            if (r == null) {
 
-            r.setServiceName(getString(row[15]));
-            r.setServiceId(getLong(row[16]));
-            r.setLatitude(getDouble(row[17]));
-            r.setLongitude(getDouble(row[18]));
-            r.setCustomerPhone(getString(row[19]));
-            r.setTaskId(getLong(row[20]));
+                r = new TechnicianResponseDTO();
+                r.setId(getLong(row[0]));
+                r.setCategory(getString(row[1]));
+                r.setName(getString(row[2]));
+                r.setEmail(getString(row[3]));
+                r.setPhone(getString(row[4]));
+                r.setDesignation(getString(row[5]));
+                r.setStatus(getEnum(row[6]));
+                r.setCreatedAt(getLocalDate(row[7]));
+                r.setUpdatedAt(getLocalDate(row[8]));
+                r.setLocation(getString(row[9]));
+                r.setAssignedDate(getLocalDate(row[10]));
+                r.setGoogleLocationLink(getString(row[11]));
+                r.setTaskName(getString(row[12]));
+                r.setCustomerName(getString(row[13]));
+                r.setCustomerAddress(getString(row[14]));
+                r.setServiceName(getString(row[15]));
+                r.setServiceId(getLong(row[16]));
+                r.setLatitude(getDouble(row[17]));
+                r.setLongitude(getDouble(row[18]));
+                r.setCustomerPhone(getString(row[19]));
+                r.setTaskId(taskId);
 
-            results.add(r);
+                r.setMaterials(new ArrayList<>());
+                taskMap.put(taskId, r);
+            }
+
+            Long materialId = getLong(row[21]);
+            if (materialId != null && materialId > 0) {
+                MaterialDtoResponse material = new MaterialDtoResponse();
+                material.setMaterialId(materialId);
+                material.setMaterialName(getString(row[22]));
+                material.setMaterialQuantity(getDouble(row[23]));
+                material.setMaterialUnit(getString(row[24]));
+                r.getMaterials().add(material);
+            }
         }
 
         ResultDto<TechnicianResponseDTO> dto = new ResultDto<>();
-        dto.setResults(results);
+        dto.setResults(new ArrayList<>(taskMap.values()));
         dto.setCount(total);
 
         return dto;
