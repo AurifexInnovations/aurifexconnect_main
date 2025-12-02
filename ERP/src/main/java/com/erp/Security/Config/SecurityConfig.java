@@ -122,12 +122,13 @@ public class SecurityConfig {
 
         return http
                 // Include "/" to allow the domain root as public
-                .securityMatcher("/", baseUrl, baseUrl + "/auth/**", baseUrl + "/login")
+                .securityMatcher("/", baseUrl, baseUrl + "/auth/**", baseUrl + "/login", "/api/password/**" )
                 .csrf(csrf -> csrf.disable())
                 .cors(cors -> cors.configurationSource(corsConfigurationSource()))
                 .authorizeHttpRequests(authorize -> authorize
                         // Allow access to root domain (/) and all auth/login/register endpoints
                         .requestMatchers("/", baseUrl, baseUrl + "/auth/**", baseUrl + "/login", baseUrl + "/auth/register/**", baseUrl + "/root/logout").permitAll()
+                        .requestMatchers("/api/password/**").permitAll()
                         .anyRequest().authenticated()
                 )
                 .authenticationManager(authManager)
@@ -146,11 +147,12 @@ public class SecurityConfig {
         String baseUrl = env.getBaseUrl();
         log.info("Configuring refresh filter chain for {}", baseUrl + "/refresh-login/**");
         return http
-                .securityMatcher(baseUrl + "/refresh-login/**")
+                .securityMatcher(baseUrl + "/refresh-login/**", "/api/password/**" )
                 .csrf(csrf -> csrf.disable())
                 .cors(cors -> cors.configurationSource(corsConfigurationSource()))
                 .authorizeHttpRequests(authorize -> authorize
                         .requestMatchers(baseUrl + "/refresh-login/**").permitAll()
+                        .requestMatchers("/api/password/**").permitAll()
                         .anyRequest().authenticated())
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .addFilterBefore(new RefreshAuthFilter(jwtService, tokenBlackListService), UsernamePasswordAuthenticationFilter.class)
@@ -170,7 +172,7 @@ public class SecurityConfig {
                 .cors(cors -> cors.configurationSource(corsConfigurationSource()))
                 .authorizeHttpRequests(authorize -> authorize
                         // allow root/default URLs without auth
-                        .requestMatchers("/", baseUrl + "/", baseUrl + "/admins").permitAll()
+                        .requestMatchers("/", baseUrl + "/", baseUrl + "/admins", baseUrl + "/api/password/**").permitAll()
                         .requestMatchers(baseUrl + "/admins/**").hasAnyAuthority("ROLE_ROOT")
                         .requestMatchers(baseUrl + "/roles/**").hasAnyAuthority("ROLE_ROOT", "ROLE_ADMIN")
                         .requestMatchers(baseUrl + "/user", baseUrl + "/user/delete/**").hasAnyAuthority("ROLE_ADMIN")

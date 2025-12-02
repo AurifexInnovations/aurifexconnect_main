@@ -44,7 +44,8 @@ public class RolePermissionFilter extends OncePerRequestFilter {
                 || path.startsWith("/api/v1/auth")
                 || path.startsWith("/api/v1/users")
                 || path.startsWith("/api/v1/admins") || path.startsWith("/api/v1/admin")
-                || path.startsWith("/api/v1/root/logout")) {
+                || path.startsWith("/api/v1/root/logout")
+                || path.startsWith("/api/password") ) {
             log.info("Skipping JwtPermissionFilter for endpoint: {}", path);
             return true;
         }
