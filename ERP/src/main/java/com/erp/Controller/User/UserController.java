@@ -1,6 +1,7 @@
 package com.erp.Controller.User;
 
 import com.erp.Dto.Request.CommanParam;
+import com.erp.Dto.Request.UserProfileRequest;
 import com.erp.Dto.Request.UserRequest;
 import com.erp.Dto.Request.UserUpdateRequest;
 import com.erp.Dto.Response.UserResponse;
@@ -12,6 +13,7 @@ import lombok.AllArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.stereotype.Repository;
 import org.springframework.web.bind.annotation.*;
 import java.util.List;
 
@@ -68,4 +70,17 @@ public class UserController {
 
     }
 
+    @GetMapping("/users/byEmail")
+    public ResponseEntity<ResponseStructure<UserResponse>> findByEmail()
+    {
+        UserResponse userResponse = userServices.getByEmail();
+        return ResponseBuilder.success(HttpStatus.OK, "User Fetched Successfully!!", userResponse);
+    }
+
+    @PutMapping("/user/profile/update")
+    public ResponseEntity<ResponseStructure<UserResponse>> updateUser(@RequestBody UserProfileRequest userProfileRequest)
+    {
+        UserResponse response = userServices.updateUser(userProfileRequest);
+        return ResponseBuilder.success(HttpStatus.OK, "User Updated Successfully!!", response);
+    }
 }
