@@ -241,4 +241,89 @@ public class CompanyDetailsCustomRepository {
         return ldt.atZone(ZoneId.systemDefault()).toInstant();
     }
 
+
+    public ResultDto<CompanyDetailsResponseDto> getAllData() {
+
+        log.info("Into [CompanyDetailsCustomRepository] [getAllData]");
+
+        // -------- BASE QUERY --------
+        StringBuilder jpql = new StringBuilder("SELECT c FROM CompanyDetails c WHERE 1=1");
+
+        // -------- CREATE REAL QUERY --------
+        TypedQuery<CompanyDetails> query = entityManager.createQuery(jpql.toString(), CompanyDetails.class);
+
+        // -------- Getting Data According To Filter --------
+        List<CompanyDetails> companies = query.getResultList();
+
+        // -------- COUNT QUERY -------
+        StringBuilder countJpql = new StringBuilder("SELECT COUNT(c) FROM CompanyDetails c WHERE 1=1");
+
+        // -------- CREATING REAL QUERY FOR COUNT --------
+        TypedQuery<Long> countQuery = entityManager.createQuery(countJpql.toString(), Long.class);
+
+        // ---- Get Total Number of Records ----
+        long totalCount = countQuery.getSingleResult();
+
+        // ---- Setting ResultDto ----
+        ResultDto<CompanyDetailsResponseDto> resultDto = new ResultDto<>();
+        resultDto.setCount(totalCount);
+
+        List<CompanyDetailsResponseDto> responseList = new ArrayList<>();
+
+        for (CompanyDetails company : companies) {
+
+            // Fetch subscription details using company email
+            SubscriptionEntity subscription = subscriptionRepository
+                    .findByUserId(company.getCompanyEmail())
+                    .orElse(null);
+
+            // Convert DocumentDetails -> DocumentDetailsRequestDto
+            List<DocumentDetailsRequestDto> docs = company.getDocumentDetails()
+                    .stream()
+                    .map(doc -> new DocumentDetailsRequestDto(
+                            doc.getDocumentName(),
+                            doc.getDocumentUrl()
+                    ))
+                    .toList();
+
+            CompanyDetailsResponseDto dto = new CompanyDetailsResponseDto(
+                    company.getId(),
+                    company.getName(),
+                    company.getOfficeNo(),
+                    company.getAddressLine1(),
+                    company.getAddressLine2(),
+                    company.getDescription(),
+                    company.getGstNumber(),
+                    company.getPanNumber(),
+                    company.getIndustryType() != null ? company.getIndustryType().name() : null,
+                    company.getReviewStatus() != null ? company.getReviewStatus().name() : null,
+                    company.getReviewComment(),
+                    company.getContactPersonName(),
+                    company.getContactPersonEmail(),
+                    company.getContactPersonPhone(),
+                    company.getPincode(),
+                    company.getCity(),
+                    company.getState(),
+                    company.getReviewedBy(),
+                    company.getCompanyEmail(),
+                    company.getCreatedDate(),
+
+                    // Subscription data
+                    subscription != null ? subscription.getPlanStartDate().toString() : null,
+                    subscription != null ? subscription.getPlanEndDate().toString() : null,
+                    subscription != null ? subscription.getTotalTechnicians() : null,
+                    subscription != null ? subscription.getTotalBranches() : null,
+                    subscription != null ? subscription.getAccountUser() : null,
+
+                    docs
+            );
+
+            responseList.add(dto);
+        }
+
+        resultDto.setResults(responseList);
+
+        log.info("Exit [CompanyDetailsCustomRepository] with count = {}, pageResults = {}", totalCount, companies.size());
+        return resultDto;
+    }
 }

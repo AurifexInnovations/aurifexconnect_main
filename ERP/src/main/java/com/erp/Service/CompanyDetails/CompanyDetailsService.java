@@ -21,4 +21,6 @@ public interface CompanyDetailsService {
     ResultDto<CompanyDetailsResponseDto> getFilterData(FilterRequest filterRequest);
 
     CompanyDetailsResponseDto getByEmail();
+
+    ResultDto<CompanyDetailsResponseDto> getAllCompanies();
 }

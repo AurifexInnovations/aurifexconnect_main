@@ -8,6 +8,7 @@ import com.erp.Dto.Response.CompanyDetailsResponseDto;
 import com.erp.Dto.Response.ResultDto;
 import com.erp.Enum.ReviewStatus;
 import com.erp.Exception.CompnayDetails.CompanyDetailsFoundException;
+import com.erp.Exception.ResourceFoundException;
 import com.erp.Exception.ResourceNotFoundException;
 import com.erp.Mapper.companyDetails.CompanyDetailsMapper;
 import com.erp.Model.CompanyDetails;
@@ -20,6 +21,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.util.ArrayList;
 import java.util.Optional;
 
 @RequiredArgsConstructor
@@ -64,7 +66,7 @@ public class CompanyDetailsServiceImpl implements CompanyDetailsService {
 
                 CompanyDetails companyDetails = companyDetailsRepository.findByCompanyEmail(email);
 
-                if (companyDetails.getReviewStatus() == ReviewStatus.REJECTED) {
+                if (companyDetails.getReviewStatus() == ReviewStatus.REJECTED || companyDetails.getReviewStatus() == ReviewStatus.ERROR) {
 
                     companyDetailsMapper.updateEntityFromEntity(newEntity, companyDetails);
 
@@ -76,7 +78,7 @@ public class CompanyDetailsServiceImpl implements CompanyDetailsService {
                     CompanyDetails savedEntity = companyDetailsRepository.save(companyDetails);
                     return companyDetailsMapper.toResponseDto(savedEntity);
                 } else {
-                    throw new ResourceNotFoundException("Company Already Exists With Email : " + email);
+                    throw new ResourceFoundException("Company Already Exists With Email : " + email);
                 }
             }
 
@@ -118,5 +120,10 @@ public class CompanyDetailsServiceImpl implements CompanyDetailsService {
             throw new ResourceNotFoundException("Company Not Found With Email : " + email);
 
         return companyDetailsMapper.toResponseDto(companyDetails);
+    }
+
+    @Override
+    public ResultDto<CompanyDetailsResponseDto> getAllCompanies() {
+        return companyDetailsCustomRepository.getAllData();
     }
 }
