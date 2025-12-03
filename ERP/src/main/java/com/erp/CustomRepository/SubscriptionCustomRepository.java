@@ -66,7 +66,8 @@ public class SubscriptionCustomRepository {
                             orderClause.add("s.planStartDate " + ("desc".equalsIgnoreCase(direction) ? "DESC" : "ASC"));
                     case "createdAt" ->
                             orderClause.add("s.createdAT " + ("desc".equalsIgnoreCase(direction) ? "DESC" : "ASC"));
-                }
+                    case "planEndDate" ->
+                            orderClause.add("s.planEndDate " + ("desc".equalsIgnoreCase(direction) ? "DESC" : "ASC"));                }
             });
             jpql.append(String.join(", ", orderClause));
         }

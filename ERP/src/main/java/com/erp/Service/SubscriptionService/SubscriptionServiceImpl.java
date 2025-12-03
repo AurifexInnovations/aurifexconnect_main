@@ -3,18 +3,28 @@ package com.erp.Service.SubscriptionService;
 import com.erp.CustomRepository.SubscriptionCustomRepository;
 import com.erp.Dto.Request.FilterRequest;
 import com.erp.Dto.Request.UserSubscriptionRequest;
+import com.erp.Dto.Response.AdminResponse;
 import com.erp.Dto.Response.ResultDto;
+import com.erp.Dto.Response.SubscriptionAdminResponse;
 import com.erp.Dto.Response.UserSubscriptionResponse;
 import com.erp.Dto.SubscriptionsDto.SubscriptionDto;
+import com.erp.Exception.Admin.AdminNotFoundException;
+import com.erp.Exception.ResourceNotFoundException;
+import com.erp.Mapper.Admin.AdminMapper;
 import com.erp.Mapper.SubscriptionModule.SubscriptionMapper;
+import com.erp.Meta.MetaAdminRepository;
+import com.erp.Model.Admin;
 import com.erp.Model.SubscriptionEntity;
 import com.erp.Repository.Admin.AdminUserRepository;
+import com.erp.Repository.Admin.AdminUserRepositoryCustom;
+import com.erp.Repository.Admin.AdminUserRepositoryImpl;
 import com.erp.Repository.SubscriptionModule.SubscriptionRepository;
 import com.erp.Security.util.UserIdentity;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDate;
+import java.util.List;
 
 @Service
 public class SubscriptionServiceImpl implements ISubscriptionService {
@@ -25,6 +35,12 @@ public class SubscriptionServiceImpl implements ISubscriptionService {
     private SubscriptionCustomRepository subscriptionCustomRepository;
     @Autowired
     private UserIdentity userIdentity;
+    @Autowired
+    private MetaAdminRepository metaAdminRepository;
+    @Autowired
+    private AdminUserRepositoryImpl adminUserRepositoryCustom;
+    @Autowired
+    private AdminMapper adminMapper;
 
 //    @Autowired
 //    RazorpayService razorpayService;
@@ -131,5 +147,47 @@ public class SubscriptionServiceImpl implements ISubscriptionService {
     public ResultDto<SubscriptionDto> fetchFIlterSubscription(FilterRequest filterRequest) {
         ResultDto<SubscriptionDto> res = subscriptionCustomRepository.getSubscriptionsFilter(filterRequest);
         return res;
+    }
+
+    @Override
+    public ResultDto<SubscriptionDto> fetchAllSubscriptions() {
+        List<SubscriptionDto> list = SubscriptionMapper.toSubscriptionDtoList(subscriptionRepository.findAll());
+
+        ResultDto<SubscriptionDto> result = new ResultDto<>();
+
+        result.setCount(list.size());
+        result.setResults(list);
+
+        return result;
+    }
+
+    @Override
+    public SubscriptionAdminResponse fetchSubscriptionAdminByUserId(String userId) {
+        SubscriptionAdminResponse subscriptionAdminResponse = new SubscriptionAdminResponse();
+
+        String schema = metaAdminRepository.findSchemaNameByAdminEmail(userId)
+                .orElseThrow(() -> new AdminNotFoundException("First Create Admin !!"));
+
+        SubscriptionEntity subscription = subscriptionRepository.findByUserId(userId)
+                .orElseThrow(() -> new ResourceNotFoundException("Subscription Not Found For Email : "+userId));
+
+        Admin admin = adminUserRepositoryCustom.findByEmailWithSchema(userId, schema)
+                .orElseThrow(() -> new AdminNotFoundException("First Create Admin !!"));
+
+        subscriptionAdminResponse.setSubscriptionDto(SubscriptionMapper.toDto(subscription));
+        subscriptionAdminResponse.setAdminResponse(adminMapper.mapToAdminResponse(admin));
+
+        return subscriptionAdminResponse;
+    }
+
+    @Override
+    public ResultDto<SubscriptionDto> fetchAllScubscriptionByAdminEmail(String email) {
+        List<SubscriptionEntity> list = subscriptionRepository.findAllByUserIdOrderByCreatedAtAsc(email);
+        List<SubscriptionDto> result = SubscriptionMapper.toSubscriptionDtoList(list);
+
+        ResultDto<SubscriptionDto> resultDto = new ResultDto<>();
+        resultDto.setResults(result);
+        resultDto.setCount(result.size());
+        return resultDto;
     }
 }
