@@ -20,6 +20,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
@@ -222,28 +223,60 @@ public class TaskController {
 
     @PostMapping("/task/completed/{taskId}")
     @Operation(
-            summary = "Update Task Materials for a Task",
-            description = "Update or add task materials for the given task ID",
+            summary = "Submit completion details for a task",
+            description = "Submit feedback and materials for the given task ID",
             responses = {
-                    @ApiResponse(responseCode = "200", description = "Task materials updated successfully"),
-                    @ApiResponse(responseCode = "400", description = "Invalid task ID or task material list")
+                    @ApiResponse(responseCode = "200", description = "Completion details submitted"),
+                    @ApiResponse(responseCode = "400", description = "Invalid task ID or request body")
             }
     )
-    public ResponseEntity<ResponseStructure<OtpResponseDTO>> updateTaskMaterials(@PathVariable ("taskId") Long taskId,
-            @RequestPart("completeTaskRequestDTO") CompleteTaskRequestDTO completeTaskRequestDTO,
-            @RequestParam("beforeImages") MultipartFile[] beforeImages,
-            @RequestParam("afterImages") MultipartFile[] afterImages) {
+    public ResponseEntity<ResponseStructure<OtpResponseDTO>> submitCompletionDetails(
+            @PathVariable("taskId") Long taskId,
+            @RequestBody CompleteTaskRequestDTO completeTaskRequestDTO) {
 
-        OtpResponseDTO otpResponseDTO = taskService.updateTaskMaterialForStatusProgress(taskId,completeTaskRequestDTO,beforeImages,afterImages);
+        OtpResponseDTO otpResponseDTO =
+                taskService.submitCompletionDetails(taskId, completeTaskRequestDTO);
 
         return ResponseBuilder.success(
                 HttpStatus.OK,
-                "Task Completed  successfully",
+                "Completion details submitted successfully",
                 otpResponseDTO
         );
     }
 
+    @PostMapping(value = "/task/completed/images/{taskId}",
+            consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    @Operation(
+            summary = "Upload task completion images",
+            description = "Uploads before and after images for the task",
+            responses = {
+                    @ApiResponse(responseCode = "200", description = "Images uploaded successfully"),
+                    @ApiResponse(responseCode = "400", description = "Images missing or invalid task ID")
+            }
+    )
+    public ResponseEntity<ResponseStructure<String>> uploadCompletionImages(
+            @PathVariable("taskId") Long taskId,
+            @RequestParam("beforeImages") MultipartFile[] beforeImages,
+            @RequestParam("afterImages") MultipartFile[] afterImages) {
+
+        taskService.uploadCompletionImages(taskId, beforeImages, afterImages);
+
+        return ResponseBuilder.success(
+                HttpStatus.OK,
+                "Images uploaded successfully",
+                "OK"
+        );
+    }
 
 
-
+    @PostMapping("/task/search")
+    public ResultDto<TechnicianResponseDTO> searchTasks(@RequestBody FilterRequest filterRequest) {
+        log.info("[TaskTechnicianController] /search called");
+        return taskService.searchTasks(filterRequest);
+    }
+    @GetMapping ("/task/all")
+    public ResultDto<TechnicianResponseDTO> searchTasks() {
+        log.info("[TaskTechnicianController] /search called");
+        return taskService.searchTasks();
+    }
 }

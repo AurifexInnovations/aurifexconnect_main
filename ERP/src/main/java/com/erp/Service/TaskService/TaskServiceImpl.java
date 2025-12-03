@@ -1,5 +1,7 @@
 package com.erp.Service.TaskService;
 
+import com.erp.CustomRepository.InventoryCustomRepository;
+import com.erp.CustomRepository.TaskTechnicianCustomRepository;
 import com.erp.Dto.Request.*;
 import com.erp.Dto.Response.*;
 import com.erp.Dto.Response.TechnicianResponse;
@@ -18,9 +20,12 @@ import com.erp.Model.Task;
 import com.erp.Model.*;
 import com.erp.Projection.*;
 import com.erp.Repository.Feedback.FeedbackRepository;
+import com.erp.Repository.Inventory.InventoryRepository;
 import com.erp.Repository.Task.*;
+import com.erp.Repository.Utility.FileRepository;
 import com.erp.Security.util.UserIdentity;
 
+import com.erp.Service.InventoryService.InventoryService;
 import com.erp.Service.Otp.OtpService;
 import com.erp.Service.Utility.FileService;
 import com.erp.constants.FileUploadConstants;
@@ -29,6 +34,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
 
+import org.apache.regexp.RE;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.data.domain.PageRequest;
@@ -70,6 +76,14 @@ public class TaskServiceImpl implements TaskService {
     private final TaskDetailsMapper taskDetailsMapper;
 
     private final FeedbackRepository feedbackRepository;
+
+    private final TaskTechnicianCustomRepository taskTechnicianCustomRepository;
+
+    private final InventoryCustomRepository inventoryCustomRepository;
+
+    private  final FileRepository fileRepository;
+
+    private final InventoryRepository inventoryRepository;
 
     @Lazy
     @Autowired
@@ -293,49 +307,45 @@ public class TaskServiceImpl implements TaskService {
 
     @Override
     public List<com.erp.Projection.TechnicianResponse> getTechnicians(TechnicianRequest technicianRequest) {
+
         log.info("[TaskService] [getTechnicians] Entered with request: {}", technicianRequest);
 
-        List<com.erp.Projection.TechnicianResponse> technicianList = new ArrayList<>();
+        List<com.erp.Projection.TechnicianResponse> technicianList;
 
         try {
-
-            if (technicianRequest.getStatus() != null
-                    && technicianRequest.getCategory() != null
-                    && technicianRequest.getStartDate() != null
-                    && technicianRequest.getEndDate() != null) {
-
-                Pageable pageable = PageRequest.of(
-                        technicianRequest.getOffset() / technicianRequest.getSize(), // page number
-                        technicianRequest.getSize(),
-                        Sort.by(Sort.Direction.DESC, "task_id")
-                );
-
-
-                LocalDate startDate = technicianRequest.getStartDate();
-                LocalDate endDate = technicianRequest.getEndDate();
-                String status = technicianRequest.getStatus();
-                Boolean isActive = Boolean.FALSE;
-                if (Objects.nonNull(status) && status.equals("active")) {
+            // Convert status string -> Boolean
+            Boolean isActive = null;
+            if (technicianRequest.getStatus() != null) {
+                if ("active".equalsIgnoreCase(technicianRequest.getStatus())) {
                     isActive = Boolean.TRUE;
+                } else if ("inactive".equalsIgnoreCase(technicianRequest.getStatus())) {
+                    isActive = Boolean.FALSE;
                 }
-
-                technicianList = taskRepository.searchTasksWithScheduleAndTechnicians(
-                        startDate,
-                        endDate,
-                        isActive,
-                        technicianRequest.getCategory()
-                );
-
             }
+
+            // ALWAYS call repository – your SQL handles NULL filters.
+            technicianList = taskRepository.searchTasksWithScheduleAndTechnicians(
+                    isActive,
+                    technicianRequest.getCategory(),
+                    technicianRequest.getDay(),
+                    technicianRequest.getMonth(),
+                    technicianRequest.getTaskId(),
+                    technicianRequest.getTechnicianId(),
+                    technicianRequest.getStartDate(),
+                    technicianRequest.getEndDate()
+            );
+
             log.info("[TaskService] [getTechnicians] Found {} technicians", technicianList.size());
+
         } catch (Exception e) {
             log.error("[TaskService] [getTechnicians] Error while fetching technicians", e);
-            throw new RuntimeException("Failed to fetch technicians", e);
+            throw new ResourceNotFoundException(e.getMessage());
         }
 
         log.info("[TaskService] [getTechnicians] Exiting method");
         return technicianList;
     }
+
 
     @Override
     public List<TechnicianTaskProjection> getTechniciansByDateAndAssigenDate(TechnicianTaskRequest technicianTaskRequest) {
@@ -535,12 +545,10 @@ public class TaskServiceImpl implements TaskService {
 
 
     @Transactional
-    public OtpResponseDTO updateTaskMaterialForStatusProgress(Long taskId,
-                                                              CompleteTaskRequestDTO completeTaskRequestDTO,
-                                                              MultipartFile[] beforeImages,
-                                                              MultipartFile[] afterImages) {
+    public OtpResponseDTO submitCompletionDetails(Long taskId,
+                                                  CompleteTaskRequestDTO completeTaskRequestDTO) {
 
-        log.info("Starting updateTaskMaterialForStatusProgress for taskId: {}", taskId);
+        log.info("Starting submitCompletionDetails for taskId: {}", taskId);
 
         if (completeTaskRequestDTO.getTaskMaterialList() == null
                 || completeTaskRequestDTO.getTaskMaterialList().isEmpty()) {
@@ -549,39 +557,40 @@ public class TaskServiceImpl implements TaskService {
             );
         }
 
-        if ((beforeImages == null || beforeImages.length == 0)
-                && (afterImages == null || afterImages.length == 0)) {
-            throw new BadRequestException("Both before and after images are required to update task status.");
-        }
-        OtpResponseDTO otpResponseDTO = new OtpResponseDTO();
-        try {
+        OtpResponseDTO otpResponseDTO =
+                otpService.validateOtp(
+                        completeTaskRequestDTO.getFeedbackList().getMobileNo(),
+                        completeTaskRequestDTO.getFeedbackList().getOtp()
+                );
 
-            otpResponseDTO =
-                    otpService.validateOtp(completeTaskRequestDTO.getFeedbackList().getMobileNo(), completeTaskRequestDTO.getFeedbackList().getOtp());
+        List<TaskMaterial> existingMaterials = taskMaterialRepository.findByTaskId(taskId);
 
-            log.info("Fetching existing task materials for taskId: {}", taskId);
-            List<TaskMaterial> existingMaterials = taskMaterialRepository.findByTaskId(taskId);
-            log.info("Found {} existing task materials for taskId: {}", existingMaterials.size(), taskId);
+        saveFeedbackList(completeTaskRequestDTO.getFeedbackList(), taskId);
 
-            saveFeedbackList(completeTaskRequestDTO.getFeedbackList(), taskId);
+        saveTaskMaterials(taskId, completeTaskRequestDTO.getTaskMaterialList(), existingMaterials);
 
-            // Save or update task materials
-            saveTaskMaterials(taskId, completeTaskRequestDTO.getTaskMaterialList(), existingMaterials);
+        updateTaskScheduleForCompletion(taskId);
+        updateTaskStatusToCompleted(taskId);
 
-            fileService.uploadFiles(taskId, FileUploadConstants.BEFORE_SERVICE, beforeImages);
-
-            fileService.uploadFiles(taskId, FileUploadConstants.AFTER_SERVICE, afterImages);
-
-            updateTaskScheduleForCompletion(taskId);
-            updateTaskStatusToCompleted(taskId);
-
-
-        } catch (Exception e) {
-            log.error("Error updating task materials for taskId: {}", taskId, e);
-            throw e;
-        }
         return otpResponseDTO;
     }
+
+    @Transactional
+    public void uploadCompletionImages(Long taskId,
+                                       MultipartFile[] beforeImages,
+                                       MultipartFile[] afterImages) {
+
+        log.info("Uploading completion images for taskId: {}", taskId);
+
+        if ((beforeImages == null || beforeImages.length == 0)
+                && (afterImages == null || afterImages.length == 0)) {
+            throw new BadRequestException("Both before and after images are required.");
+        }
+
+        fileService.uploadFiles(taskId, FileUploadConstants.BEFORE_SERVICE, beforeImages);
+        fileService.uploadFiles(taskId, FileUploadConstants.AFTER_SERVICE, afterImages);
+    }
+
 
     private void updateTaskScheduleForCompletion(Long taskId) {
         TaskSchedule taskSchedule = taskScheduleRepository.findByTaskId(taskId);
@@ -702,6 +711,72 @@ public class TaskServiceImpl implements TaskService {
 
         return technicianTaskMapperRepository.getTechnitianFeedbackDetails(feedbackId);
     }
+
+    public ResultDto<TechnicianResponseDTO> searchTasks(FilterRequest filterRequest) {
+
+        ResultDto<TechnicianResponseDTO> resultDto =
+                taskTechnicianCustomRepository.searchTasks(filterRequest);
+
+        List<TechnicianResponseDTO> tasks = resultDto.getResults();
+
+        for (int i = 0; i < tasks.size(); i++) {
+            TechnicianResponseDTO task = tasks.get(i);
+
+            task.setSalfie(fileRepository.findByGenIdAndCategory(task.getTaskId(), FileUploadConstants.SELFIE));
+            task.setAfterImagerUrl(fileRepository.findByGenIdAndCategory(task.getTaskId(), FileUploadConstants.AFTER_SERVICE));
+            task.setBeforeImageUrl(fileRepository.findByGenIdAndCategory(task.getTaskId(), FileUploadConstants.BEFORE_SERVICE));
+
+            task.setMaterials(getTaskMaterial(task.getTaskId()));
+        }
+
+
+        return resultDto;
+    }
+    @Override
+    public ResultDto<TechnicianResponseDTO> searchTasks() {
+        ResultDto<TechnicianResponseDTO> resultDto =
+                taskTechnicianCustomRepository.searchTasks();
+
+        List<TechnicianResponseDTO> tasks = resultDto.getResults();
+
+        for (int i = 0; i < tasks.size(); i++) {
+            TechnicianResponseDTO task = tasks.get(i);
+
+            task.setSalfie(fileRepository.findByGenIdAndCategory(task.getTaskId(), FileUploadConstants.SELFIE));
+            task.setAfterImagerUrl(fileRepository.findByGenIdAndCategory(task.getTaskId(), FileUploadConstants.AFTER_SERVICE));
+            task.setBeforeImageUrl(fileRepository.findByGenIdAndCategory(task.getTaskId(), FileUploadConstants.BEFORE_SERVICE));
+        }
+
+        return resultDto;
+    }
+
+
+    private  List<MaterialDtoResponse> getTaskMaterial(Long taskId){
+        List<TaskMaterial> taskMaterialList = taskMaterialRepository.findByTaskId(taskId);
+        List<MaterialDtoResponse> list = new ArrayList<>();
+        MaterialDtoResponse materialResponseDto = new MaterialDtoResponse();
+        for( TaskMaterial  task :taskMaterialList){
+            Inventory  item = inventoryRepository.findByItemId(task.getMaterialId());
+            if(item!=null){
+                materialResponseDto.setMaterialId(item.getItemId());
+                materialResponseDto.setMaterialName(item.getItemName());
+                materialResponseDto.setMaterialUnit(task.getUnit());
+                materialResponseDto.setMaterialQuantity(task.getQuantity());
+            }
+            list.add(materialResponseDto);
+
+        }
+
+        return list;
+    }
+
+
+
+
+
+
 }
+
+
 
 

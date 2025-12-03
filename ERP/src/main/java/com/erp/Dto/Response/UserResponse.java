@@ -28,7 +28,10 @@ public class UserResponse {
     private LocalDate lastModifiedAt;
 
     private List<String> roleNames;
+
+    private String branchName;
+    private String moduleName;
+    private String reportingTo;
+
     private String fullName;
-
-
 }

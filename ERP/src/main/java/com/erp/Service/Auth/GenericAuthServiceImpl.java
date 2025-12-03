@@ -2,8 +2,11 @@ package com.erp.Service.Auth;
 
 import com.erp.Dto.Request.AuthRecord;
 import com.erp.Dto.Request.LoginRequest;
+import com.erp.Exception.Schema.SchemaNotFound;
 import com.erp.Exception.User.UserInActiveException;
+import com.erp.Exception.User.UserNotFoundException;
 import com.erp.Meta.MetaAdminRepository;
+import com.erp.Meta.MetaUserRepository;
 import com.erp.Model.GenericUser;
 import com.erp.Model.RootUser;
 import com.erp.Multitenancy.TenantContext;
@@ -40,10 +43,11 @@ public class GenericAuthServiceImpl implements AuthService {
     private final TokenBlackListService tokenBlackListService;
     private final RootUserRepository rootUserRepository;
     private final MetaAdminRepository metaAdminRepository;
+    private final MetaUserRepository metaUserRepository;
     private final JWTService jwtService;
     private final CookieManager cookieManager;
     private final PasswordEncoder passwordEncoder;
-    private  final TokenGenerationService tokenGenerationService;
+    private final TokenGenerationService tokenGenerationService;
     private final TokenGenerationServiceHelper generationServiceHelper;
 
     // Constant Declaration '
@@ -79,14 +83,20 @@ public class GenericAuthServiceImpl implements AuthService {
         }
 
         // Step 3: Normal user — expect tenant auto-resolved from AuthFilter
-        String currentTenant = TenantContext.getCurrentTenant();
-        if (currentTenant == null || currentTenant.isBlank()) {
-            throw new IllegalArgumentException("No matching tenant found for email: " + email);
-        }
+        if(loginRequest.schema() == null || loginRequest.schema().equals(""))
+            throw new SchemaNotFound("Schema Not Found For "+loginRequest.schema());
 
-        log.info("Login as NormalUser in tenant '{}'", currentTenant);
+        String resolvedTenant = loginRequest.schema().trim();
+        boolean existsSchema = metaAdminRepository.existsBySchemaName(resolvedTenant);
+
+        if(!existsSchema)
+            throw new SchemaNotFound("Schema Not Found For "+loginRequest.schema());
+
+        TenantContext.setCurrentTenant(resolvedTenant);
+
+        log.info("Login as NormalUser in tenant '{}'", resolvedTenant);
         GenericUser user = userRepositoryRegistry.findUserByEmail(email)
-                .orElseThrow(() -> new UsernameNotFoundException("User not found in tenant: " + currentTenant));
+                .orElseThrow(() -> new UsernameNotFoundException("User not found in tenant: " + resolvedTenant));
 
         return authenticateAndBuildRecord(user, email, password, user.getSchemaName());
     }
@@ -146,8 +156,8 @@ public class GenericAuthServiceImpl implements AuthService {
                 .map(auth -> auth.getAuthority())
                 .toList();
 
-        AuthRecord authRecord = new AuthRecord(user.getId(), user.getEmail(),true,schemaName,accessExpiration,refreshExpiration,
-                roles,"","");
+        AuthRecord authRecord = new AuthRecord(user.getId(), user.getEmail(), true, schemaName, accessExpiration, refreshExpiration,
+                roles, "", "");
         Map<String, Object> claim = tokenGenerationService.setClaim(authRecord);
         String accessCookie = generationServiceHelper.generateToken(
                 TokenType.ACCESS, claim, Instant.ofEpochMilli(authRecord.accessExpiration()));
@@ -193,8 +203,8 @@ public class GenericAuthServiceImpl implements AuthService {
                 .map(grantedAuthority -> grantedAuthority.getAuthority())
                 .toList();
 
-        AuthRecord authRecord = new AuthRecord(user.getId(), user.getEmail(),true,schemaName,accessExpiration,refreshExpiration,
-                roles,"","");
+        AuthRecord authRecord = new AuthRecord(user.getId(), user.getEmail(), true, schemaName, accessExpiration, refreshExpiration,
+                roles, "", "");
         Map<String, Object> claim = tokenGenerationService.setClaim(authRecord);
         String accessCookie = generationServiceHelper.generateToken(
                 TokenType.ACCESS, claim, Instant.ofEpochMilli(authRecord.accessExpiration()));

@@ -5,6 +5,7 @@ import com.erp.Exception.Admin.AdminAlreadyExistsException;
 import com.erp.Mapper.Admin.AdminMapper;
 import com.erp.Model.Admin;
 import com.erp.Multitenancy.TenantContext;
+import com.erp.Repository.Admin.AdminUserRepository;
 import com.erp.Security.util.UserIdentity;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.PersistenceContext;
@@ -24,6 +25,7 @@ public class AdminPersistenceService {
     private final AdminMapper adminMapper;
     private final PasswordEncoder passwordEncoder;
     private final UserIdentity userIdentity;
+    private final AdminUserRepository adminUserRepository;
 
     @PersistenceContext
     private EntityManager entityManager;
@@ -51,12 +53,15 @@ public class AdminPersistenceService {
 
         Admin admin = adminMapper.mapToAdmin(request);
         admin.setPassword(passwordEncoder.encode(request.getPassword()));
-        admin.setCreatedByRootUserId(userIdentity.getCurrentUser().getId());
-        admin.setLastUpdatedByRootUserId(userIdentity.getCurrentUser().getId());
+        admin.setCreatedByRootUserId(1);
+        admin.setLastUpdatedByRootUserId(1);
         admin.setSchemaName(schemaName);
 
-        entityManager.persist(admin);
-        entityManager.flush();
+
+        adminUserRepository.save(admin);
+
+//        entityManager.persist(admin);
+//        entityManager.flush();
         logger.info("Admin saved successfully in schema: {}", schemaName);
         return admin;
     }

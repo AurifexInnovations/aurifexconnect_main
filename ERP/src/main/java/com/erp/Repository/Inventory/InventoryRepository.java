@@ -29,7 +29,9 @@ public interface InventoryRepository extends JpaRepository<Inventory,Long> {
     Optional<Inventory> findByBranchAndItemName(Branch branch, String itemName);
 
     @Query(value = "SELECT CASE WHEN COUNT(*) > 0 THEN TRUE ELSE FALSE END FROM inventory WHERE item_id = :id", nativeQuery = true)
-    boolean findByItemId(long id);
+    boolean findByItemIds(long id);
+
+    Inventory findByItemId(Long itemId);
 
     @Modifying
     @Transactional

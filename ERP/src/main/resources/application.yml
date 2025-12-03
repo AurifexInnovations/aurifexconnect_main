@@ -94,3 +94,9 @@ aws:
   region: ${AWS_REGION}
   s3:
     bucket: ${AWS_S3_BUCKET}
+
+server:
+  connection-timeout: 60s
+  tomcat:
+    max-threads: 200
+    accept-count: 100
