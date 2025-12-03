@@ -1,5 +1,6 @@
 package com.erp.Projection;
 
+import com.erp.Dto.VarientDto;
 import com.erp.Enum.ProductCategories;
 import com.erp.Enum.ProductStatus;
 import com.erp.Enum.TaxName;
@@ -8,6 +9,7 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import java.time.LocalDateTime;
+import java.util.List;
 
 @Data
 @NoArgsConstructor
@@ -40,5 +42,6 @@ public class InventoryAndBranchProjection {
     private LocalDateTime latestExpiryDate;
     private TaxName taxName;
 
+    private List<VarientDto> varientDtoList;
 
 }

@@ -12,7 +12,15 @@ public interface CompanyDetailsService {
 
     Optional<CompanyDetailsResponseDto> findById(Long id);
 
+    CompanyDetailsResponseDto findBySingleId(Long id);
+
     CompanyDetailsResponseDto saveAndUpdate(CompanyDetailsRequestDto companyDetails);
 
+    CompanyDetailsResponseDto reviewCompany(CompanyDetailsRequestDto companyDetailsRequestDto);
+
     ResultDto<CompanyDetailsResponseDto> getFilterData(FilterRequest filterRequest);
+
+    CompanyDetailsResponseDto getByEmail();
+
+    ResultDto<CompanyDetailsResponseDto> getAllCompanies();
 }

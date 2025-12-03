@@ -1,5 +1,4 @@
 package com.erp.Exception;
-
 import com.erp.Dto.Response.ErrorResponse;
 import com.erp.Dto.Response.ValidationErrorResponse;
 import com.erp.Exception.AccountGroup.AccountGroupAlreadyExistsException;
@@ -9,8 +8,12 @@ import com.erp.Exception.AccountSubGroup.AccountSubGroupNotFoundException;
 import com.erp.Exception.Branch_Exception.BranchLimitExceededException;
 import com.erp.Exception.Ledger.LedgerAlreadyExistsException;
 import com.erp.Exception.Ledger.LedgerNotFoundException;
+import com.erp.Exception.Quotation.QuotationNotFoundException;
+import com.erp.Exception.SameEmail.SameEmailFoundException;
+import com.erp.Exception.ShipmentException.ShipmentNotFoundException;
 import com.erp.Exception.User.AccountManagerLimitExceededException;
 import com.erp.Exception.User.TechnicianLimitExceededException;
+import com.erp.Utility.SimpleErrorResponse;
 import lombok.extern.slf4j.Slf4j;
 import com.erp.Exception.Ledger.LedgerNotFoundException;
 import lombok.extern.slf4j.Slf4j;
@@ -27,7 +30,7 @@ import java.util.Map;
 
 @ControllerAdvice
 @Slf4j
-public class GlobalExceptionHandler {
+public class GlobalExceptionHandler  {
 
     private final static String SOMETHING_WENT_WRONG = "Something Went Wrong";
 
@@ -43,11 +46,11 @@ public class GlobalExceptionHandler {
                 .path("/api/v1")
                 .build();
 
-        log.error("Error [GlobalExceptionHandler] [handleGlobalException]  :: {} ", ex.getStackTrace());
+        log.error("Error [GlobalExceptionHandler] [handleGlobalException]  :: {} " , ex.getStackTrace());
 
         log.info("Exit [GlobalExceptionHandler] [handleGlobalException] ");
 
-        return new ResponseEntity<>(errorResponse, HttpStatus.NOT_FOUND);
+        return new ResponseEntity<>(errorResponse , HttpStatus.NOT_FOUND);
     }
 
     @ExceptionHandler(ResourceFoundException.class)
@@ -63,11 +66,11 @@ public class GlobalExceptionHandler {
                 .build();
 
 
-        log.error("Error [GlobalExceptionHandler] [handleGlobalException]  :: {} ", ex.getStackTrace());
+        log.error("Error [GlobalExceptionHandler] [handleGlobalException]  :: {} " , ex.getStackTrace());
 
         log.info("Exit [GlobalExceptionHandler] [handleGlobalException] ");
 
-        return new ResponseEntity<>(errorResponse, HttpStatus.FOUND);
+        return new ResponseEntity<>(errorResponse , HttpStatus.FOUND);
     }
 
     @ExceptionHandler(DBReltedException.class)
@@ -83,10 +86,10 @@ public class GlobalExceptionHandler {
                 .build();
 
 
-        log.error("Error [GlobalExceptionHandler] [handleGlobalException]  :: {} ", ex.getStackTrace());
+        log.error("Error [GlobalExceptionHandler] [handleGlobalException]  :: {} " , ex.getStackTrace());
 
         log.info("Exit [GlobalExceptionHandler] [handleGlobalException] ");
-        return new ResponseEntity<>(errorResponse, HttpStatus.INTERNAL_SERVER_ERROR);
+        return new ResponseEntity<>(errorResponse , HttpStatus.INTERNAL_SERVER_ERROR);
     }
 
     @ExceptionHandler(GlobalMessageExceptionHandler.class)
@@ -102,10 +105,10 @@ public class GlobalExceptionHandler {
                 .build();
 
 
-        log.error("Error [GlobalMessageExceptionHandler] [handleGlobalException]  :: {} ", ex.getStackTrace());
+        log.error("Error [GlobalMessageExceptionHandler] [handleGlobalException]  :: {} " , ex.getStackTrace());
 
         log.info("Exit [GlobalMessageExceptionHandler] [handleGlobalException] ");
-        return new ResponseEntity<>(errorResponse, HttpStatus.INTERNAL_SERVER_ERROR);
+        return new ResponseEntity<>(errorResponse , HttpStatus.INTERNAL_SERVER_ERROR);
     }
 
     @ExceptionHandler(RuntimeException.class)
@@ -121,10 +124,10 @@ public class GlobalExceptionHandler {
                 .build();
 
 
-        log.error("Error [GlobalExceptionHandler] [handleGlobalException]  :: {} ", ex.getStackTrace());
+        log.error("Error [GlobalExceptionHandler] [handleGlobalException]  :: {} " , ex.getStackTrace());
         log.info("Exit [GlobalExceptionHandler] [handleGlobalException] ");
 
-        return new ResponseEntity<>(errorResponse, HttpStatus.INTERNAL_SERVER_ERROR);
+        return new ResponseEntity<>(errorResponse , HttpStatus.INTERNAL_SERVER_ERROR);
     }
 
     @ExceptionHandler(Exception.class)
@@ -140,11 +143,11 @@ public class GlobalExceptionHandler {
                 .build();
 
 
-        log.error("Error [GlobalExceptionHandler] [handleGlobalException]  :: {} ", ex.getStackTrace());
+        log.error("Error [GlobalExceptionHandler] [handleGlobalException]  :: {} " , ex.getStackTrace());
 
         log.info("Exit [GlobalExceptionHandler] [handleGlobalException] ");
 
-        return new ResponseEntity<>(errorResponse, HttpStatus.INTERNAL_SERVER_ERROR);
+        return new ResponseEntity<>(errorResponse , HttpStatus.INTERNAL_SERVER_ERROR);
     }
 
     @ExceptionHandler(BadRequestException.class)
@@ -286,6 +289,19 @@ public class GlobalExceptionHandler {
         return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(error);
     }
 
+    @ExceptionHandler(SameEmailFoundException.class)
+    public ResponseEntity<ErrorResponse> handleNullPointer(SameEmailFoundException ex) {
+        log.error("Null pointer exception: {}", ex.getMessage(), ex);
+        ErrorResponse error = ErrorResponse.builder()
+                .timestamp(LocalDateTime.now())
+                .status(HttpStatus.CONFLICT.value())
+                .error("Same Email")
+                .message(ex.getMessage())
+                .path("/api/v1")
+                .build();
+        return ResponseEntity.status(HttpStatus.CONFLICT).body(error);
+    }
+
 //    @ExceptionHandler(Exception.class)
 //    public ResponseEntity<ErrorResponse> handleGenericException(Exception ex) {
 //        log.error("Unexpected error: {}", ex.getMessage(), ex);
@@ -298,6 +314,28 @@ public class GlobalExceptionHandler {
 //                .build();
 //        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(error);
 //    }
+
+    @ExceptionHandler(ShipmentNotFoundException.class)
+    ResponseEntity<SimpleErrorResponse> shipmentNotFoundHandler(ShipmentNotFoundException e){
+
+        SimpleErrorResponse simpleErrorResponse = new SimpleErrorResponse();
+        simpleErrorResponse.setMessage(e.getMessage());
+        simpleErrorResponse.setStatus(HttpStatus.NOT_FOUND.value());
+        simpleErrorResponse.setType("Shipment Not Found");
+
+        return ResponseEntity.status(HttpStatus.NOT_FOUND).body(simpleErrorResponse);
+    }
+
+    @ExceptionHandler(QuotationNotFoundException.class)
+    ResponseEntity<SimpleErrorResponse> quotationNotFoundHandler(QuotationNotFoundException e){
+
+        SimpleErrorResponse simpleErrorResponse = new SimpleErrorResponse();
+        simpleErrorResponse.setMessage(e.getMessage());
+        simpleErrorResponse.setStatus(HttpStatus.NOT_FOUND.value());
+        simpleErrorResponse.setType("Quotation Not Found");
+
+        return ResponseEntity.status(HttpStatus.NOT_FOUND).body(simpleErrorResponse);
+    }
 
     @ExceptionHandler(BranchLimitExceededException.class)
     public ResponseEntity<ErrorResponse> handleBranchLimitException(BranchLimitExceededException ex) {

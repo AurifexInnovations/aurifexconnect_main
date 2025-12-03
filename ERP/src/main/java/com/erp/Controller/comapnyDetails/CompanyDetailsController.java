@@ -16,6 +16,7 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.AllArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 
@@ -26,6 +27,7 @@ import org.springframework.web.bind.annotation.*;
 public class CompanyDetailsController {
     private final CompanyDetailsService service;
 
+    @PreAuthorize("hasAuthority('ROLE_ROOT')")
     @GetMapping
     @Operation(
             summary = "Get By Company ID",
@@ -35,12 +37,14 @@ public class CompanyDetailsController {
                     @ApiResponse(responseCode = "400", description = "Invalid request data")
             }
     )
-    public ResponseEntity<CompanyDetailsResponseDto> getById(@RequestParam final String id) {
-        return service.findById(Long.valueOf(id))
-                .map(ResponseEntity::ok)
-                .orElse(ResponseEntity.notFound().build());
+    public ResponseEntity<ResponseStructure<CompanyDetailsResponseDto>> getById(@RequestParam final Long id) {
+//        return service.findById(Long.valueOf(id))
+//                .map(ResponseEntity::ok)
+//                .orElse(ResponseEntity.notFound().build());
+        return ResponseBuilder.success(HttpStatus.OK, "Company Details Fetched Successfully", service.findBySingleId(id));
     }
 
+    @PreAuthorize("hasAuthority('ROLE_ADMIN')")
     @PostMapping
     @Operation(description = "Create a company or update if already exists - onboarding of client",
             responses = {
@@ -53,6 +57,15 @@ public class CompanyDetailsController {
                 service.saveAndUpdate(companyDetails));
     }
 
+    @PreAuthorize("hasAuthority('ROLE_ROOT')")
+    @PutMapping("/review")
+    public ResponseEntity<ResponseStructure<CompanyDetailsResponseDto>> reviewCompnayDeatils(@RequestBody CompanyDetailsRequestDto companyDetailsRequestDto){
+        return ResponseBuilder.success(HttpStatus.OK,
+                "Company Reviewed successfully!!",
+                service.reviewCompany(companyDetailsRequestDto));
+    }
+
+    @PreAuthorize("hasAuthority('ROLE_ROOT')")
     @PostMapping("/filter")
     public ResponseEntity<ResponseStructure<ResultDto<CompanyDetailsResponseDto>>> filterCompanyDetails(
             @RequestBody FilterRequest filterRequest) {
@@ -61,4 +74,18 @@ public class CompanyDetailsController {
                 service.getFilterData(filterRequest));
     }
 
+    @PreAuthorize("hasAuthority('ROLE_ROOT')")
+    @GetMapping("/all")
+    public ResponseEntity<ResponseStructure<ResultDto<CompanyDetailsResponseDto>>> getAllCompanies()
+    {
+        ResultDto<CompanyDetailsResponseDto> result = service.getAllCompanies();
+        return ResponseBuilder.success(HttpStatus.OK, "All Company Details", service.getAllCompanies());
+    }
+
+    @PreAuthorize("hasAuthority('ROLE_ADMIN')")
+    @GetMapping("/email")
+    public ResponseEntity<ResponseStructure<CompanyDetailsResponseDto>> getByCompanyEmail()
+    {
+        return ResponseBuilder.success(HttpStatus.OK, "Company Details Retrieved", service.getByEmail());
+    }
 }

@@ -3,6 +3,7 @@ package com.erp.Service.Schema;
 import com.erp.Meta.MetaAdmin;
 import com.erp.Meta.MetaAdminRepository;
 import com.erp.Multitenancy.MultiTenantConnectionProviderImpl;
+import com.erp.Multitenancy.TenantContext;
 import com.erp.Multitenancy.TenantContextHolder;
 import org.flywaydb.core.Flyway;
 import org.flywaydb.core.api.configuration.FluentConfiguration;
@@ -115,7 +116,9 @@ public class SchemaManagementService {
         }
 
         // Step 4: Save tenant metadata
-        try (var context = new TenantContextHolder("public")) {
+        try{
+            TenantContext.setCurrentTenant("public");
+
             MetaAdmin metaAdmin = new MetaAdmin();
             metaAdmin.setAdminEmail(adminEmail);
             metaAdmin.setSchemaName(schemaName);
