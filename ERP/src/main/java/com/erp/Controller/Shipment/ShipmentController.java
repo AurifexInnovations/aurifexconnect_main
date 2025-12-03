@@ -3,11 +3,13 @@ package com.erp.Controller.Shipment;
 import com.erp.Dto.Request.FilterRequest;
 import com.erp.Dto.Request.ShipmentDetailsRequestDto;
 import com.erp.Dto.Response.ResultDto;
+import com.erp.Dto.Response.ShipmentDetailsResponseDTO;
 import com.erp.Dto.Response.ShipmentResponseDto;
 import com.erp.Model.ShipmentDetails;
 import com.erp.Service.Shipment.ShipmentService;
 import com.erp.Utility.ResponseBuilder;
 import com.erp.Utility.ResponseStructure;
+import com.erp.Utility.SimpleErrorResponse;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -27,44 +29,40 @@ public class ShipmentController
 
 
     @PostMapping
-    public ResponseEntity<ShipmentResponseDto> createShipment(@RequestBody @Valid ShipmentDetailsRequestDto requestDto) {
+    public ResponseEntity<ResponseStructure<ShipmentDetailsResponseDTO>> createShipment(@RequestBody @Valid ShipmentDetailsRequestDto requestDto) {
         log.info("Controller: createShipment called for referenceId={}", requestDto.getReferenceId());
-        ShipmentResponseDto response = shipmentService.createShipment(requestDto);
-        return ResponseEntity.ok(response);
+        ShipmentDetailsResponseDTO response = shipmentService.createShipment(requestDto);
+        return ResponseBuilder.success(HttpStatus.CREATED, "Shipment Created", response);
     }
 
-
-    @GetMapping("/{id}")
-    public ResponseEntity<ShipmentResponseDto> getShipmentById(@RequestParam Long id) {
+    @GetMapping("/byid")
+    public ResponseEntity<ResponseStructure<ShipmentDetailsResponseDTO>> getShipmentById(@RequestParam Long id) {
         log.info("Controller: getShipmentById called for shipmentId={}", id);
-        ShipmentResponseDto response = shipmentService.getShipmentById(id);
-        return ResponseEntity.ok(response);
+        ShipmentDetailsResponseDTO response = shipmentService.getShipmentById(id);
+        return ResponseBuilder.success(HttpStatus.OK, "Fetched Shipment Details", response);
     }
 
 
     @GetMapping
-    public ResponseEntity<List<ShipmentDetails>> getAllShipments(
-            @RequestParam(defaultValue = "10") int limit,
-            @RequestParam(defaultValue = "0") int offset) {
-        log.info("Controller: getAllShipments called with limit={} and offset={}", limit, offset);
-        List<ShipmentDetails> shipments = shipmentService.getAllShipmentsWithPagination(limit, offset);
-        return ResponseEntity.ok(shipments);
+    public ResponseEntity<ResponseStructure<ResultDto<ShipmentDetailsResponseDTO>>> getAllShipments() {
+        log.info("Controller: getAllShipments called with limit={} and offset={}");
+        ResultDto<ShipmentDetailsResponseDTO> shipments = shipmentService.getAllShipmentsWithPagination();
+        return ResponseBuilder.success(HttpStatus.OK, "Fetched All Shipments", shipments);
     }
 
 
-    @DeleteMapping("/{id}")
-    public ResponseEntity<String> deleteShipmentById(@PathVariable Long id) {
+    @DeleteMapping
+    public ResponseEntity<ResponseStructure<String>> deleteShipmentById(@RequestParam Long id) {
         log.info("Controller: deleteShipmentById called for shipmentId={}", id);
         String message = shipmentService.deleteShipmentById(id);
-        return ResponseEntity.ok(message);
+        return ResponseBuilder.success(HttpStatus.OK, "Shipment Deleted Id : "+id, message);
     }
 
 
     @PostMapping("/pagination")
-    public ResponseEntity<ResponseStructure<ResultDto<ShipmentDetails>>> getShipmentPagination(@RequestBody FilterRequest filterRequest)
+    public ResponseEntity<ResponseStructure<ResultDto<ShipmentDetailsResponseDTO>>> getShipmentPagination(@RequestBody FilterRequest filterRequest)
     {
-        ResultDto<ShipmentDetails> list = shipmentService.getAllShipments(filterRequest);
-
+        ResultDto<ShipmentDetailsResponseDTO> list = shipmentService.getAllShipments(filterRequest);
         return ResponseBuilder.success(HttpStatus.OK, "All Shipments Are Retrieved", list);
     }
 }

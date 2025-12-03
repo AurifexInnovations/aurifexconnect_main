@@ -9,15 +9,22 @@ import com.erp.Dto.Request.PaginationRequest;
 import com.erp.Dto.Response.BranchResponse;
 import com.erp.Dto.Response.BranchResponseId;
 import com.erp.Dto.Response.ResultDto;
+import com.erp.Enum.BranchStatus;
 import com.erp.Exception.Admin.AdminNotFoundException;
+import com.erp.Exception.Branch_Exception.BranchLimitExceededException;
 import com.erp.Exception.Branch_Exception.BranchNotFoundException;
 import com.erp.Exception.Inventory_Exception.InventoryNotFoundException;
+import com.erp.Exception.ResourceNotFoundException;
 import com.erp.Mapper.Branch.BranchMapper;
+import com.erp.Meta.MetaAdminRepository;
 import com.erp.Model.Admin;
 import com.erp.Model.Branch;
+import com.erp.Model.SubscriptionEntity;
+import com.erp.Multitenancy.TenantContext;
 import com.erp.Repository.Admin.AdminUserRepository;
 import com.erp.Repository.Branch.BranchRepository;
 import com.erp.Repository.Inventory.InventoryRepository;
+import com.erp.Repository.SubscriptionModule.SubscriptionRepository;
 import com.erp.Security.util.UserIdentity;
 import com.erp.Utility.ObjectMapperUtils;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -45,10 +52,20 @@ public class BranchServiceImpl implements BranchService
     private final AdminUserRepository adminUserRepository;
 
     private final BranchCustomRepository branchCustomRepository;
+    private final SubscriptionRepository subscriptionRepository;
+    private final MetaAdminRepository metaAdminRepository;
 
     @Override
     public BranchResponse createBranch(BranchRequest branchRequest)
     {
+        SubscriptionEntity subscription = getSubscriptionDetails();
+
+        long totalBranch = branchRepository.countByBranchStatus(BranchStatus.ACTIVE);
+
+        if(totalBranch >= Integer.parseInt(subscription.getTotalBranches())) {
+            throw new BranchLimitExceededException("You purchased only "+subscription.getTotalBranches()+" Branches, You have already "+subscription.getTotalBranches()+" ACTIVE Branches, Now You can not create more than this");
+        }
+
         Long id = userIdentity.getCurrentUser().getId();
 
         Admin admin = adminUserRepository.findById(id)
@@ -66,17 +83,26 @@ public class BranchServiceImpl implements BranchService
     @Override
     public BranchResponse updateBranch(BranchRequest branchRequest)
     {
-        Long id = userIdentity.getCurrentUser().getId();
+        SubscriptionEntity subscription = getSubscriptionDetails();
 
-        Admin admin = adminUserRepository.findById(id)
-                .orElseThrow(() -> new AdminNotFoundException(
-                        "Admin not found with Id: " + branchRequest.getId()
-                ));
+        long totalBranches = branchRepository.countByBranchStatus(BranchStatus.ACTIVE);
 
         // Fetch existing entity
         Branch branch = branchRepository.findById(branchRequest.getId())
                 .orElseThrow(() -> new BranchNotFoundException(
                         "Branch not found with Id: " + branchRequest.getId()
+                ));
+
+        if(branchRequest.getBranchStatus() == BranchStatus.ACTIVE &&
+            totalBranches >= Integer.parseInt(subscription.getTotalBranches())){
+            throw new BranchLimitExceededException("You purchased only "+subscription.getTotalBranches()+" Branches, You have already "+subscription.getTotalBranches()+" ACTIVE Branches, Now You can not updated branch as ACTIVE");
+        }
+
+        Long id = userIdentity.getCurrentUser().getId();
+
+        Admin admin = adminUserRepository.findById(id)
+                .orElseThrow(() -> new AdminNotFoundException(
+                        "Admin not found with Id: " + branchRequest.getId()
                 ));
 
         // Update all fields except the ID
@@ -164,5 +190,18 @@ public class BranchServiceImpl implements BranchService
         log.info("Exit [BranchServiceImpl] [getBranchDetails] ");
 
         return branchResponses;
+    }
+
+    private SubscriptionEntity getSubscriptionDetails()
+    {
+        String schemaName = TenantContext.getCurrentTenant();
+
+        String email = metaAdminRepository.findAdminEmailBySchemaName(schemaName)
+                .orElseThrow( () -> new AdminNotFoundException("Schema Not Found With : "+schemaName));
+
+        SubscriptionEntity subscription = subscriptionRepository.findByUserId(email)
+                .orElseThrow( () -> new ResourceNotFoundException("Subscription Not Found for Email : "+email));
+
+        return subscription;
     }
 }

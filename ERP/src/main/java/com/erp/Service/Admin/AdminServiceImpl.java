@@ -3,6 +3,7 @@ package com.erp.Service.Admin;
 import com.erp.Dto.Request.AdminRequest;
 import com.erp.Dto.Request.CommanParam;
 import com.erp.Dto.Response.AdminResponse;
+import com.erp.Dto.Response.AdminUpdateRequest;
 import com.erp.Exception.Admin.AdminAlreadyExistsException;
 import com.erp.Exception.Admin.AdminNotFoundException;
 import com.erp.Mapper.Admin.AdminMapper;
@@ -42,22 +43,18 @@ public class AdminServiceImpl implements AdminService {
         logger.info("Creating admin for email: {}", adminRequest.getEmail());
 
         String sanitizedEmail = adminRequest.getEmail().replaceAll("[^a-zA-Z0-9]", "_").toLowerCase();
-        if (sanitizedEmail.length() > 63)
-        {
+        if (sanitizedEmail.length() > 63) {
             throw new IllegalArgumentException("Schema name too long");
         }
         long tenantCount;
-        try (var context = new TenantContextHolder("public"))
-        {
+        try (var context = new TenantContextHolder("public")) {
             tenantCount = metaAdminRepository.count() + 1;
         }
         String schemaName = "tenant_" + tenantCount + "_" + sanitizedEmail;
         logger.info("Generated schema: {}", schemaName);
 
-        try (var context = new TenantContextHolder("public"))
-        {
-            if (metaAdminRepository.existsByAdminEmail(adminRequest.getEmail()))
-            {
+        try (var context = new TenantContextHolder("public")) {
+            if (metaAdminRepository.existsByAdminEmail(adminRequest.getEmail())) {
                 throw new AdminAlreadyExistsException("Admin with email already exists: " + adminRequest.getEmail());
             }
         }
@@ -77,15 +74,15 @@ public class AdminServiceImpl implements AdminService {
     }
 
     @Override
-    public AdminResponse updateAdminById(AdminRequest adminRequest) {
-        RootUser currentUser = (RootUser) userIdentity.getCurrentUser();
-        Admin admin = adminRepository.findById(adminRequest.getId())
+    public AdminResponse updateAdminById(AdminUpdateRequest adminRequest) {
+        Admin admin = adminRepository.findByEmail(userIdentity.getCurrentUserEmail())
                 .orElseThrow(() -> new AdminNotFoundException("Invalid ID: " + adminRequest.getId() + " ,admin not found !"));
-        adminMapper.mapToAdminEntity(adminRequest, admin);
-        admin.setLastUpdatedByRootUserId(currentUser.getId());
-        rootUserRepository.save(currentUser);
-        adminRepository.save(admin);
-        return adminMapper.mapToAdminResponse(admin);
+
+        admin.setName(adminRequest.getName());
+        admin.setContactNo(adminRequest.getContactNo());
+
+        Admin saved = adminRepository.save(admin);
+        return adminMapper.mapToAdminResponse(saved);
     }
 
     @Override
@@ -102,9 +99,12 @@ public class AdminServiceImpl implements AdminService {
     }
 
     @Override
-    public List<AdminResponse> findAdminByIdOrName(CommanParam commonParam) {
-        List<Admin> admins = Collections.singletonList(adminRepository.findByIdOrNameAndIsActiveTrue(commonParam.getId(), commonParam.getName())
-                .orElseThrow(() -> new AdminNotFoundException("Admin not found !!")));
-        return adminMapper.mapToListOfAdminResponse(admins);
+    public AdminResponse findAdminById() {
+
+        String email = userIdentity.getCurrentUserEmail();
+        Admin admin = adminRepository.findByEmail(email)
+                .orElseThrow(() -> new AdminNotFoundException("Admin Not Found!!"));
+
+        return adminMapper.mapToAdminResponse(admin);
     }
 }
