@@ -18,4 +18,8 @@ public interface UserRepository extends JpaRepository<User, Long>, GenericUserRe
     User findByIdAndIsActiveTrue(Long id);
 
     Optional<User> findByIdOrFirstNameAndIsActiveTrue(Long id, String name);
+
+    long countByIsActiveTrueAndRoles_RoleName(String roleName);
+
+    long countByIsActiveTrueAndRoles_RoleNameAndIdNot(String roleName, Long userId);
 }

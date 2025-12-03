@@ -5,11 +5,14 @@ import com.erp.Exception.AccountGroup.AccountGroupAlreadyExistsException;
 import com.erp.Exception.AccountGroup.AccountGroupNotFoundException;
 import com.erp.Exception.AccountSubGroup.AccountSubGroupAlreadyExistsException;
 import com.erp.Exception.AccountSubGroup.AccountSubGroupNotFoundException;
+import com.erp.Exception.Branch_Exception.BranchLimitExceededException;
 import com.erp.Exception.Ledger.LedgerAlreadyExistsException;
 import com.erp.Exception.Ledger.LedgerNotFoundException;
 import com.erp.Exception.Quotation.QuotationNotFoundException;
 import com.erp.Exception.SameEmail.SameEmailFoundException;
 import com.erp.Exception.ShipmentException.ShipmentNotFoundException;
+import com.erp.Exception.User.AccountManagerLimitExceededException;
+import com.erp.Exception.User.TechnicianLimitExceededException;
 import com.erp.Utility.SimpleErrorResponse;
 import lombok.extern.slf4j.Slf4j;
 import com.erp.Exception.Ledger.LedgerNotFoundException;
@@ -332,6 +335,45 @@ public class GlobalExceptionHandler  {
         simpleErrorResponse.setType("Quotation Not Found");
 
         return ResponseEntity.status(HttpStatus.NOT_FOUND).body(simpleErrorResponse);
+    }
+
+    @ExceptionHandler(BranchLimitExceededException.class)
+    public ResponseEntity<ErrorResponse> handleBranchLimitException(BranchLimitExceededException ex) {
+        log.error("BranchLimitExceededException exception: {}", ex.getMessage(), ex);
+        ErrorResponse error = ErrorResponse.builder()
+                .timestamp(LocalDateTime.now())
+                .status(HttpStatus.CONFLICT.value())
+                .error("Branch Limit Exceeded")
+                .message(ex.getMessage())
+                .path("/branch || /branch/update")
+                .build();
+        return ResponseEntity.status(HttpStatus.CONFLICT).body(error);
+    }
+
+    @ExceptionHandler(TechnicianLimitExceededException.class)
+    public ResponseEntity<ErrorResponse> handleTechnicianLimitException(TechnicianLimitExceededException ex) {
+        log.error("TechnicianLimitExceededException exception: {}", ex.getMessage(), ex);
+        ErrorResponse error = ErrorResponse.builder()
+                .timestamp(LocalDateTime.now())
+                .status(HttpStatus.CONFLICT.value())
+                .error("Technician Limit Exceeded")
+                .message(ex.getMessage())
+                .path("/api/v1/users")
+                .build();
+        return ResponseEntity.status(HttpStatus.CONFLICT).body(error);
+    }
+
+    @ExceptionHandler(AccountManagerLimitExceededException.class)
+    public ResponseEntity<ErrorResponse> handleAccountManagerLimitException(AccountManagerLimitExceededException ex) {
+        log.error("TechnicianLimitExceededException exception: {}", ex.getMessage(), ex);
+        ErrorResponse error = ErrorResponse.builder()
+                .timestamp(LocalDateTime.now())
+                .status(HttpStatus.CONFLICT.value())
+                .error("Account Manager Limit Exceeded")
+                .message(ex.getMessage())
+                .path("/api/v1/users")
+                .build();
+        return ResponseEntity.status(HttpStatus.CONFLICT).body(error);
     }
 }
 
