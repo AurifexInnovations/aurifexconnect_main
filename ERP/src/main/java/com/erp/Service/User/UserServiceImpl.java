@@ -2,16 +2,21 @@ package com.erp.Service.User;
 
 import com.erp.Dto.Request.*;
 import com.erp.Dto.Response.UserResponse;
+import com.erp.Exception.Admin.AdminNotFoundException;
 import com.erp.Exception.ResourceNotFoundException;
 import com.erp.Exception.SameEmail.SameEmailFoundException;
+import com.erp.Exception.User.AccountManagerLimitExceededException;
+import com.erp.Exception.User.TechnicianLimitExceededException;
 import com.erp.Exception.User.UserNotFoundException;
 import com.erp.Mapper.User.UserMapper;
+import com.erp.Meta.MetaAdminRepository;
 import com.erp.Meta.MetaUser;
 import com.erp.Meta.MetaUserRepository;
 import com.erp.Model.*;
 import com.erp.Multitenancy.TenantContext;
 import com.erp.Repository.Role.RoleRepository;
 import com.erp.Repository.RoleActionPermission.RoleActionPermissionRepository;
+import com.erp.Repository.SubscriptionModule.SubscriptionRepository;
 import com.erp.Repository.User.UserRepository;
 import com.erp.Repository.UserPermission.UserPermissionRepository;
 import com.erp.Security.util.UserIdentity;
@@ -35,6 +40,8 @@ public class UserServiceImpl implements UserServices {
     private final RoleRepository roleRepository;
     private final UserIdentity userIdentity;
     private final MetaUserRepository metaUserRepository;
+    private final SubscriptionRepository subscriptionRepository;
+    private final MetaAdminRepository metaAdminRepository;
     private final static String DEFAULT_ROLE = "EMPLOYEE";
 
 
@@ -57,6 +64,32 @@ public class UserServiceImpl implements UserServices {
             }
             if (metaUserRepository.findByUserEmail(userRequest.getEmail()).isPresent()) {
                 throw new SameEmailFoundException("Employee already exists with this email");
+            }
+
+            SubscriptionEntity subscription = getSubscriptionDetails();
+
+            boolean isTechnician = userRequest.getRoles().stream()
+                    .anyMatch(r -> r.getRoleName().equalsIgnoreCase("TECHNICIAN"));
+
+            if(isTechnician)
+            {
+                long totalTechnicians = userRepository.countByIsActiveTrueAndRoles_RoleName("TECHNICIAN");
+                if(totalTechnicians >= Integer.parseInt(subscription.getTotalTechnicians()))
+                {
+                    throw new TechnicianLimitExceededException("You purchased only "+subscription.getTotalTechnicians()+" Technicians, You have already "+subscription.getTotalTechnicians()+" ACTIVE Technicians, Now You can not create more than this");
+                }
+            }
+
+            boolean isAccountManager = userRequest.getRoles().stream()
+                    .anyMatch(r -> r.getRoleName().equalsIgnoreCase("ACCOUNTMANAGER"));
+
+            if(isAccountManager)
+            {
+                long totalAccountManager = userRepository.countByIsActiveTrueAndRoles_RoleName("ACCOUNTMANAGER");
+                if(totalAccountManager >= Integer.parseInt(subscription.getAccountUser()))
+                {
+                    throw new AccountManagerLimitExceededException("You purchased only "+subscription.getAccountUser()+" Account Manager, You have already "+subscription.getAccountUser()+" ACTIVE Account Manager, Now You can not create more than this");
+                }
             }
 
             MetaUser metaUser = new MetaUser();
@@ -295,9 +328,6 @@ public class UserServiceImpl implements UserServices {
         response.setReportingTo(user.getReportingTo());
         response.setFullName(user.getFirstName()+" "+user.getLastName());
 
-        // Full name
-        response.setFullName(user.getFirstName() + " " + user.getLastName());
-
         // Roles → List<String>
         List<String> roleNames = user.getRoles()
                 .stream()
@@ -331,5 +361,18 @@ public class UserServiceImpl implements UserServices {
         user.setPhoneNo(userProfileRequest.getPhoneNo());
 
         return toResponse(user);
+    }
+
+    private SubscriptionEntity getSubscriptionDetails()
+    {
+        String schemaName = TenantContext.getCurrentTenant();
+
+        String email = metaAdminRepository.findAdminEmailBySchemaName(schemaName)
+                .orElseThrow( () -> new AdminNotFoundException("Schema Not Found With : "+schemaName));
+
+        SubscriptionEntity subscription = subscriptionRepository.findByUserId(email)
+                .orElseThrow( () -> new ResourceNotFoundException("Subscription Not Found for Email : "+email));
+
+        return subscription;
     }
 }

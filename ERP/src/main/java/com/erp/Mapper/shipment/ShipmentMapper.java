@@ -2,9 +2,11 @@ package com.erp.Mapper.shipment;
 
 import com.erp.Dto.Request.ShipmentDetailsRequestDto;
 
+import com.erp.Dto.Response.ShipmentDetailsResponseDTO;
 import com.erp.Model.ShipmentDetails;
 import org.springframework.stereotype.Component;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 
@@ -74,5 +76,62 @@ public class ShipmentMapper {
     }
 
 
+    public List<ShipmentDetailsResponseDTO> toList(List<ShipmentDetails> list)
+    {
+        List<ShipmentDetailsResponseDTO> res = new ArrayList<>();
 
+        for(ShipmentDetails s : list){
+
+            ShipmentDetailsResponseDTO dto = ShipmentDetailsResponseDTO.builder()
+                    .shipmentId(s.getShipmentId())
+                    .referenceType(s.getReferenceType())
+                    .referenceId(s.getReferenceId())
+                    .invoiceId(s.getInvoiceId())
+                    .isBilled(s.getIsBilled())
+                    .fromBranchId(s.getFromBranchId())
+                    .toBranchId(s.getToBranchId())
+                    .carrierName(s.getCarrierName())
+                    .trackingNumber(s.getTrackingNumber())
+                    .vehicleNumber(s.getVehicleNumber())
+                    .shipmentDate(s.getShipmentDate())
+                    .expectedDeliveryDate(s.getExpectedDeliveryDate())
+                    .actualDeliveryDate(s.getActualDeliveryDate())
+                    .shipmentStatus(s.getShipmentStatus())
+                    .remarks(s.getRemarks())
+                    .createdAt(s.getCreatedAt())
+                    .updatedAt(s.getUpdatedAt())
+                    .updatedBy(s.getUpdatedBy())
+                    .build();
+
+            res.add(dto);
+        }
+
+        return res;
+    }
+
+
+    public ShipmentDetailsResponseDTO shipmentDetailsResponseDTO(ShipmentDetails s){
+        ShipmentDetailsResponseDTO dto = ShipmentDetailsResponseDTO.builder()
+                .shipmentId(s.getShipmentId())
+                .referenceType(s.getReferenceType())
+                .referenceId(s.getReferenceId())
+                .invoiceId(s.getInvoiceId())
+                .isBilled(s.getIsBilled())
+                .fromBranchId(s.getFromBranchId())
+                .toBranchId(s.getToBranchId())
+                .carrierName(s.getCarrierName())
+                .trackingNumber(s.getTrackingNumber())
+                .vehicleNumber(s.getVehicleNumber())
+                .shipmentDate(s.getShipmentDate())
+                .expectedDeliveryDate(s.getExpectedDeliveryDate())
+                .actualDeliveryDate(s.getActualDeliveryDate())
+                .shipmentStatus(s.getShipmentStatus())
+                .remarks(s.getRemarks())
+                .createdAt(s.getCreatedAt())
+                .updatedAt(s.getUpdatedAt())
+                .updatedBy(s.getUpdatedBy())
+                .build();
+
+        return dto;
+    }
 }

@@ -1,6 +1,11 @@
 package com.erp.Service.Quotation;
 
+import com.erp.Dto.Request.QuotationRequest;
+import com.erp.Dto.Response.QuotationResponse;
 import com.erp.Dto.Response.ResultDto;
+import com.erp.Exception.Quotation.QuotationNotFoundException;
+import com.erp.Exception.ResourceNotFoundException;
+import com.erp.Mapper.Quotation.QuotationMapper;
 import com.erp.Model.Quotation;
 import com.erp.Repository.Quotation.QuotationRepository;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -14,16 +19,21 @@ public class QuotationServiceImpl implements QuotationService {
     @Autowired
     private QuotationRepository quotationRepository;
 
+    @Autowired
+    private QuotationMapper quotationMapper;
+
     @Override
-    public Quotation createQuotation(Quotation quotation) {
-        return quotationRepository.save(quotation);
+    public QuotationResponse createQuotation(QuotationRequest quotation) {
+
+        Quotation saved = quotationMapper.toEntity(quotation);
+        return quotationMapper.toResponse(quotationRepository.save(saved));
     }
 
     @Override
-    public ResultDto<Quotation> getAllQuotations() {
+    public ResultDto<QuotationResponse> getAllQuotations() {
 
-        List<Quotation> list = quotationRepository.findAll();
-        ResultDto<Quotation> resultDto = new ResultDto<>();
+        List<QuotationResponse> list = quotationMapper.toListResponse(quotationRepository.findAll());
+        ResultDto<QuotationResponse> resultDto = new ResultDto<>();
 
         resultDto.setResults(list != null ? list : List.of());
         resultDto.setCount(list != null ? list.size() : 0);
@@ -32,14 +42,19 @@ public class QuotationServiceImpl implements QuotationService {
     }
 
     @Override
-    public Quotation getQuotationById(String quotationId) {
-        return quotationRepository.findByQuotationId(quotationId);
+    public QuotationResponse getQuotationById(String quotationId) {
+        Quotation quotation = quotationRepository.findByQuotationId(quotationId);
+
+        if (quotation == null) throw new QuotationNotFoundException("Quotation Not Found With Id : " + quotationId);
+
+        return quotationMapper.toResponse(quotation);
     }
 
     @Override
-    public Quotation updateQuotation(String quotationId, Quotation quotation) {
-        Quotation existing = quotationRepository.findByQuotationId(quotationId);
-        if (existing == null) return null;
+    public QuotationResponse updateQuotation(QuotationRequest quotation) {
+        Quotation existing = quotationRepository.findByQuotationId(quotation.getQuotationId());
+        if (existing == null)
+            throw new QuotationNotFoundException("Quotation Not Found With Id : " + quotation.getQuotationId());
 
         existing.setType(quotation.getType());
         existing.setCustomerId(quotation.getCustomerId());
@@ -53,14 +68,17 @@ public class QuotationServiceImpl implements QuotationService {
         existing.setNotes(quotation.getNotes());
         existing.setLanguage(quotation.getLanguage());
 
-        return quotationRepository.save(existing);
+        Quotation updated = quotationRepository.save(existing);
+
+        return quotationMapper.toResponse(updated);
     }
 
     @Override
     public void deleteQuotation(String quotationId) {
         Quotation existing = quotationRepository.findByQuotationId(quotationId);
-        if (existing != null) {
-            quotationRepository.delete(existing);
-        }
+
+        if (existing == null) throw new QuotationNotFoundException("Quotation Not Found With Id : " + quotationId);
+
+        quotationRepository.delete(existing);
     }
 }
