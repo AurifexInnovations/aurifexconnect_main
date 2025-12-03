@@ -12,7 +12,7 @@ public class MaterialDto {
 
     private Long materialId;
     private String unit;
-    private Long quantity;
+    private Double quantity;
     private  Boolean isUsed;
 
 }

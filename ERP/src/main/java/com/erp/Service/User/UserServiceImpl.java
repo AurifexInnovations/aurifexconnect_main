@@ -6,6 +6,8 @@ import com.erp.Exception.ResourceNotFoundException;
 import com.erp.Exception.SameEmail.SameEmailFoundException;
 import com.erp.Exception.User.UserNotFoundException;
 import com.erp.Mapper.User.UserMapper;
+import com.erp.Meta.MetaUser;
+import com.erp.Meta.MetaUserRepository;
 import com.erp.Model.*;
 import com.erp.Multitenancy.TenantContext;
 import com.erp.Repository.Role.RoleRepository;
@@ -32,6 +34,7 @@ public class UserServiceImpl implements UserServices {
     private final PasswordEncoder passwordEncoder;
     private final RoleRepository roleRepository;
     private final UserIdentity userIdentity;
+    private final MetaUserRepository metaUserRepository;
     private final static String DEFAULT_ROLE = "EMPLOYEE";
 
 
@@ -52,6 +55,16 @@ public class UserServiceImpl implements UserServices {
             if (userRepository.findByEmail(userRequest.getEmail()).isPresent()) {
                 throw new SameEmailFoundException("Employee already exists with this email");
             }
+            if (metaUserRepository.findByUserEmail(userRequest.getEmail()).isPresent()) {
+                throw new SameEmailFoundException("Employee already exists with this email");
+            }
+
+            MetaUser metaUser = new MetaUser();
+
+            metaUser.setUserEmail(userRequest.getEmail());
+            metaUser.setSchemaName(schemaName);
+
+            metaUserRepository.save(metaUser);
 
             User user = userMapper.mapToUser(userRequest);
             user.setPassword(passwordEncoder.encode(userRequest.getPassword()));
@@ -59,6 +72,11 @@ public class UserServiceImpl implements UserServices {
             user.setDesignation(userRequest.getDesignation());
             user.setCreatedByAdminId(currentAdmin.getId());
             user.setSchemaName(schemaName);
+
+            user.setBranchName(userRequest.getBranchName());
+            user.setReportingTo(userRequest.getReportingTo());
+            user.setModuleName(userRequest.getModuleName());
+
             user = userRepository.save(user);
 
             Set<Role> attachedRoles = new HashSet<>();
@@ -84,14 +102,14 @@ public class UserServiceImpl implements UserServices {
             user.setRoles(attachedRoles);
             user = userRepository.save(user);
 
-            for (Role role  : user.getRoles()){
-                userPermissionService.addUserPermisionBasedOnRole(user.getId() ,  role.getRoleName());
+            for (Role role : user.getRoles()) {
+                userPermissionService.addUserPermisionBasedOnRole(user.getId(), role.getRoleName());
             }
 
             return userMapper.mapToUserResponse(user);
 
         } catch (Exception e) {
-            throw new ResourceNotFoundException( e.getMessage());
+            throw new ResourceNotFoundException(e.getMessage());
         } finally {
             TenantContext.clear();
         }
@@ -102,13 +120,20 @@ public class UserServiceImpl implements UserServices {
     @Transactional()
     public List<UserResponse> getListOfUsers() {
 
-        List<User> users = userRepository.findByIsActiveTrue() ;
-        return userMapper.mapToListOfUserResponse(users);
+        List<User> users = userRepository.findByIsActiveTrue();
+        List<UserResponse> list = new ArrayList<>();
+
+        for (User user : users) {
+
+            list.add(toResponse(user));
+        }
+
+        return list;
     }
 
     @Transactional
     @Override
-    public UserResponse updateUserById(UserUpdateRequest userUpdateRequest) throws Exception{
+    public UserResponse updateUserById(UserUpdateRequest userUpdateRequest) throws Exception {
 
         Admin currentAdmin = (Admin) userIdentity.getCurrentUser();
 
@@ -117,10 +142,10 @@ public class UserServiceImpl implements UserServices {
         User user
                 = userRepository.findByIdAndIsActiveTrue(userUpdateRequest.getId());
 
-        if(user.getId() == userUpdateRequest.getId()){
-            userMapper.mapTOUserEntity(userUpdateRequest,user);
-        }else {
-            throw new UserNotFoundException("With this user id: "+ userUpdateRequest.getId() + "user is currently not login !");
+        if (user.getId() == userUpdateRequest.getId()) {
+            userMapper.mapTOUserEntity(userUpdateRequest, user);
+        } else {
+            throw new UserNotFoundException("With this user id: " + userUpdateRequest.getId() + "user is currently not login !");
         }
 
 
@@ -149,12 +174,12 @@ public class UserServiceImpl implements UserServices {
         userRepository.save(user);
 
         List<String> roleNames =
-            userUpdateRequest.getRoles().stream().map(RoleRequest::getRoleName).collect(Collectors.toList());
+                userUpdateRequest.getRoles().stream().map(RoleRequest::getRoleName).collect(Collectors.toList());
 
-        userPermissionService.updateUserRolePermissionByRoleName(roleNames , user.getId());
+        userPermissionService.updateUserRolePermissionByRoleName(roleNames, user.getId());
 
 //        updateUserModuleActionPermissions(user, updatedRoles, userUpdateRequest.getPermissions(), currentAdmin);
-        return userMapper.mapToUserResponse(user);
+        return toResponse(user);
 
     }
 
@@ -164,7 +189,7 @@ public class UserServiceImpl implements UserServices {
                                                    Admin currentAdmin) {
 
         // Fetch existing user permissions
-        List<UserPermission> existingPermissions = userPermissionRepository. findByUserId(user.getId());
+        List<UserPermission> existingPermissions = userPermissionRepository.findByUserId(user.getId());
         Set<Long> newPermissionIds = new HashSet<>();
 
         for (PermissionRequest permission : permissionRequests) {
@@ -220,7 +245,6 @@ public class UserServiceImpl implements UserServices {
     }
 
 
-
     @Override
     public UserResponse deleteUserById(CommanParam commanParamId) {
 
@@ -230,11 +254,11 @@ public class UserServiceImpl implements UserServices {
         }
 
         User user = userRepository.findById(commanParamId.getId())
-                .orElseThrow(()-> new UserNotFoundException("User not found with this id: "+ commanParamId.getId()));
+                .orElseThrow(() -> new UserNotFoundException("User not found with this id: " + commanParamId.getId()));
 
         user.setActive(false);
         userRepository.save(user);
-        return userMapper.mapToUserResponse(user);
+        return toResponse(user);
 
     }
 
@@ -251,5 +275,36 @@ public class UserServiceImpl implements UserServices {
 
         return userMapper.mapToListOfUserResponse(users);
 
+    }
+
+    // Utility Function
+    private UserResponse toResponse(User user) {
+        UserResponse response = new UserResponse();
+
+        response.setId(user.getId());
+        response.setFirstName(user.getFirstName());
+        response.setLastName(user.getLastName());
+        response.setEmail(user.getEmail());
+        response.setPhoneNo(user.getPhoneNo());
+        response.setActive(user.isActive());
+        response.setSchemaName(user.getSchemaName());
+        response.setCreatedAt(user.getCreatedAt());
+        response.setLastModifiedAt(user.getLastModifiedAt());
+        response.setBranchName(user.getBranchName());
+        response.setModuleName(user.getModuleName());
+        response.setReportingTo(user.getReportingTo());
+
+        // Full name
+        response.setFullName(user.getFirstName() + " " + user.getLastName());
+
+        // Roles → List<String>
+        List<String> roleNames = user.getRoles()
+                .stream()
+                .map(role -> role.getRoleName())
+                .toList();
+
+        response.setRoleNames(roleNames);
+
+        return response;
     }
 }

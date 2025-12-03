@@ -15,7 +15,7 @@ public class CorsConfig {
     public CorsFilter corsFilter() {
         CorsConfiguration config = new CorsConfiguration();
         // For development you can allow all origins; in production set specific origins:
-        config.setAllowedOrigins(Arrays.asList("https://magenta-cranachan-beb97b.netlify.app", "http://localhost:3000", "*")); // replace with Arrays.asList("https://your.domain")
+        config.setAllowedOrigins(Arrays.asList("https://seravionerp.netlify.app", "http://localhost:3000", "*")); // replace with Arrays.asList("https://your.domain")
         config.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"));
         config.setAllowedHeaders(Arrays.asList("*"));
         config.setAllowCredentials(true); // set to false if you don't use cookies/auth headers
@@ -26,3 +26,5 @@ public class CorsConfig {
         return new CorsFilter(source);
     }
 }
+
+

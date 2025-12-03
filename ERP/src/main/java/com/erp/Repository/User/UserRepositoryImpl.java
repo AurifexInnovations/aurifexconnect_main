@@ -5,6 +5,7 @@ import com.erp.Model.User;
 import com.erp.Multitenancy.TenantContext;
 import com.erp.Repository.Admin.AdminUserRepositoryCustom;
 import jakarta.persistence.EntityManager;
+import jakarta.persistence.Query;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Repository;
@@ -22,17 +23,27 @@ public class UserRepositoryImpl implements UserRepositoryCustom{
     @Transactional(readOnly = true)
     @Override
     public Optional<User> findByEmailWithSchema(String email, String schemaName) {
-        log.debug("Current tenant before query: {}", TenantContext.getCurrentTenant());
-        String query = "SELECT * FROM " + schemaName + ".users WHERE email = :email";
-        log.debug("Executing query: {}", query);
+        // Switch schema at connection level
+        entityManager.unwrap(org.hibernate.Session.class).doWork(connection -> {
+            connection.setSchema(schemaName);
+        });
+
+        // Build native SQL with schema injected directly
+        String sql = "SELECT * FROM " + schemaName + ".users WHERE email = :email AND is_active = true";
+
+        Query query = entityManager
+                .createNativeQuery(sql, User.class)
+                .setParameter("email", email);
+
+        User user = null;
         try {
-            return entityManager.createNativeQuery(query, User.class)
-                    .setParameter("email", email)
-                    .getResultStream()
-                    .findFirst();
+            user = (User) query.getSingleResult();
         } catch (Exception e) {
-            log.error("Error executing query for schema: {}", schemaName, e);
-            throw new RuntimeException("Failed to execute query", e);
+            return Optional.empty();
+
+
         }
+
+        return Optional.of(user);
     }
 }
