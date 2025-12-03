@@ -2,6 +2,7 @@ package com.erp.Dto.Response;
 
 import com.erp.Dto.Request.DocumentDetailsRequestDto;
 
+import java.time.Instant;
 import java.util.List;
 
 public record CompanyDetailsResponseDto(
@@ -24,6 +25,12 @@ public record CompanyDetailsResponseDto(
         String state,
         String reviewedBy,
         String companyEmail,
+        Instant createdDate,
+        String start_date,
+        String end_date,
+        String branches,
+        String technicians,
+        String accountants,
         List<DocumentDetailsRequestDto> documentDetails
 ) {
 }
