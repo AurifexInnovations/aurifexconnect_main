@@ -3,6 +3,7 @@ package com.erp.Controller.Admin;
 import com.erp.Dto.Request.AdminRequest;
 import com.erp.Dto.Request.CommanParam;
 import com.erp.Dto.Response.AdminResponse;
+import com.erp.Dto.Response.AdminUpdateRequest;
 import com.erp.Service.Admin.AdminService;
 import com.erp.Utility.ListResponseStructure;
 import com.erp.Utility.ResponseBuilder;
@@ -29,23 +30,16 @@ public class AdminController {
     }
 
     @PreAuthorize("hasAuthority('ROLE_ROOT')")
-    @GetMapping("/admins")
+    @GetMapping("/all/admins")
     public ResponseEntity<ListResponseStructure<AdminResponse>> getListOfAdmins(){
         List<AdminResponse> adminResponseList = adminService.getListOfAdmins();
         return ResponseBuilder.success(HttpStatus.OK,"List of admins !!",adminResponseList);
     }
 
-    @PreAuthorize("hasAuthority('ROLE_ROOT')")
-    @PostMapping("/admins/search")
-    public ResponseEntity<ListResponseStructure<AdminResponse>> findAdminByIdOrName(@RequestBody CommanParam commanParam){
-        List<AdminResponse> adminResponses = adminService.findAdminByIdOrName(commanParam);
-        return  ResponseBuilder.success(HttpStatus.OK,"Admin found with id or name !",adminResponses);
-    }
-
-    @PreAuthorize("hasAuthority('ROLE_ROOT')")
-    @PutMapping("/admins/update")
-    public ResponseEntity<ResponseStructure<AdminResponse>> updateAdminById(@RequestBody AdminRequest adminRequest) {
-        AdminResponse adminResponse = adminService.updateAdminById(adminRequest);
+    @PreAuthorize("hasAuthority('ROLE_ADMIN')")
+    @PutMapping("/update/admin")
+    public ResponseEntity<ResponseStructure<AdminResponse>> updateAdminById(@RequestBody AdminUpdateRequest adminUpdateRequest) {
+        AdminResponse adminResponse = adminService.updateAdminById(adminUpdateRequest);
         return ResponseBuilder.success(HttpStatus.OK,"Admin details updated successfully !!",adminResponse);
     }
 
@@ -54,6 +48,13 @@ public class AdminController {
     public ResponseEntity<ResponseStructure<AdminResponse>> deleteAdminById(@RequestBody CommanParam commanParam){
         AdminResponse adminResponse = adminService.deleteAdminById(commanParam);
         return ResponseBuilder.success(HttpStatus.OK,"Admin delete Successfully !!",adminResponse);
+    }
 
+    @PreAuthorize("hasAuthority('ROLE_ADMIN')")
+    @GetMapping("/getDetails/admin")
+    public ResponseEntity<ResponseStructure<AdminResponse>> getById()
+    {
+        AdminResponse adminResponse = adminService.findAdminById();
+        return ResponseBuilder.success(HttpStatus.OK, "Admin Fetched Successfully!!", adminResponse);
     }
  }

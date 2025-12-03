@@ -326,9 +326,7 @@ public class UserServiceImpl implements UserServices {
         response.setBranchName(user.getBranchName());
         response.setModuleName(user.getModuleName());
         response.setReportingTo(user.getReportingTo());
-
-        // Full name
-        response.setFullName(user.getFirstName() + " " + user.getLastName());
+        response.setFullName(user.getFirstName()+" "+user.getLastName());
 
         // Roles → List<String>
         List<String> roleNames = user.getRoles()
@@ -339,6 +337,30 @@ public class UserServiceImpl implements UserServices {
         response.setRoleNames(roleNames);
 
         return response;
+    }
+
+    @Override
+    public UserResponse getByEmail() {
+        String email = userIdentity.getCurrentUserEmail();
+
+        User user = userRepository.findByEmail(email)
+                .orElseThrow(() -> new UserNotFoundException("User Not Found!!"));
+
+        return toResponse(user);
+    }
+
+    @Override
+    public UserResponse updateUser(UserProfileRequest userProfileRequest) {
+        String email = userIdentity.getCurrentUserEmail();
+
+        User user = userRepository.findByEmail(email)
+                .orElseThrow(() -> new UserNotFoundException("User Not Found!!"));
+
+        user.setFirstName(userProfileRequest.getFirstName());
+        user.setLastName(userProfileRequest.getLastName());
+        user.setPhoneNo(userProfileRequest.getPhoneNo());
+
+        return toResponse(user);
     }
 
     private SubscriptionEntity getSubscriptionDetails()

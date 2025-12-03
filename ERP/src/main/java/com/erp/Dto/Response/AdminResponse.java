@@ -1,5 +1,6 @@
 package com.erp.Dto.Response;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.Getter;
 import lombok.Setter;
 import java.time.LocalDateTime;
@@ -16,7 +17,8 @@ public class AdminResponse {
 
     private long contactNo;
 
-    private boolean is_Active;
+    @JsonProperty("isActive")
+    private boolean isActive;
 
     private LocalDateTime createdAt;
 
