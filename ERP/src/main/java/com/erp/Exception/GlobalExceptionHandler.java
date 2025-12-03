@@ -8,6 +8,10 @@ import com.erp.Exception.AccountSubGroup.AccountSubGroupNotFoundException;
 import com.erp.Exception.Branch_Exception.BranchLimitExceededException;
 import com.erp.Exception.Ledger.LedgerAlreadyExistsException;
 import com.erp.Exception.Ledger.LedgerNotFoundException;
+import com.erp.Exception.Otp.InvalidOtpException;
+import com.erp.Exception.Otp.OTPErrorException;
+import com.erp.Exception.Otp.OtpExpiredException;
+import com.erp.Exception.Otp.OtpNotFoundException;
 import com.erp.Exception.Quotation.QuotationNotFoundException;
 import com.erp.Exception.SameEmail.SameEmailFoundException;
 import com.erp.Exception.ShipmentException.ShipmentNotFoundException;
@@ -314,6 +318,55 @@ public class GlobalExceptionHandler  {
 //                .build();
 //        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(error);
 //    }
+
+    @ExceptionHandler(OtpNotFoundException.class)
+    public ResponseEntity<ErrorResponse> handleOtpNotFound(OtpNotFoundException ex) {
+        ErrorResponse error = ErrorResponse.builder()
+                .timestamp(LocalDateTime.now())
+                .status(HttpStatus.NOT_FOUND.value())
+                .error("OTP")
+                .message(ex.getMessage())
+                .path("/api/password/verify")
+                .build();
+        return ResponseEntity.status(HttpStatus.NOT_FOUND).body(error);
+    }
+
+    @ExceptionHandler(OtpExpiredException.class)
+    public ResponseEntity<ErrorResponse> handleOtpExpired(OtpExpiredException ex) {
+
+        ErrorResponse error = ErrorResponse.builder()
+                .timestamp(LocalDateTime.now())
+                .status(HttpStatus.GONE.value())
+                .error("OTP")
+                .message(ex.getMessage())
+                .path("/api/password/verify")
+                .build();
+        return ResponseEntity.status(HttpStatus.GONE).body(error);
+    }
+
+    @ExceptionHandler(InvalidOtpException.class)
+    public ResponseEntity<ErrorResponse> handleInvalidOtp(InvalidOtpException ex) {
+        ErrorResponse error = ErrorResponse.builder()
+                .timestamp(LocalDateTime.now())
+                .status(HttpStatus.BAD_REQUEST.value())
+                .error("OTP")
+                .message(ex.getMessage())
+                .path("/api/password/verify")
+                .build();
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(error);
+    }
+
+    @ExceptionHandler(OTPErrorException.class)
+    public ResponseEntity<ErrorResponse> handlePasswordMismatch(OTPErrorException ex) {
+        ErrorResponse error = ErrorResponse.builder()
+                .timestamp(LocalDateTime.now())
+                .status(HttpStatus.BAD_REQUEST.value())
+                .error("OTP")
+                .message(ex.getMessage())
+                .path("/api/password/reset")
+                .build();
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(error);
+    }
 
     @ExceptionHandler(ShipmentNotFoundException.class)
     ResponseEntity<SimpleErrorResponse> shipmentNotFoundHandler(ShipmentNotFoundException e){

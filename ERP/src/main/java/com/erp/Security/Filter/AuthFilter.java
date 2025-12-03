@@ -42,7 +42,7 @@ public class AuthFilter extends OncePerRequestFilter {
         log.debug("Processing request in AuthFilter: {}", path);
 
         // Allow unauthenticated endpoints
-        if (path.startsWith("/api/v1/login") || path.startsWith("/api/v1/auth/") || path.equals("/error") || path.startsWith("/api/v1/admins")) {
+        if (path.startsWith("/api/v1/login") || path.startsWith("/api/v1/auth/") || path.equals("/error") || path.startsWith("/api/v1/admins") || path.startsWith("/api/password") ) {
             log.debug("Skipping AuthFilter for path: {}", path);
             filterChain.doFilter(request, response);
             return;
