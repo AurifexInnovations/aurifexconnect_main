@@ -27,24 +27,24 @@ public class TicketController {
     private final TicketService ticketService;
 
     @PostMapping("/Create")
-    public ResponseEntity<TicketResponseDTO> createTicket(@RequestBody TicketRequestDTO ticketRequestDTO) {
+    public ResponseEntity<ResponseStructure<TicketResponseDTO>> createTicket(@RequestBody TicketRequestDTO ticketRequestDTO) {
         log.info("Controller: createTicket called for customerId={}", ticketRequestDTO.getCustomerId());
         TicketResponseDTO response = ticketService.createTicket(ticketRequestDTO);
-        return ResponseEntity.ok(response);
+        return ResponseBuilder.success(HttpStatus.CREATED, "Ticket Created", response);
     }
 
-    @DeleteMapping("/{ticketId}")
-    public ResponseEntity<String> deleteTicketBySupportId(@PathVariable Long ticketId) {
+    @DeleteMapping
+    public ResponseEntity<ResponseStructure<String>> deleteTicketBySupportId(@RequestParam Long ticketId) {
         log.info("Controller: deleteTicketBySupportId called for ticketId={}", ticketId);
         ticketService.deleteTicketBySupportId(ticketId);
-        return ResponseEntity.ok("Ticket deleted successfully");
+        return ResponseBuilder.success(HttpStatus.OK, "Deleted Ticket With Id :"+ticketId, "DELETE");
     }
 
     @PostMapping("/search")
-    public ResponseEntity<TicketSearchResponse> searchTickets(@RequestBody TicketSearchRequest request) {
+    public ResponseEntity<ResponseStructure<TicketSearchResponse>> searchTickets(@RequestBody TicketSearchRequest request) {
         log.info("Received ticket search request: {}", request);
         TicketSearchResponse response = ticketService.searchTickets(request);
-        return ResponseEntity.ok(response);
+        return ResponseBuilder.success(HttpStatus.OK, "Ticket Searched", response);
     }
 
     @GetMapping()
@@ -53,5 +53,4 @@ public class TicketController {
         ResultDto<TicketResponseDTO> resultDto = ticketService.getAll();
         return ResponseBuilder.success(HttpStatus.OK, "All Tickets", resultDto);
     }
-
 }

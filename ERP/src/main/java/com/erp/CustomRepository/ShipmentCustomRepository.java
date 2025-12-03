@@ -2,13 +2,16 @@ package com.erp.CustomRepository;
 
 import com.erp.Dto.Request.FilterRequest;
 import com.erp.Dto.Response.ResultDto;
+import com.erp.Dto.Response.ShipmentDetailsResponseDTO;
 import com.erp.Enum.ShipmentReferenceType;
 import com.erp.Enum.ShipmentStatus;
+import com.erp.Mapper.shipment.ShipmentMapper;
 import com.erp.Model.ShipmentDetails;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.PersistenceContext;
 import jakarta.persistence.TypedQuery;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Repository;
 
 import java.time.LocalDateTime;
@@ -23,7 +26,10 @@ public class ShipmentCustomRepository
     @PersistenceContext
     private EntityManager entityManager;
 
-    public ResultDto<ShipmentDetails> getShipmentsPagination(FilterRequest filterRequest)
+    @Autowired
+    private ShipmentMapper shipmentMapper;
+
+    public ResultDto<ShipmentDetailsResponseDTO> getShipmentsPagination(FilterRequest filterRequest)
     {
         log.info("Into [ShipmentCustomRepository] [getShipmentsPagination]");
 
@@ -156,9 +162,11 @@ public class ShipmentCustomRepository
         long totalCount = countQuery.getSingleResult();
 
         // ---- Setting ResultDto ----
-        ResultDto<ShipmentDetails> resultDto = new ResultDto<>();
+        List<ShipmentDetailsResponseDTO> res = shipmentMapper.toList(shipments);
+
+        ResultDto<ShipmentDetailsResponseDTO> resultDto = new ResultDto<>();
         resultDto.setCount(totalCount);
-        resultDto.setResults(shipments);
+        resultDto.setResults(res);
 
         log.info("Exit [ShipmentCustomRepository] with count = {}, pageResults = {}", totalCount, shipments.size());
         return resultDto;
