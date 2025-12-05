@@ -18,6 +18,6 @@ public interface ServiceRepository extends JpaRepository<Service,Long> {
 
     List<Service> findAll();
 
-
+    List<Service> findByBranch_BranchId(long branchId);
 
 }

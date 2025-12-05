@@ -32,4 +32,8 @@ public class ServiceRequest {
     private ServiceCategory serviceCategory;
 
     List<ServiceDocumentRequestDto> documents;
+
+    private long branchId;
+
+    private List<Long> inventoryIds;
 }

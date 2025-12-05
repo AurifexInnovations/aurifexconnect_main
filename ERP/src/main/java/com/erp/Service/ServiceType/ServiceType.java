@@ -34,4 +34,6 @@ public interface ServiceType {
     public ResultDto<ServiceTypeResponse> getAllServices(ServiceTypeGetRequest request) ;
 
     ResultDto<ServiceResponse> getAllServicesByFilter(FilterRequest filterRequest);
+
+    ResultDto<ServiceResponse> fetchAllServicesManagerWise();
 }

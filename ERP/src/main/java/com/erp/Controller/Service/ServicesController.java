@@ -25,6 +25,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.ResourceBundle;
 
 @Slf4j
 @RestController
@@ -182,5 +183,11 @@ public class ServicesController
         ResultDto<ServiceResponse> records = serviceTypeService.getAllServicesByFilter(filterRequest);
 
         return ResponseBuilder.success(HttpStatus.OK,"Data fetch successfully ",records);
+    }
+
+    @GetMapping("/branchWise")
+    public ResponseEntity<ResponseStructure<ResultDto<ServiceResponse>>> getAllServicesManagerWise(){
+        ResultDto<ServiceResponse> resultDto = serviceTypeService.fetchAllServicesManagerWise();
+        return ResponseBuilder.success(HttpStatus.OK, "Services Fetched Successdully", resultDto);
     }
 }

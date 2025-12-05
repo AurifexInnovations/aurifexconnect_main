@@ -4,6 +4,7 @@ import com.erp.Dto.Request.ServiceRequest;
 import com.erp.Dto.Response.ServiceResponse;
 import com.erp.Model.Service;
 import org.mapstruct.Mapper;
+import org.mapstruct.Mapping;
 import org.mapstruct.MappingTarget;
 
 import java.util.List;
@@ -33,6 +34,7 @@ public interface ServiceMapper {
      * @param serviceRequest The incoming request DTO.
      * @return A new Service entity.
      */
+    @Mapping(target = "branch", ignore = true)
     Service mapToService(ServiceRequest serviceRequest);
 
     /**
@@ -41,5 +43,6 @@ public interface ServiceMapper {
      * @param serviceRequest The request DTO.
      * @param service The existing entity to update.
      */
+    @Mapping(target = "branch", ignore = true)
     void mapToServiceEntity(ServiceRequest serviceRequest, @MappingTarget Service service);
 }

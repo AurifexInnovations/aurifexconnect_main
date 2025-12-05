@@ -100,4 +100,6 @@ public class Inventory {
     @Column(name = "active")
     private boolean active;
 
+    @ManyToMany(mappedBy = "inventories")
+    private List<Service> services;
 }
