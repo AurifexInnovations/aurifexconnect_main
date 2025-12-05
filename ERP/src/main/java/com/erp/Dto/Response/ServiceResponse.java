@@ -22,4 +22,5 @@ public class ServiceResponse
     private ServiceCategory serviceCategory;
     private LocalDateTime createdAt;
     private LocalDateTime lastModifiedAt;
+    private long branchId;
 }

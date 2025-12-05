@@ -14,6 +14,7 @@ import java.time.LocalDateTime;
 import java.util.List;
 
 @Entity
+
 @SqlResultSetMapping(
         name = "ServiceTypeResponseMapping",
         classes = @ConstructorResult(
@@ -67,4 +68,16 @@ public class Service {
 
     @OneToMany(mappedBy = "service", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<ServiceDocuments> serviceDocuments;
+
+    @ManyToOne
+    @JoinColumn(name = "branch_id")
+    private Branch branch;
+
+    @ManyToMany
+    @JoinTable(
+            name = "service_inventory",
+            joinColumns = @JoinColumn(name = "service_id"),
+            inverseJoinColumns = @JoinColumn(name = "item_id")
+    )
+    private List<Inventory> inventories;
 }
