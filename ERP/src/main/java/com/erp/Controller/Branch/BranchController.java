@@ -1,10 +1,9 @@
 package com.erp.Controller.Branch;
 
-import com.erp.Dto.PaginationResponse;
 import com.erp.Dto.Request.BranchRequest;
 import com.erp.Dto.Request.CommanParam;
 import com.erp.Dto.Request.FilterRequest;
-import com.erp.Dto.Request.PaginationRequest;
+import com.erp.Dto.Response.DropDown;
 import com.erp.Dto.Response.BranchResponse;
 import com.erp.Dto.Response.ResultDto;
 import com.erp.Service.BranchService.BranchService;
@@ -23,9 +22,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.LinkedHashMap;
 import java.util.List;
-import java.util.Map;
 
 @RestController
 @AllArgsConstructor
@@ -130,5 +127,11 @@ public class BranchController
     public ResponseEntity<ResponseStructure<ResultDto<BranchResponse>>> getBranchesDetails(@RequestBody FilterRequest filterRequest){
         ResultDto<BranchResponse> branchResponse = branchService.getBranchDetails(filterRequest);
         return ResponseBuilder.success(HttpStatus.OK,"Branches retrieved successfully!",branchResponse);
+    }
+
+    @GetMapping("branch/dropdown")
+    public ResponseEntity<ResponseStructure<ResultDto<DropDown>>> getBranchDropDownMenu(){
+        ResultDto<DropDown> dropdown = branchService.getBranchDropDownList();
+        return ResponseBuilder.success(HttpStatus.OK, "Branch Drop Down List", dropdown);
     }
 }

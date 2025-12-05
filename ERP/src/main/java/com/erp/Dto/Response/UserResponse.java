@@ -29,6 +29,9 @@ public class UserResponse {
 
     private List<String> roleNames;
 
+    private long branchId;
+    private long reporterId;
+
     private String branchName;
     private String moduleName;
     private String reportingTo;

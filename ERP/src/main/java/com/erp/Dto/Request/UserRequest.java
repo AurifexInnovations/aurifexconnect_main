@@ -39,6 +39,11 @@ public class UserRequest {
     private String moduleName;
     private String reportingTo;
 
+    private long branchId;
+    private boolean manager;
+    private long reporterId;
+    private boolean branchAdmin;
+
     @NotEmpty(message = "Roles cannot be empty")
     @Size(min = 1, message = "User must have at least one role")
     private Set<RoleRequest> roles = new HashSet<>();

@@ -1,13 +1,11 @@
 package com.erp.Service.BranchService;
 
 import com.erp.CustomRepository.BranchCustomRepository;
-import com.erp.Dto.PaginationResponse;
 import com.erp.Dto.Request.BranchRequest;
 import com.erp.Dto.Request.CommanParam;
 import com.erp.Dto.Request.FilterRequest;
-import com.erp.Dto.Request.PaginationRequest;
+import com.erp.Dto.Response.DropDown;
 import com.erp.Dto.Response.BranchResponse;
-import com.erp.Dto.Response.BranchResponseId;
 import com.erp.Dto.Response.ResultDto;
 import com.erp.Enum.BranchStatus;
 import com.erp.Exception.Admin.AdminNotFoundException;
@@ -27,24 +25,17 @@ import com.erp.Repository.Inventory.InventoryRepository;
 import com.erp.Repository.SubscriptionModule.SubscriptionRepository;
 import com.erp.Security.util.UserIdentity;
 import com.erp.Utility.ObjectMapperUtils;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageRequest;
-import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Optional;
-import java.util.stream.Collectors;
 
 @Service
 @AllArgsConstructor
 @Slf4j
-public class BranchServiceImpl implements BranchService
-{
+public class BranchServiceImpl implements BranchService {
     private final BranchRepository branchRepository;
     private final BranchMapper branchMapper;
     private final InventoryRepository inventoryRepository;
@@ -56,14 +47,13 @@ public class BranchServiceImpl implements BranchService
     private final MetaAdminRepository metaAdminRepository;
 
     @Override
-    public BranchResponse createBranch(BranchRequest branchRequest)
-    {
+    public BranchResponse createBranch(BranchRequest branchRequest) {
         SubscriptionEntity subscription = getSubscriptionDetails();
 
         long totalBranch = branchRepository.countByBranchStatus(BranchStatus.ACTIVE);
 
-        if(totalBranch >= Integer.parseInt(subscription.getTotalBranches())) {
-            throw new BranchLimitExceededException("You purchased only "+subscription.getTotalBranches()+" Branches, You have already "+subscription.getTotalBranches()+" ACTIVE Branches, Now You can not create more than this");
+        if (totalBranch >= Integer.parseInt(subscription.getTotalBranches())) {
+            throw new BranchLimitExceededException("You purchased only " + subscription.getTotalBranches() + " Branches, You have already " + subscription.getTotalBranches() + " ACTIVE Branches, Now You can not create more than this");
         }
 
         Long id = userIdentity.getCurrentUser().getId();
@@ -81,8 +71,7 @@ public class BranchServiceImpl implements BranchService
     }
 
     @Override
-    public BranchResponse updateBranch(BranchRequest branchRequest)
-    {
+    public BranchResponse updateBranch(BranchRequest branchRequest) {
         SubscriptionEntity subscription = getSubscriptionDetails();
 
         long totalBranches = branchRepository.countByBranchStatus(BranchStatus.ACTIVE);
@@ -93,9 +82,9 @@ public class BranchServiceImpl implements BranchService
                         "Branch not found with Id: " + branchRequest.getId()
                 ));
 
-        if(branchRequest.getBranchStatus() == BranchStatus.ACTIVE &&
-            totalBranches >= Integer.parseInt(subscription.getTotalBranches())){
-            throw new BranchLimitExceededException("You purchased only "+subscription.getTotalBranches()+" Branches, You have already "+subscription.getTotalBranches()+" ACTIVE Branches, Now You can not updated branch as ACTIVE");
+        if (branchRequest.getBranchStatus() == BranchStatus.ACTIVE &&
+                totalBranches >= Integer.parseInt(subscription.getTotalBranches())) {
+            throw new BranchLimitExceededException("You purchased only " + subscription.getTotalBranches() + " Branches, You have already " + subscription.getTotalBranches() + " ACTIVE Branches, Now You can not updated branch as ACTIVE");
         }
 
         Long id = userIdentity.getCurrentUser().getId();
@@ -116,10 +105,9 @@ public class BranchServiceImpl implements BranchService
 
 
     @Override
-    public BranchResponse deleteBranchById(CommanParam param)
-    {
+    public BranchResponse deleteBranchById(CommanParam param) {
         Branch branch = branchRepository.findById(param.getId())
-                .orElseThrow(()-> new BranchNotFoundException("Branch Not Found, Invalid Id "+param.getId()));
+                .orElseThrow(() -> new BranchNotFoundException("Branch Not Found, Invalid Id " + param.getId()));
         branchRepository.deleteById(param.getId());
         return branchMapper.mapToBranchResponse(branch);
     }
@@ -155,36 +143,36 @@ public class BranchServiceImpl implements BranchService
 
     @Override
     public List<BranchResponse> getByIdOrBranchNameOrLocationOrBranchStatus(CommanParam param) {
-        List<Branch> branches = branchRepository.findByBranchIdOrBranchNameOrLocationOrBranchStatus(param.getId(),param.getName(),param.getLocation(),param.getBranchStatus());
+        List<Branch> branches = branchRepository.findByBranchIdOrBranchNameOrLocationOrBranchStatus(param.getId(), param.getName(), param.getLocation(), param.getBranchStatus());
         if (branches.isEmpty()) {
             throw new BranchNotFoundException("No branches Found, Invalid Details Given ");
-        }else {
+        } else {
             return branchMapper.mapToBranchResponse(branches);
         }
     }
 
     @Override
-    public List<BranchResponse> getBranchesByItemName(CommanParam param){
+    public List<BranchResponse> getBranchesByItemName(CommanParam param) {
         List<Branch> branches = branchRepository.findBranchByInventories_ItemName(param.getName());
 
-        if(branches.isEmpty()){
-            throw new InventoryNotFoundException("No Branches found Stocking Item: "+param.getName());
+        if (branches.isEmpty()) {
+            throw new InventoryNotFoundException("No Branches found Stocking Item: " + param.getName());
         }
         return branchMapper.mapToBranchResponse(branches);
     }
 
-    public ResultDto<BranchResponse> getBranchDetails(FilterRequest filterRequest){
+    public ResultDto<BranchResponse> getBranchDetails(FilterRequest filterRequest) {
         log.info("Into [BranchServiceImpl] [getBranchDetails] ");
 
-        log.info("[BranchServiceImpl] [getBranchDetails] :: Request {} " ,
+        log.info("[BranchServiceImpl] [getBranchDetails] :: Request {} ",
                 ObjectMapperUtils.writeValueAsString(filterRequest));
 
-        ResultDto<BranchResponse> branchResponses  = new ResultDto<>();
+        ResultDto<BranchResponse> branchResponses = new ResultDto<>();
 
         try {
             branchResponses = branchCustomRepository.getBranchDetails(filterRequest);
-        }catch (Exception exception){
-            log.error("Error [BranchServiceImpl] [getBranchDetails] :: {} :: {} " , exception.getMessage() , exception);
+        } catch (Exception exception) {
+            log.error("Error [BranchServiceImpl] [getBranchDetails] :: {} :: {} ", exception.getMessage(), exception);
         }
 
         log.info("Exit [BranchServiceImpl] [getBranchDetails] ");
@@ -192,16 +180,30 @@ public class BranchServiceImpl implements BranchService
         return branchResponses;
     }
 
-    private SubscriptionEntity getSubscriptionDetails()
-    {
+    private SubscriptionEntity getSubscriptionDetails() {
         String schemaName = TenantContext.getCurrentTenant();
 
         String email = metaAdminRepository.findAdminEmailBySchemaName(schemaName)
-                .orElseThrow( () -> new AdminNotFoundException("Schema Not Found With : "+schemaName));
+                .orElseThrow(() -> new AdminNotFoundException("Schema Not Found With : " + schemaName));
 
         SubscriptionEntity subscription = subscriptionRepository.findByUserId(email)
-                .orElseThrow( () -> new ResourceNotFoundException("Subscription Not Found for Email : "+email));
+                .orElseThrow(() -> new ResourceNotFoundException("Subscription Not Found for Email : " + email));
 
         return subscription;
+    }
+
+    @Override
+    public ResultDto<DropDown> getBranchDropDownList() {
+        List<Branch> branches = branchRepository.findAll();
+        List<DropDown> dropdown = new ArrayList<>();
+
+        for (Branch branch : branches) {
+            if(branch.getBranchStatus() == BranchStatus.ACTIVE)
+                dropdown.add(new DropDown(branch.getBranchId(), branch.getBranchName()));
+        }
+        ResultDto<DropDown> result = new ResultDto<>();
+        result.setCount(dropdown.size());
+        result.setResults(dropdown);
+        return result;
     }
 }
