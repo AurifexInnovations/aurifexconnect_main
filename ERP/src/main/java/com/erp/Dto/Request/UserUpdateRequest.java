@@ -20,6 +20,7 @@ public class UserUpdateRequest {
     private String firstName;
 
     private String lastName;
+    private long branchId;
 
     @Email
     private String email;

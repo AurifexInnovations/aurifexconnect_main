@@ -56,6 +56,9 @@ public class User implements GenericUser {
     @Column(name = "reporting_to")
     private String reportingTo;
 
+    @Column(name = "is_manager")
+    private boolean isManager;
+
     @Column(name = "created_by_admin_id")
     private long createdByAdminId;
 
@@ -124,4 +127,14 @@ public class User implements GenericUser {
 
     @OneToMany(mappedBy = "user")
     private List<Attendance> attendances;
+
+    @ManyToOne
+    @JoinColumn(name = "branch_id")
+    private Branch branch;
+
+    @Column(name = "reporter_id")
+    private long reporterId;
+
+    @Column(name = "is_branch_admin")
+    private boolean isBranchAdmin;
 }

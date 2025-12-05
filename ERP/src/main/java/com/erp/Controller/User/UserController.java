@@ -4,12 +4,15 @@ import com.erp.Dto.Request.CommanParam;
 import com.erp.Dto.Request.UserProfileRequest;
 import com.erp.Dto.Request.UserRequest;
 import com.erp.Dto.Request.UserUpdateRequest;
+import com.erp.Dto.Response.DropDown;
+import com.erp.Dto.Response.ResultDto;
 import com.erp.Dto.Response.UserResponse;
 import com.erp.Service.User.UserServices;
 import com.erp.Utility.ListResponseStructure;
 import com.erp.Utility.ResponseBuilder;
 import com.erp.Utility.ResponseStructure;
 import lombok.AllArgsConstructor;
+import lombok.Getter;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -82,5 +85,17 @@ public class UserController {
     {
         UserResponse response = userServices.updateUser(userProfileRequest);
         return ResponseBuilder.success(HttpStatus.OK, "User Updated Successfully!!", response);
+    }
+
+    @GetMapping("/user/dropdown")
+    public ResponseEntity<ResponseStructure<ResultDto<DropDown>>> getUserDropDown(@RequestParam String id){
+        ResultDto<DropDown> dropdown = userServices.getUserDropDownList(id);
+        return ResponseBuilder.success(HttpStatus.OK, "Manager Drop Down List", dropdown);
+    }
+
+    @GetMapping("/user/branchWise")
+    public ResponseEntity<ResponseStructure<ResultDto<UserResponse>>> getUsersBranchWise(){
+        ResultDto<UserResponse> resultDto = userServices.getUsersBranchWise();
+        return ResponseBuilder.success(HttpStatus.OK, "Fetched Users Successfully", resultDto);
     }
 }

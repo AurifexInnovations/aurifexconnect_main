@@ -10,7 +10,7 @@ import java.util.List;
 import java.util.Optional;
 
 @Repository("userRepository")
-public interface UserRepository extends JpaRepository<User, Long>, GenericUserRepository<User> ,UserRepositoryCustom{
+public interface UserRepository extends JpaRepository<User, Long>, GenericUserRepository<User> ,UserRepositoryCustom {
     Optional<User> findByEmail(String email);
 
     List<User> findByIsActiveTrue();
@@ -22,4 +22,9 @@ public interface UserRepository extends JpaRepository<User, Long>, GenericUserRe
     long countByIsActiveTrueAndRoles_RoleName(String roleName);
 
     long countByIsActiveTrueAndRoles_RoleNameAndIdNot(String roleName, Long userId);
+
+    List<User> findByIsManagerTrueAndIsActiveTrueAndBranch_BranchId(Long branchId);
+
+    List<User> findByBranch_BranchId(long branchId);
 }
+

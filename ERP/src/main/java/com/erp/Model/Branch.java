@@ -65,4 +65,5 @@ public class Branch
 
     @OneToMany(mappedBy = "branch")
     private List<Staff> staffList;
+
 }

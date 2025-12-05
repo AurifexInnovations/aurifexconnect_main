@@ -1,0 +1,11 @@
+
+
+ALTER TABLE IF EXISTS users
+    ADD COLUMN IF NOT EXISTS branch_id BIGINT,
+    ADD COLUMN IF NOT EXISTS is_manager BOOLEAN DEFAULT FALSE,
+    ADD COLUMN IF NOT EXISTS reporter_id BIGINT,
+    ADD COLUMN IF NOT EXISTS is_branch_admin BOOLEAN DEFAULT FALSE;
+
+ALTER TABLE IF EXISTS users
+    ADD CONSTRAINT fk_users_branch
+        FOREIGN KEY (branch_id) REFERENCES branch(branch_id);
