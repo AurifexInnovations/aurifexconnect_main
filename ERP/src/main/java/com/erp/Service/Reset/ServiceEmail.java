@@ -22,7 +22,7 @@ public class ServiceEmail {
             helper.setSubject("Your OTP Code");
 
             String html = "<h2>Your OTP is: <b>" + otp + "</b></h2>"
-                    + "<p>Valid for <b>10 minutes</b>.</p>";
+                    + "<p>Valid for <b>5 minutes</b>.</p>";
 
             helper.setText(html, true);
 

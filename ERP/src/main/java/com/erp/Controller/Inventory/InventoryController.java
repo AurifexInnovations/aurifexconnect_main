@@ -158,8 +158,6 @@ public class InventoryController {
         return ResponseEntity.ok(inventoryService.createOrUpdateProduct(productRequest, files));
     }
 
-
-
     @DeleteMapping("/inventory/{itemId}")
     public ResponseEntity<Map<String, Object>> deleteInventoryByItemId(@PathVariable Long itemId) {
         log.info("Received delete request for itemId={}", itemId);

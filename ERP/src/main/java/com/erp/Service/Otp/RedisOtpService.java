@@ -104,7 +104,7 @@ public class RedisOtpService {
 
     public void storeOtp(String userIdentifier, String otp) {
         String key = buildKey(userIdentifier);
-        valueOps.set(key, otp, 10, TimeUnit.MINUTES);
+        valueOps.set(key, otp, 5, TimeUnit.MINUTES);
         setVerified(userIdentifier, false);
     }
 
