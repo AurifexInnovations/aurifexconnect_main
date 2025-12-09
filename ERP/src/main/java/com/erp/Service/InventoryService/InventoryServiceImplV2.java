@@ -16,6 +16,7 @@ import com.erp.Model.Tax;
 import com.erp.Repository.Branch.BranchRepository;
 import com.erp.Repository.Inventory.InventoryRepository;
 import com.erp.Repository.Inventory.InventoryRepositoryV2;
+import com.erp.Repository.Service.ServiceRepository;
 import com.erp.Repository.Tax.TaxRepository;
 import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -31,6 +32,7 @@ public class InventoryServiceImplV2 implements InventoryServiceV2 {
     private final TaxRepository taxRepository;
     private final InventoryRepositoryV2 inventoryRepositoryV2;
     private final InventoryMapper inventoryMapper;
+    private final ServiceRepository serviceRepository;
 
     @Override
     public ResultDto<InventoryResponseV2> addInventory(InventoryRequestV2 request) {
@@ -132,15 +134,19 @@ public class InventoryServiceImplV2 implements InventoryServiceV2 {
         InventoryV2 inventoryV2 = inventoryRepositoryV2.findById(itemId)
                 .orElseThrow(() -> new InventoryNotFoundException("Inventory Not Found !!"));
 
-        try {
-            inventoryRepositoryV2.delete(inventoryV2);
-        } catch (Exception ex) {
-            throw new RuntimeException("Problem With Delete Inventory");
+        for (com.erp.Model.Service s : inventoryV2.getServices()) {
+            s.getInventories().remove(inventoryV2);
         }
+
+        inventoryV2.getServices().clear();
+
+        serviceRepository.saveAll(inventoryV2.getServices());
 
         InventoryResponseV2 inventoryResponseV2 = inventoryMapper.ToInventoryResponseV2(inventoryV2);
         inventoryResponseV2.setTaxId(inventoryV2.getTax().getId());
         inventoryResponseV2.setBranchId(inventoryV2.getBranch().getBranchId());
+
+        inventoryRepositoryV2.delete(inventoryV2);
 
         return inventoryResponseV2;
     }
