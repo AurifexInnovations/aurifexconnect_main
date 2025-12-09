@@ -19,6 +19,7 @@ import com.erp.Mapper.Service.ServiceMapper;
 import com.erp.Model.*;
 import com.erp.Repository.Branch.BranchRepository;
 import com.erp.Repository.Inventory.InventoryRepository;
+import com.erp.Repository.Inventory.InventoryRepositoryV2;
 import com.erp.Repository.Service.Entitymanager.ServiceTypeRepo;
 import com.erp.Repository.Service.ServiceRepository;
 import com.erp.Repository.User.UserRepository;
@@ -42,7 +43,7 @@ public class ServiceTypeImpl implements ServiceType
     private final BranchRepository branchRepository;
     private final UserIdentity userIdentity;
     private final UserRepository userRepository;
-    private final InventoryRepository inventoryRepository;
+    private final InventoryRepositoryV2 inventoryRepository;
 
     @Override
     public ServiceResponse addService(ServiceRequest serviceRequest)
@@ -54,7 +55,7 @@ public class ServiceTypeImpl implements ServiceType
 
         if (serviceRequest.getInventoryIds() != null && !serviceRequest.getInventoryIds().isEmpty()) {
 
-            List<Inventory> inventories = inventoryRepository.findAllById(serviceRequest.getInventoryIds());
+            List<InventoryV2> inventories = inventoryRepository.findAllById(serviceRequest.getInventoryIds());
 
             if (inventories.size() != serviceRequest.getInventoryIds().size()) {
                 throw new InventoryNotFoundException("Some inventory IDs are invalid");

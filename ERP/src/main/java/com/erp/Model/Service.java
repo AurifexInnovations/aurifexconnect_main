@@ -79,5 +79,5 @@ public class Service {
             joinColumns = @JoinColumn(name = "service_id"),
             inverseJoinColumns = @JoinColumn(name = "item_id")
     )
-    private List<Inventory> inventories;
+    private List<InventoryV2> inventories;
 }
