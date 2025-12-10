@@ -44,7 +44,7 @@ CREATE TABLE IF NOT EXISTS inventoryV2 (
     unit_type_value DOUBLE PRECISION,
     measurement_type VARCHAR(50),
     measurement DOUBLE PRECISION,
-    expiry_date TIMESTAMP
+    expiry_date TIMESTAMP,
 
     -- Rental Fields
     is_rentable BOOLEAN DEFAULT FALSE,
