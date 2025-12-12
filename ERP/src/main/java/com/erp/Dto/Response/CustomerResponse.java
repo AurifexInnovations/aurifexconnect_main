@@ -1,5 +1,7 @@
 package com.erp.Dto.Response;
 
+import com.erp.Dto.Request.CustomerMapperRequestDto;
+import com.erp.Model.CustomerDetailsMapper;
 import lombok.Data;
 
 import java.time.LocalDate;
@@ -27,4 +29,18 @@ public class CustomerResponse {
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
     private List<ProductDetailDto> productDetailDto;
+    private List<CustomerMapperRequestDto> products;
+
+    // ---- Added to match entity (ALTER columns) ----
+    private String alternatePhone;
+    private String locationUrl;
+    private String customerType;
+    private String serviceCategory;
+    private Double sqrt;
+    private Long totalQuotation;
+    private Long totalSalesOrder;
+    private Long totalInvoices;
+
+    // service list (from mapper table)
+    private List<Long> services;
 }

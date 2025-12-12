@@ -66,7 +66,7 @@ public class Leads {
 
     @OneToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "converted_customer_id", unique = true)
-    private Customer convertedCustomer;
+    private CustomerDetails convertedCustomer;
 
     @OneToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "latest_quotation_id")

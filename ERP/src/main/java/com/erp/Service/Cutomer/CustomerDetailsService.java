@@ -11,4 +11,12 @@ public interface CustomerDetailsService {
     CustomerResponseDtos addOrUpdateCustomer(CustomerDetailsRequestDto request);
 
     ResultDto<CustomerResponse> getFilteredCustomers(FilterRequest filterRequest);
+
+    CustomerResponse addCustomer(CustomerDetailsRequestDto customerDetailsRequestDto);
+
+    ResultDto<CustomerResponse> getAll();
+
+    CustomerResponse getById(long id);
+
+    CustomerResponse deleteById(long id);
 }
