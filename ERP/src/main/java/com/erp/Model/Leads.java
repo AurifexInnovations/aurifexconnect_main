@@ -1,7 +1,12 @@
 package com.erp.Model;
 
+import com.erp.Enum.ServiceCategory;
 import jakarta.persistence.*;
 import lombok.*;
+import org.apache.xpath.operations.Quo;
+import org.springframework.data.annotation.CreatedDate;
+import org.springframework.data.annotation.LastModifiedDate;
+import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
 import java.time.LocalDateTime;
 
@@ -12,6 +17,7 @@ import java.time.LocalDateTime;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
+@EntityListeners(AuditingEntityListener.class)
 public class Leads {
 
     @Id
@@ -46,19 +52,32 @@ public class Leads {
     private String remarks;
 
     @Column(name = "created_at", updatable = false)
+    @CreatedDate
     private LocalDateTime createdAt;
 
     @Column(name = "updated_at")
+    @LastModifiedDate
     private LocalDateTime updatedAt;
 
-    @PrePersist
-    protected void onCreate() {
-        createdAt = LocalDateTime.now();
-        updatedAt = LocalDateTime.now();
-    }
+    // Alter mappings
 
-    @PreUpdate
-    protected void onUpdate() {
-        updatedAt = LocalDateTime.now();
-    }
+    @Column(name = "lost_reason")
+    private String lostReason;
+
+    @OneToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "converted_customer_id", unique = true)
+    private Customer convertedCustomer;
+
+    @OneToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "latest_quotation_id")
+    private Quotation latestQuotation;
+
+    @Column(name = "total_quotation")
+    private Long totalQuotation;
+
+    @Column(name = "service_category")
+    private ServiceCategory serviceCategory;   // Should be RESIDENTIAL / COMMERCIAL
+
+    @Column(name = "sqrt")
+    private Double sqrt;
 }
