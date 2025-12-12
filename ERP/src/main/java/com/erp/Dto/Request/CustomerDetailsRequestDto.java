@@ -25,4 +25,16 @@ public class CustomerDetailsRequestDto {
     private String tags;
     private String customerStatus;
     private List<CustomerMapperRequestDto> products; // product-service mapping
+
+    private List<Long> services;
+    private String alternatePhone;
+    private String locationUrl;
+    private String customerType;
+    private String serviceCategory;
+    private Double sqrt;
+    private long totalQuotation;
+    private long totalSalesOrder;
+    private long totalInvoices;
+
+    private long leadId;
 }

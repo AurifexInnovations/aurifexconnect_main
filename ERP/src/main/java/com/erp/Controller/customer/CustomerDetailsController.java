@@ -10,6 +10,7 @@ import com.erp.Service.Cutomer.CustomerDetailsService;
 
 import com.erp.Utility.ResponseBuilder;
 import com.erp.Utility.ResponseStructure;
+import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -18,11 +19,11 @@ import org.springframework.web.bind.annotation.*;
 
 @Slf4j
 @RestController
+@AllArgsConstructor
 @RequestMapping("/api/v1/customers")
 public class CustomerDetailsController {
 
-    @Autowired
-    private CustomerDetailsService customerService;
+    private final CustomerDetailsService customerService;
 
     @PostMapping("/addOrUpdate")
     public ResponseEntity<ResponseStructure<CustomerResponseDtos>> addOrUpdateCustomer(@RequestBody CustomerDetailsRequestDto request) {
@@ -36,4 +37,25 @@ public class CustomerDetailsController {
     public ResponseEntity<ResultDto<CustomerResponse>> filter(@RequestBody FilterRequest filterRequest) {
         return ResponseEntity.ok(customerService.getFilteredCustomers(filterRequest));
     }
+
+    @PostMapping("/add")
+    public ResponseEntity<ResponseStructure<CustomerResponse>> addCustomer(@RequestBody CustomerDetailsRequestDto customerDetailsRequestDto) {
+        return ResponseBuilder.success(HttpStatus.OK, "Customer Added !!", customerService.addCustomer(customerDetailsRequestDto));
+    }
+
+    @GetMapping
+    public ResponseEntity<ResponseStructure<ResultDto<CustomerResponse>>> getAllCustomers(){
+        return ResponseBuilder.success(HttpStatus.OK, "All Customers Fetched !!", customerService.getAll());
+    }
+
+    @GetMapping("/byId")
+    public ResponseEntity<ResponseStructure<CustomerResponse>> getCustomerById(@RequestParam long id){
+        return ResponseBuilder.success(HttpStatus.OK, "Customer Fetched !!", customerService.getById(id));
+    }
+
+    @DeleteMapping
+    public ResponseEntity<ResponseStructure<CustomerResponse>> deleteCustomerById(@RequestParam long id){
+        return ResponseBuilder.success(HttpStatus.OK, "Delete Customer Successfully !!", customerService.deleteById(id));
+    }
+
 }

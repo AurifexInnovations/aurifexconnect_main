@@ -2,6 +2,9 @@ package com.erp.Model;
 
 import jakarta.persistence.*;
 import lombok.*;
+import org.springframework.data.annotation.CreatedDate;
+import org.springframework.data.annotation.LastModifiedDate;
+import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -13,6 +16,7 @@ import java.time.LocalDateTime;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
+@EntityListeners(AuditingEntityListener.class)
 public class CustomerDetails {
 
     @Id
@@ -62,22 +66,35 @@ public class CustomerDetails {
     private LocalDate joinedDate;
 
     @Column(name = "created_at", updatable = false)
+    @CreatedDate
     private LocalDateTime createdAt;
 
     @Column(name = "updated_at")
+    @LastModifiedDate
     private LocalDateTime updatedAt;
 
-    @PrePersist
-    protected void onCreate() {
-        createdAt = LocalDateTime.now();
-        updatedAt = LocalDateTime.now();
-        if (joinedDate == null) {
-            joinedDate = LocalDate.now();
-        }
-    }
+    // ALTERS
+    @Column(name = "alternate_phone")
+    private String alternatePhone;
 
-    @PreUpdate
-    protected void onUpdate() {
-        updatedAt = LocalDateTime.now();
-    }
+    @Column(name = "location_url")
+    private String locationUrl;
+
+    @Column(name = "customer_type")
+    private String customerType;
+
+    @Column(name = "service_category")
+    private String serviceCategory;
+
+    @Column(name = "sqrt")
+    private Double sqrt;
+
+    @Column(name = "total_quotation")
+    private Long totalQuotation;
+
+    @Column(name = "total_sales_order")
+    private Long totalSalesOrder;
+
+    @Column(name = "total_invoices")
+    private Long totalInvoices;
 }
