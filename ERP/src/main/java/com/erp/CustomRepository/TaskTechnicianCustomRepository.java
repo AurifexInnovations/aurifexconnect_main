@@ -84,7 +84,7 @@ public class TaskTechnicianCustomRepository {
             LEFT JOIN task_technicians tt ON t.task_id = tt.task_id
             LEFT JOIN users u ON tt.technician_id = u.id
             LEFT JOIN task_material tm ON tm.task_id = t.task_id
-            LEFT JOIN inventory i ON i.item_id = tm.material_id
+            LEFT JOIN inventoryv2 i ON i.item_id = tm.material_id
 
             WHERE 1=1
         """);
@@ -270,7 +270,7 @@ public class TaskTechnicianCustomRepository {
             LEFT JOIN task_technicians tt ON t.task_id = tt.task_id
             LEFT JOIN users u ON tt.technician_id = u.id
             LEFT JOIN task_material tm ON tm.task_id = t.task_id
-            LEFT JOIN inventory i ON i.item_id = tm.material_id
+            LEFT JOIN inventoryv2 i ON i.item_id = tm.material_id
 
             WHERE 1=1
         """);
