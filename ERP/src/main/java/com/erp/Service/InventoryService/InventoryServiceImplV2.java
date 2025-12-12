@@ -5,19 +5,21 @@ import com.erp.Dto.Request.InventoryUpdateRequestV2;
 import com.erp.Dto.Response.InventoryResponse;
 import com.erp.Dto.Response.InventoryResponseV2;
 import com.erp.Dto.Response.ResultDto;
+import com.erp.Dto.Response.ServiceResponse;
 import com.erp.Dto.VarientDto;
 import com.erp.Exception.Branch_Exception.BranchNotFoundException;
 import com.erp.Exception.Inventory_Exception.InventoryNotFoundException;
 import com.erp.Exception.Tax.TaxNotFoundException;
+import com.erp.Exception.User.UserNotFoundException;
 import com.erp.Mapper.Inventory.InventoryMapper;
-import com.erp.Model.Branch;
-import com.erp.Model.InventoryV2;
-import com.erp.Model.Tax;
+import com.erp.Model.*;
 import com.erp.Repository.Branch.BranchRepository;
 import com.erp.Repository.Inventory.InventoryRepository;
 import com.erp.Repository.Inventory.InventoryRepositoryV2;
 import com.erp.Repository.Service.ServiceRepository;
 import com.erp.Repository.Tax.TaxRepository;
+import com.erp.Repository.User.UserRepository;
+import com.erp.Security.util.UserIdentity;
 import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Service;
 
@@ -33,6 +35,8 @@ public class InventoryServiceImplV2 implements InventoryServiceV2 {
     private final InventoryRepositoryV2 inventoryRepositoryV2;
     private final InventoryMapper inventoryMapper;
     private final ServiceRepository serviceRepository;
+    private final UserIdentity userIdentity;
+    private final UserRepository userRepository;
 
     @Override
     public ResultDto<InventoryResponseV2> addInventory(InventoryRequestV2 request) {
@@ -191,6 +195,28 @@ public class InventoryServiceImplV2 implements InventoryServiceV2 {
         ResultDto<InventoryResponseV2> resultDto = new ResultDto<>();
         resultDto.setCount(inventoryResponseV2s.size());
         resultDto.setResults(inventoryResponseV2s);
+        return resultDto;
+    }
+
+    @Override
+    public ResultDto<InventoryResponseV2> getAllBranchWise() {
+        GenericUser genericUser = userIdentity.getCurrentUser();
+
+        User user = userRepository.findByEmail(genericUser.getEmail())
+                .orElseThrow(() -> new UserNotFoundException("User Not Found!!"));
+
+        List<InventoryResponseV2> responseV2s = new ArrayList<>();
+        for(InventoryV2 s : inventoryRepositoryV2.findByBranch_BranchId(user.getBranch().getBranchId())){
+            InventoryResponseV2 inventoryResponseV2 = inventoryMapper.ToInventoryResponseV2(s);
+            inventoryResponseV2.setBranchId(s.getBranch().getBranchId());
+            inventoryResponseV2.setTaxId(s.getTax().getId());
+            responseV2s.add(inventoryResponseV2);
+        }
+        ResultDto<InventoryResponseV2> resultDto = new ResultDto<>();
+
+        resultDto.setResults(responseV2s != null ? responseV2s : List.of());
+        resultDto.setCount(responseV2s != null ? responseV2s.size() : 0);
+
         return resultDto;
     }
 }

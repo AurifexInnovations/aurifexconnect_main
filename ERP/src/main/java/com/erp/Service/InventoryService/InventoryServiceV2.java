@@ -15,4 +15,6 @@ public interface InventoryServiceV2 {
     InventoryResponseV2 updateInventory(InventoryUpdateRequestV2 inventoryRequestV2);
 
     ResultDto<InventoryResponseV2> getAll();
+
+    ResultDto<InventoryResponseV2> getAllBranchWise();
 }

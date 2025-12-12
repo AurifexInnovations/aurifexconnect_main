@@ -47,4 +47,10 @@ public class InventoryControllerV2 {
         ResultDto<InventoryResponseV2> responseV2 = inventoryServiceImplV2.getAll();
         return ResponseBuilder.success(HttpStatus.OK, "Inventory Added Successfully!!", responseV2);
     }
+
+    @GetMapping("/v2/inventory/branchWise")
+    public ResponseEntity<ResponseStructure<ResultDto<InventoryResponseV2>>> getAllInventoryV2BranchWise(){
+        ResultDto<InventoryResponseV2> responseV2 = inventoryServiceImplV2.getAllBranchWise();
+        return ResponseBuilder.success(HttpStatus.OK, "Inventory Fetched Successfully!!", responseV2);
+    }
 }
