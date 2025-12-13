@@ -21,3 +21,29 @@ CREATE TABLE IF NOT EXISTS invoices (
     created_at TIMESTAMP,
     updated_at TIMESTAMP
 );
+
+
+CREATE TABLE IF NOT EXISTS tenant_1_rak_gmail_com.payments (
+    id BIGSERIAL PRIMARY KEY,
+
+    invoice_id BIGINT,
+    customer_id BIGINT,
+
+    invoice_amount NUMERIC(12, 2),
+    amount_paid NUMERIC(12, 2),
+
+    total_paid_till_now NUMERIC(12, 2) DEFAULT 0,
+    balance_amount NUMERIC(12, 2) DEFAULT 0,
+
+    payment_status VARCHAR(50),
+    payment_method VARCHAR(50),
+
+    transaction_reference VARCHAR(255),
+
+    payment_date TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+
+    notes TEXT,
+
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
