@@ -23,7 +23,7 @@ CREATE TABLE IF NOT EXISTS invoices (
 );
 
 
-CREATE TABLE IF NOT EXISTS tenant_1_rak_gmail_com.payments (
+CREATE TABLE IF NOT EXISTS payments (
     id BIGSERIAL PRIMARY KEY,
 
     invoice_id BIGINT,
@@ -49,7 +49,7 @@ CREATE TABLE IF NOT EXISTS tenant_1_rak_gmail_com.payments (
 );
 
 
-CREATE TABLE IF NOT EXISTS tenant_1_rak_gmail_com.receipts (
+CREATE TABLE IF NOT EXISTS receipts (
     id BIGSERIAL PRIMARY KEY,
 
     payment_id BIGINT NOT NULL,
@@ -68,3 +68,59 @@ CREATE TABLE IF NOT EXISTS tenant_1_rak_gmail_com.receipts (
 
 
 );
+
+
+CREATE TABLE IF NOT EXISTS saled_order_product_mapper (
+    id BIGSERIAL PRIMARY KEY,
+
+    product_id BIGINT NOT NULL,
+
+    saled_order_id BIGINT NOT NULL,
+
+    quantity NUMERIC(12,2) NOT NULL,
+
+    subtotal NUMERIC(12,2),
+    tax_amount NUMERIC(12,2),
+    total_amount NUMERIC(12,2)
+);
+
+CREATE TABLE IF NOT EXISTS sales_order_service_mapper (
+    id BIGSERIAL PRIMARY KEY,
+
+    service_id BIGINT NOT NULL,
+
+    sales_order_id BIGINT NOT NULL,
+
+    quantity NUMERIC(12,2) NOT NULL,
+
+    subtotal NUMERIC(12,2),
+    tax_amount NUMERIC(12,2),
+    total_amount NUMERIC(12,2)
+);
+
+CREATE TABLE IF NOT EXISTS sales_orders (
+    sales_order_number BIGSERIAL PRIMARY KEY,
+    quotation_id BIGINT,
+    customer_id BIGINT NOT NULL,
+    phone_number VARCHAR(20),
+    alternate_phone_number VARCHAR(20),
+    sales_order_date DATE,
+    company_name VARCHAR(150),
+    email VARCHAR(150),
+    address TEXT,
+    landmark TEXT,
+    city VARCHAR(100),
+    state VARCHAR(100),
+    country VARCHAR(100),
+    pincode VARCHAR(10),
+    location_url TEXT,
+    service_category VARCHAR(20),
+    sqft NUMERIC(10,2),
+    sales_order_type VARCHAR(20) NOT NULL,
+    status VARCHAR(30) NOT NULL,
+    notes TEXT,
+    service_type VARCHAR(30) NOT NULL,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
