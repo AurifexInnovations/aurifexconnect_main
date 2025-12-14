@@ -47,3 +47,24 @@ CREATE TABLE IF NOT EXISTS tenant_1_rak_gmail_com.payments (
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
+
+
+CREATE TABLE IF NOT EXISTS tenant_1_rak_gmail_com.receipts (
+    id BIGSERIAL PRIMARY KEY,
+
+    payment_id BIGINT NOT NULL,
+    invoice_id BIGINT NOT NULL,
+    customer_id BIGINT NOT NULL,
+
+    receipt_number VARCHAR(50) NOT NULL UNIQUE,
+    receipt_date TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+
+    amount_received NUMERIC(12,2) NOT NULL,
+    payment_method VARCHAR(50),
+
+    notes TEXT,
+
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+
+
+);

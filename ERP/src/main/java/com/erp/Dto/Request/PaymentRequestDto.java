@@ -26,4 +26,7 @@ public class PaymentRequestDto {
     private String transactionReference;
     private LocalDateTime paymentDate;
     private String notes;
+    private BigDecimal balanceAmount;
+    private BigDecimal totalPaidTillNow;
+
 }

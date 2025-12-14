@@ -15,10 +15,8 @@ public class PaymentMapper {
         payment.setInvoiceAmount(dto.getInvoiceAmount());
         payment.setAmountPaid(dto.getAmountPaid());
 
-        payment.setTotalPaidTillNow(dto.getAmountPaid());
-        payment.setBalanceAmount(
-                dto.getInvoiceAmount().subtract(dto.getAmountPaid())
-        );
+        payment.setTotalPaidTillNow(dto.getTotalPaidTillNow());
+        payment.setBalanceAmount(dto.getBalanceAmount());
 
         payment.setPaymentStatus(dto.getPaymentStatus());
         payment.setPaymentMethod(dto.getPaymentMethod());
