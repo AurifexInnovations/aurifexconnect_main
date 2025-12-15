@@ -3,6 +3,7 @@ package com.erp.Controller.LeadController;
 import com.erp.Dto.Request.LeadProductRequestDto;
 import com.erp.Dto.Request.LeadRequest;
 import com.erp.Dto.Request.LeadResponse;
+import com.erp.Dto.Response.DropDown;
 import com.erp.Dto.Response.ResultDto;
 import com.erp.Model.Leads;
 import com.erp.Service.lead.LeadServices;
@@ -61,5 +62,10 @@ public class LeadControllers {
     @GetMapping("/branchWise")
     public ResponseEntity<ResponseStructure<ResultDto<LeadResponse>>> getAllBranchWise(){
         return ResponseBuilder.success(HttpStatus.OK, "Leads Fetched Via Branch Wise !!", leadService.getAllBranchWise());
+    }
+
+    @GetMapping("/dropdown")
+    public ResponseEntity<ResponseStructure<ResultDto<DropDown>>> getDropDown(){
+        return ResponseBuilder.success(HttpStatus.OK, "Leads Drop Down Branch Wise !!", leadService.getDropDown());
     }
 }

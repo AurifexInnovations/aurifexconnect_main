@@ -3,6 +3,7 @@ package com.erp.Service.lead;
 
 import com.erp.Dto.Request.LeadRequest;
 import com.erp.Dto.Request.LeadResponse;
+import com.erp.Dto.Response.DropDown;
 import com.erp.Dto.Response.ResultDto;
 import com.erp.Model.Leads;
 
@@ -20,4 +21,6 @@ public interface LeadServices {
     LeadResponse updateStatus(LeadRequest leadRequest);
 
     ResultDto<LeadResponse> getAllBranchWise();
+
+    ResultDto<DropDown> getDropDown();
 }

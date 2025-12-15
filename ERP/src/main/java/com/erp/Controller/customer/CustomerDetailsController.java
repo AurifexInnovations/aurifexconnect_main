@@ -5,6 +5,7 @@ import com.erp.Dto.Request.CustomerDetailsRequestDto;
 import com.erp.Dto.Request.FilterRequest;
 import com.erp.Dto.Response.CustomerResponse;
 import com.erp.Dto.Response.CustomerResponseDtos;
+import com.erp.Dto.Response.DropDown;
 import com.erp.Dto.Response.ResultDto;
 import com.erp.Service.Cutomer.CustomerDetailsService;
 
@@ -61,6 +62,11 @@ public class CustomerDetailsController {
     @GetMapping("/branchWise")
     public ResponseEntity<ResponseStructure<ResultDto<CustomerResponse>>> getAllBranchWise(){
         return ResponseBuilder.success(HttpStatus.OK, "Customers Fetched Branch Wise !!", customerService.getByBranchWise());
+    }
+
+    @GetMapping("/dropdown")
+    public ResponseEntity<ResponseStructure<ResultDto<DropDown>>> getAllCustomersDropDown(){
+        return ResponseBuilder.success(HttpStatus.OK, "Customers Drop Down Details Branch Wise", customerService.getDropdown());
     }
 
 }

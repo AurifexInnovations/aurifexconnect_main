@@ -6,6 +6,7 @@ import com.erp.Dto.Request.CustomerMapperRequestDto;
 import com.erp.Dto.Request.FilterRequest;
 import com.erp.Dto.Response.CustomerResponse;
 import com.erp.Dto.Response.CustomerResponseDtos;
+import com.erp.Dto.Response.DropDown;
 import com.erp.Dto.Response.ResultDto;
 import com.erp.Exception.Branch_Exception.BranchNotFoundException;
 import com.erp.Exception.ResourceFoundException;
@@ -269,5 +270,25 @@ public class CustomerDetailsServiceImpl implements com.erp.Service.Cutomer.Custo
         resultDto.setCount(customerResponseList.size());
         resultDto.setResults(customerResponseList);
         return resultDto;
+    }
+
+
+    @Override
+    public ResultDto<DropDown> getDropdown() {
+
+        GenericUser genericUser = userIdentity.getCurrentUser();
+        User user = userRepository.findById(genericUser.getId())
+                .orElseThrow(() -> new UserNotFoundException("User Not Found !!"));
+
+        List<DropDown> list = new ArrayList<>();
+        for (CustomerDetails customer : customerRepo.findByBranch_BranchId(user.getBranch().getBranchId())) {
+            DropDown dropDown = new DropDown(customer.getId(), customer.getCustomerName());
+            list.add(dropDown);
+        }
+
+        ResultDto<DropDown> resultDto = new ResultDto<>();
+        resultDto.setCount(list.size());
+        resultDto.setResults(list);
+        return  resultDto;
     }
 }

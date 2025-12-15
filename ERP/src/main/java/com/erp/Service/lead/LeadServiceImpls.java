@@ -6,6 +6,7 @@ import com.erp.Dto.Request.LeadRequest;
 
 import com.erp.Dto.Request.LeadResponse;
 import com.erp.Dto.Request.LeadServiceMapperDto;
+import com.erp.Dto.Response.DropDown;
 import com.erp.Dto.Response.ResultDto;
 import com.erp.Exception.Branch_Exception.BranchNotFoundException;
 import com.erp.Exception.ResourceNotFoundException;
@@ -250,6 +251,25 @@ public class LeadServiceImpls implements LeadServices {
         ResultDto<LeadResponse> resultDto = new ResultDto<>();
         resultDto.setResults(leadResponseList);
         resultDto.setCount(leadResponseList.size());
+        return resultDto;
+    }
+
+    @Override
+    public ResultDto<DropDown> getDropDown() {
+        GenericUser genericUser = userIdentity.getCurrentUser();
+
+        User user = userRepository.findById(genericUser.getId())
+                .orElseThrow(() -> new UserNotFoundException("User Not Found !!"));
+
+        List<DropDown> dropDowns = new ArrayList<>();
+        for(Leads leads : leadRepository.findByBranch_BranchId(user.getBranch().getBranchId())){
+            DropDown response = new DropDown(leads.getId(), leads.getLeadName());
+            dropDowns.add(response);
+        }
+
+        ResultDto<DropDown> resultDto = new ResultDto<>();
+        resultDto.setResults(dropDowns);
+        resultDto.setCount(dropDowns.size());
         return resultDto;
     }
 }

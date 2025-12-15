@@ -2,6 +2,9 @@ package com.erp.Model;
 
 import jakarta.persistence.*;
 import lombok.*;
+import org.springframework.data.annotation.CreatedDate;
+import org.springframework.data.annotation.LastModifiedDate;
+import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -11,9 +14,10 @@ import java.time.LocalTime;
 @Table(name = "follow_up_details")
 @Getter
 @Setter
+@Builder
 @NoArgsConstructor
 @AllArgsConstructor
-@Builder
+@EntityListeners(AuditingEntityListener.class)
 public class FollowUpDetails {
 
     @Id
@@ -23,41 +27,37 @@ public class FollowUpDetails {
     @Column(name = "lead_id")
     private Long leadId;
 
-    @Column(name = "customer_id")
-    private Long customerId;
+    @Column(name = "quotation_id")
+    private Long quotationId;
 
-    @Column(name = "follow_up_type")
+    @Column(name = "follow_up_type", nullable = false)
     private String followUpType;
 
-    @Column(name = "notes")
-    private String notes;
-
-    @Column(name = "next_follow_up_date")
-    private LocalDate nextFollowUpDate;
-
-    @Column(name = "next_follow_up_time")
-    private LocalTime nextFollowUpTime;
-
-    @Column(name = "status")
+    @Column(nullable = false)
     private String status;
 
-    @Column(name = "completion_date")
-    private LocalDate completionDate;
+    @Column(columnDefinition = "TEXT")
+    private String notes;
 
+    @Column(name = "next_followup_date")
+    private LocalDate nextFollowupDate;
+
+    @Column(name = "next_followup_time")
+    private LocalTime nextFollowupTime;
+
+    @Column(name = "lost_reason", columnDefinition = "TEXT")
+    private String lostReason;
+
+    @CreatedDate
     @Column(name = "created_at", updatable = false)
     private LocalDateTime createdAt;
 
+    @LastModifiedDate
     @Column(name = "updated_at")
     private LocalDateTime updatedAt;
 
-    @PrePersist
-    protected void onCreate() {
-        createdAt = LocalDateTime.now();
-        updatedAt = LocalDateTime.now();
-    }
-
-    @PreUpdate
-    protected void onUpdate() {
-        updatedAt = LocalDateTime.now();
-    }
+    @ManyToOne
+    @JoinColumn(name = "branch_id")
+    private Branch branch;
 }
+
