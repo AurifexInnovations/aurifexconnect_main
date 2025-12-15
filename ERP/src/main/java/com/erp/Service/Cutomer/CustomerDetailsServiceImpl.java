@@ -7,19 +7,21 @@ import com.erp.Dto.Request.FilterRequest;
 import com.erp.Dto.Response.CustomerResponse;
 import com.erp.Dto.Response.CustomerResponseDtos;
 import com.erp.Dto.Response.ResultDto;
+import com.erp.Exception.Branch_Exception.BranchNotFoundException;
 import com.erp.Exception.ResourceFoundException;
 import com.erp.Exception.ResourceNotFoundException;
+import com.erp.Exception.User.UserNotFoundException;
 import com.erp.Mapper.CustomerMapper;
-import com.erp.Model.CustomerDetails;
-import com.erp.Model.CustomerDetailsMapper;
-import com.erp.Model.CustomerServiceMapper;
-import com.erp.Model.Leads;
+import com.erp.Model.*;
+import com.erp.Repository.Branch.BranchRepository;
 import com.erp.Repository.Lead.LeadRepositorys;
+import com.erp.Repository.User.UserRepository;
 import com.erp.Repository.costumer.CustomerDetailsMapperRepository;
 import com.erp.Repository.costumer.CustomerDetailsRepository;
 
 import com.erp.Repository.crm.CustomerServiceMapperRepository;
 import com.erp.Repository.crm.LeadRepository;
+import com.erp.Security.util.UserIdentity;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -43,6 +45,9 @@ public class CustomerDetailsServiceImpl implements com.erp.Service.Cutomer.Custo
     private final com.erp.Mapper.crm.CustomerMapper customerMapper;
     private final CustomerServiceMapperRepository customerServiceMapperRepository;
     private final LeadRepositorys leadRepositorys;
+    private final UserRepository userRepository;
+    private final UserIdentity userIdentity;
+    private final BranchRepository branchRepository;
 
     @Override
     @Transactional
@@ -108,6 +113,8 @@ public class CustomerDetailsServiceImpl implements com.erp.Service.Cutomer.Custo
 
         // Step 1: Check if any lead exists with same email
         Optional<Leads> existingLeadOpt = leadRepositorys.findByEmail(dto.getEmail());
+        Branch branch = branchRepository.findById(dto.getBranchId())
+                .orElseThrow(() -> new BranchNotFoundException("Branch Not Found !!"));
 
         Leads lead = null;
 
@@ -143,6 +150,7 @@ public class CustomerDetailsServiceImpl implements com.erp.Service.Cutomer.Custo
         entity.setTotalQuotation(dto.getTotalQuotation());
         entity.setTotalSalesOrder(dto.getTotalSalesOrder());
         entity.setTotalInvoices(dto.getTotalInvoices());
+        entity.setBranch(branch);
 
         if ("SERVICE".equalsIgnoreCase(dto.getCustomerType())) {
             entity.setServiceCategory(dto.getServiceCategory());
@@ -195,6 +203,7 @@ public class CustomerDetailsServiceImpl implements com.erp.Service.Cutomer.Custo
 
         List<Long> services = customerServiceMapperRepository.findServiceIdsByCustomerId(customerDetails.getId());
         customerResponse.setServices(services);
+        customerResponse.setBranchId(customerDetails.getBranch().getBranchId());
 
         List<CustomerDetailsMapper> customerDetailsMappers = mapperRepo.findByCustomerId(customerDetails.getId());
         List<CustomerMapperRequestDto> list = new ArrayList<>();
@@ -241,5 +250,24 @@ public class CustomerDetailsServiceImpl implements com.erp.Service.Cutomer.Custo
         customerRepo.delete(customerDetails);
 
         return toResponseDto(customerDetails);
+    }
+
+
+    @Override
+    public ResultDto<CustomerResponse> getByBranchWise() {
+        GenericUser genericUser = userIdentity.getCurrentUser();
+        User user = userRepository.findById(genericUser.getId())
+                .orElseThrow(() -> new UserNotFoundException("User Not Found !!"));
+
+
+        List<CustomerResponse> customerResponseList = new ArrayList<>();
+        for(CustomerDetails customerDetails : customerRepo.findByBranch_BranchId(user.getBranch().getBranchId())){
+            customerResponseList.add(toResponseDto(customerDetails));
+        }
+
+        ResultDto<CustomerResponse> resultDto = new ResultDto<>();
+        resultDto.setCount(customerResponseList.size());
+        resultDto.setResults(customerResponseList);
+        return resultDto;
     }
 }

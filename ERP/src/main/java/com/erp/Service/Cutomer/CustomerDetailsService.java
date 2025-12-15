@@ -19,4 +19,6 @@ public interface CustomerDetailsService {
     CustomerResponse getById(long id);
 
     CustomerResponse deleteById(long id);
+
+    ResultDto<CustomerResponse> getByBranchWise();
 }

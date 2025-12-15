@@ -58,4 +58,9 @@ public class CustomerDetailsController {
         return ResponseBuilder.success(HttpStatus.OK, "Delete Customer Successfully !!", customerService.deleteById(id));
     }
 
+    @GetMapping("/branchWise")
+    public ResponseEntity<ResponseStructure<ResultDto<CustomerResponse>>> getAllBranchWise(){
+        return ResponseBuilder.success(HttpStatus.OK, "Customers Fetched Branch Wise !!", customerService.getByBranchWise());
+    }
+
 }

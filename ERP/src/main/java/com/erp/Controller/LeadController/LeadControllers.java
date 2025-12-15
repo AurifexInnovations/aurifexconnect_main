@@ -31,35 +31,35 @@ public class LeadControllers {
     }
 
     @PostMapping("/add")
-    public ResponseEntity<ResponseStructure<LeadResponse>> addLead(@RequestBody LeadRequest request)
-    {
+    public ResponseEntity<ResponseStructure<LeadResponse>> addLead(@RequestBody LeadRequest request) {
         LeadResponse leadResponse = leadService.addService(request);
         return ResponseBuilder.success(HttpStatus.OK, "Lead Created!!", leadResponse);
     }
 
 
     @GetMapping()
-    public ResponseEntity<ResponseStructure<ResultDto<LeadResponse>>> getAllLeads()
-    {
+    public ResponseEntity<ResponseStructure<ResultDto<LeadResponse>>> getAllLeads() {
         ResultDto<LeadResponse> resultDto = leadService.getAllLeads();
         return ResponseBuilder.success(HttpStatus.OK, "Leads Fetched Successfully !!", resultDto);
     }
 
     @GetMapping("/byId")
-    public ResponseEntity<ResponseStructure<LeadResponse>> getById(@RequestParam long id)
-    {
+    public ResponseEntity<ResponseStructure<LeadResponse>> getById(@RequestParam long id) {
         return ResponseBuilder.success(HttpStatus.OK, "Lead Fetched Successfully !!", leadService.getById(id));
     }
 
     @DeleteMapping
-    public ResponseEntity<ResponseStructure<LeadResponse>> deleteById(@RequestParam long id)
-    {
+    public ResponseEntity<ResponseStructure<LeadResponse>> deleteById(@RequestParam long id) {
         return ResponseBuilder.success(HttpStatus.OK, "Lead Deleted Successfully !!", leadService.deleteById(id));
     }
 
     @PutMapping("/review")
-    public ResponseEntity<ResponseStructure<LeadResponse>> updateStatus(@RequestBody LeadRequest leadRequest)
-    {
+    public ResponseEntity<ResponseStructure<LeadResponse>> updateStatus(@RequestBody LeadRequest leadRequest) {
         return ResponseBuilder.success(HttpStatus.OK, "Lead Update Status Successfully !!", leadService.updateStatus(leadRequest));
+    }
+
+    @GetMapping("/branchWise")
+    public ResponseEntity<ResponseStructure<ResultDto<LeadResponse>>> getAllBranchWise(){
+        return ResponseBuilder.success(HttpStatus.OK, "Leads Fetched Via Branch Wise !!", leadService.getAllBranchWise());
     }
 }

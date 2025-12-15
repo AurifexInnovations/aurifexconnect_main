@@ -18,4 +18,6 @@ public interface LeadServices {
     LeadResponse deleteById(long id);
 
     LeadResponse updateStatus(LeadRequest leadRequest);
+
+    ResultDto<LeadResponse> getAllBranchWise();
 }
