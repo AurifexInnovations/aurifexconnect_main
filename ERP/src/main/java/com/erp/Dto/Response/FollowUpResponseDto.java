@@ -1,7 +1,9 @@
-package com.erp.Dto.Request;
+package com.erp.Dto.Response;
 
 import lombok.*;
+
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.time.LocalTime;
 
 @Getter
@@ -9,7 +11,7 @@ import java.time.LocalTime;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-public class FollowUpRequestDto {
+public class FollowUpResponseDto {
 
     private Long id;
     private Long leadId;
@@ -23,5 +25,9 @@ public class FollowUpRequestDto {
     private LocalTime nextFollowupTime;
 
     private String lostReason;
+
+    private LocalDateTime createdAt;
+    private LocalDateTime updatedAt;
+
     private long branchId;
 }

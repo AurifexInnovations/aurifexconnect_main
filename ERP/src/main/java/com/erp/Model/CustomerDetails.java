@@ -97,4 +97,8 @@ public class CustomerDetails {
 
     @Column(name = "total_invoices")
     private Long totalInvoices;
+
+    @ManyToOne
+    @JoinColumn(name = "branch_id")
+    private Branch branch;
 }

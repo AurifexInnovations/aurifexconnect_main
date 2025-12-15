@@ -36,4 +36,6 @@ public class LeadRequest {
     private String lostReason;
     private ServiceCategory serviceCategory;
     private double sqrt;
+
+    private long branchId;
 }

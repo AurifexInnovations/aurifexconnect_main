@@ -1,6 +1,7 @@
 package com.erp.Dto.Response;
 
 import com.erp.Dto.Request.CustomerMapperRequestDto;
+import com.erp.Model.Branch;
 import com.erp.Model.CustomerDetailsMapper;
 import lombok.Data;
 
@@ -43,4 +44,5 @@ public class CustomerResponse {
 
     // service list (from mapper table)
     private List<Long> services;
+    private long branchId;
 }
