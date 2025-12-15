@@ -37,4 +37,5 @@ public class CustomerDetailsRequestDto {
     private long totalInvoices;
 
     private long leadId;
+    private long branchId;
 }
