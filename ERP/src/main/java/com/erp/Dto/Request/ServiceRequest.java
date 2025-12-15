@@ -4,10 +4,12 @@ import com.erp.Dto.Constraints.ServiceDescriptionFormat;
 import com.erp.Dto.Constraints.ServiceNameFormat;
 import com.erp.Enum.ServiceCategory;
 import com.erp.Enum.ServiceStatus;
+import jakarta.persistence.Column;
 import jakarta.validation.constraints.*;
 import lombok.Getter;
 import lombok.Setter;
 
+import java.math.BigDecimal;
 import java.util.List;
 
 @Getter
@@ -23,7 +25,13 @@ public class ServiceRequest {
     private String serviceDescription;
 
     @Positive(message = "Service price must be positive")
-    private double servicePrice;
+    private BigDecimal servicePrice;
+
+    @Positive(message = "Service residential price must be positive")
+    private BigDecimal residentialPrice;
+
+    @Positive(message = "Service commercial price must be positive")
+    private BigDecimal commercialPrice;
 
     @NotNull(message = "Service status cannot be null")
     private ServiceStatus serviceStatus;
