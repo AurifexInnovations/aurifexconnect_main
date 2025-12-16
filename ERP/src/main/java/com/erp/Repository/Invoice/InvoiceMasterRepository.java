@@ -39,8 +39,8 @@ public interface InvoiceMasterRepository extends JpaRepository<Invoice,Long> {
             i.created_at AS createdAt,
             i.updated_at AS updatedAt,
             c.customer_name AS customerName
-        FROM tenant_1_rak_gmail_com.invoices i
-        LEFT JOIN tenant_1_rak_gmail_com.customer c 
+        FROM invoices i
+        LEFT JOIN customer c 
             ON c.id = i.customer_id
         WHERE (:invoiceId IS NULL OR i.id = :invoiceId)
         ORDER BY i.id DESC
