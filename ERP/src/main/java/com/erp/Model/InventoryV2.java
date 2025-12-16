@@ -84,7 +84,7 @@ public class InventoryV2 {
     // -------------------------------
 
     @Column(name = "stock_quantity")
-    private Integer stockQuantity;
+    private Double stockQuantity;
 
     @Column(name = "selling_price_type")
     private String sellingPriceType;
