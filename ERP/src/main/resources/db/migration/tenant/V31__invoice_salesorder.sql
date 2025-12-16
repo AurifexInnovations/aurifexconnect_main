@@ -75,7 +75,7 @@ CREATE TABLE IF NOT EXISTS saled_order_product_mapper (
 
     product_id BIGINT NOT NULL,
 
-    saled_order_id BIGINT NOT NULL,
+    sales_order_id BIGINT NOT NULL,
 
     quantity NUMERIC(12,2) NOT NULL,
 

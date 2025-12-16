@@ -3,6 +3,7 @@ package com.erp.Dto.Response;
 import com.erp.Enum.InvoiceStatus;
 import com.erp.Enum.InvoiceType;
 import com.erp.Enum.ServiceCategory;
+import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import lombok.RequiredArgsConstructor;
@@ -12,7 +13,7 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 
 @Data
-@RequiredArgsConstructor
+@AllArgsConstructor
 @NoArgsConstructor
 public class InvoiceResponseDto {
 

@@ -17,8 +17,8 @@ public class SaledOrderProductMapper {
     @Column(name = "product_id", nullable = false)
     private Long productId;
 
-    @Column(name = "saled_order_id", nullable = false)
-    private Long saledOrderId;
+    @Column(name = "sales_order_id", nullable = false)
+    private Long salesOrderId;
 
     @Column(name = "quantity", precision = 12, scale = 2, nullable = false)
     private BigDecimal quantity;

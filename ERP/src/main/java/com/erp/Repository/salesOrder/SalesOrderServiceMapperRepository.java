@@ -6,4 +6,7 @@ import org.springframework.data.jpa.repository.JpaRepository;
 
 public interface SalesOrderServiceMapperRepository
         extends JpaRepository<SalesOrderServiceMapper, Long> {
+
+    void deleteBySalesOrderId(Long salesOrderId);
+
 }

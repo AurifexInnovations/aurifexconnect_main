@@ -5,10 +5,15 @@ import com.erp.Dto.Request.SalesOrderRequestDto;
 import com.erp.Dto.Response.SalesOrderResponseDto;
 import com.erp.Model.SalesOrder;
 
+import java.util.Objects;
+
 public class SalesOrderMapper {
 
-    public static SalesOrder toEntity(SalesOrderRequestDto dto) {
-        SalesOrder order = new SalesOrder();
+    public static SalesOrder toEntity(SalesOrderRequestDto dto,  SalesOrder order) {
+        if(Objects.isNull(order)){
+             order = new SalesOrder();
+        }
+
         order.setQuotationId(dto.getQuotationId());
         order.setCustomerId(dto.getCustomerId());
         order.setPhoneNumber(dto.getPhoneNumber());

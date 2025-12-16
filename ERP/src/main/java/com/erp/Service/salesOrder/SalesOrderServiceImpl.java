@@ -13,6 +13,7 @@ import com.erp.Repository.salesOrder.SalesOrderServiceMapperRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 
@@ -30,7 +31,7 @@ public class SalesOrderServiceImpl implements SalesOrderService {
 
         log.info("Creating Sales Order");
 
-        SalesOrder order = SalesOrderMapper.toEntity(dto);
+        SalesOrder order = SalesOrderMapper.toEntity(dto,null);
         SalesOrder savedOrder = salesOrderRepository.save(order);
 
         if (dto.getSoType() == SalesOrderType.PRODUCT) {
@@ -38,7 +39,7 @@ public class SalesOrderServiceImpl implements SalesOrderService {
             dto.getSalesOrderRequest().forEach(p -> {
                 SaledOrderProductMapper m = new SaledOrderProductMapper();
                 m.setProductId(p.getServiceOrProductId());
-                m.setSaledOrderId(savedOrder.getSalesOrderNumber());
+                m.setSalesOrderId(savedOrder.getSalesOrderNumber());
                 m.setQuantity(p.getQuantity());
                 m.setSubtotal(p.getSubtotal());
                 m.setTaxAmount(p.getTaxAmount());
@@ -63,15 +64,56 @@ public class SalesOrderServiceImpl implements SalesOrderService {
     }
 
     @Override
+    @Transactional
     public SalesOrderResponseDto update(Long id, SalesOrderRequestDto dto) {
+
         log.info("Updating Sales Order {}", id);
-        SalesOrder order = salesOrderRepository.findById(id)
+
+        SalesOrder existingOrder = salesOrderRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Sales order not found"));
 
-        SalesOrder updated = SalesOrderMapper.toEntity(dto);
-        updated.setSalesOrderNumber(order.getSalesOrderNumber());
+        // 1️⃣ Delete old child records
+        if (existingOrder.getSoType() == SalesOrderType.PRODUCT) {
+            log.info("Deleting old PRODUCT items");
+            productRepo.deleteBySalesOrderId(existingOrder.getSalesOrderNumber());
+        } else {
+            log.info("Deleting old SERVICE items");
+            serviceRepo.deleteBySalesOrderId(existingOrder.getSalesOrderNumber());
+        }
 
-        return SalesOrderMapper.toDto(salesOrderRepository.save(updated));
+        // 2️⃣ Update master fields
+        SalesOrder entity = SalesOrderMapper.toEntity(dto,existingOrder);
+
+        SalesOrder updatedOrder = salesOrderRepository.save(entity);
+
+        // 3️⃣ Insert updated child records
+        if (dto.getSoType() == SalesOrderType.PRODUCT) {
+            log.info("Saving updated PRODUCT items");
+            dto.getSalesOrderRequest().forEach(p -> {
+                SaledOrderProductMapper m = new SaledOrderProductMapper();
+                m.setProductId(p.getServiceOrProductId());
+                m.setSalesOrderId(updatedOrder.getSalesOrderNumber());
+                m.setQuantity(p.getQuantity());
+                m.setSubtotal(p.getSubtotal());
+                m.setTaxAmount(p.getTaxAmount());
+                m.setTotalAmount(p.getTotalAmount());
+                productRepo.save(m);
+            });
+        } else {
+            log.info("Saving updated SERVICE items");
+            dto.getSalesOrderRequest().forEach(p -> {
+                SalesOrderServiceMapper m = new SalesOrderServiceMapper();
+                m.setServiceId(p.getServiceOrProductId());
+                m.setSalesOrderId(updatedOrder.getSalesOrderNumber());
+                m.setQuantity(p.getQuantity());
+                m.setSubtotal(p.getSubtotal());
+                m.setTaxAmount(p.getTaxAmount());
+                m.setTotalAmount(p.getTotalAmount());
+                serviceRepo.save(m);
+            });
+        }
+
+        return SalesOrderMapper.toDto(updatedOrder);
     }
 
     @Override
