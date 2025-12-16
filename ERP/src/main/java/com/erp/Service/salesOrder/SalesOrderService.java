@@ -3,6 +3,7 @@ package com.erp.Service.salesOrder;
 
 
 import com.erp.Dto.Request.SalesOrderRequestDto;
+import com.erp.Dto.Response.SalesOrderFullResponseDto;
 import com.erp.Dto.Response.SalesOrderResponseDto;
 
 import java.util.List;
@@ -15,7 +16,9 @@ public interface SalesOrderService {
 
     SalesOrderResponseDto getById(Long id);
 
-    List<SalesOrderResponseDto> getAll();
+    List<SalesOrderFullResponseDto> getAll(Long salesOrderId,
+                                           int limit,
+                                           int offset);
 
     void delete(Long id);
 }
