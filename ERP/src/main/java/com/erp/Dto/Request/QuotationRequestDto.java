@@ -7,6 +7,7 @@ import lombok.Setter;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.List;
 
 @Getter
@@ -15,13 +16,12 @@ import java.util.List;
 @AllArgsConstructor
 public class QuotationRequestDto {
 
-    private Long id; // for update
-
-    // Lead / Customer reference
+    // IDs
+    private Long id;
     private Long leadId;
     private Long customerId;
 
-    // Basic details (same pattern as Customer)
+    // Personal / Company
     private String fullName;
     private String companyName;
     private String email;
@@ -38,39 +38,48 @@ public class QuotationRequestDto {
     private String pincode;
     private String locationUrl;
 
-    // Quotation specific
+    // Quotation core
     private String quotationNumber;
     private LocalDate quotationDate;
 
+    // Category / size
     private String serviceCategory;   // RESIDENTIAL / COMMERCIAL
     private Double sqrt;
 
-    // Products (same pattern as Customer products)
+    // Line items
     private List<QuotationProductRequestDto> products;
-
-    // Services (same pattern as Customer services)
     private List<Long> services;
 
-    // Amounts
+    // Financials
     private BigDecimal subtotal;
     private BigDecimal taxAmount;
     private BigDecimal totalAmount;
     private BigDecimal discountAmount;
     private BigDecimal grandTotal;
 
+    // Lead type (🔥 ADDED)
+    private String leadType;   // PRODUCT / SERVICE
+
     // Status
-    private String status; // DRAFT / SENT / ACCEPTED / REJECTED
+    private String status;   // DRAFT / SENT / ACCEPTED / REJECTED / EXPIRED / CONVERTED
+
+    // Sent info
+    private LocalDateTime sentDate;
+    private String sentVia;   // EMAIL / WHATSAPP / MANUAL
 
     // Recurring
     private Boolean isRecurring;
-    private String recurringType;     // MONTHLY / YEARLY
+    private String recurringType;      // MONTHLY / YEARLY
     private Integer recurringInterval;
     private Integer recurringCycles;
     private LocalDate startDate;
     private LocalDate nextRecurringDate;
     private LocalDate endDate;
 
-    // Other
+    // Notes
     private String notes;
 
+    // Audit
+    private LocalDateTime createdAt;
+    private LocalDateTime updatedAt;
 }

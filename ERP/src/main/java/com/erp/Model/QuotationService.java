@@ -3,18 +3,17 @@ package com.erp.Model;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
-import org.springframework.stereotype.Service;
 
 @Entity
 @Getter
 @Setter
-@Table(name = "quotation_services")
-public class QuotationServiceMapper {
+@Table(name = "quotation_service")
+public class QuotationService {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(name = "quotation_service_id")
-    private Long quotationServiceId;
+    @Column(name = "id")
+    private Long id;
 
     @Column(name = "quotation_id", nullable = false)
     private Long quotationId;

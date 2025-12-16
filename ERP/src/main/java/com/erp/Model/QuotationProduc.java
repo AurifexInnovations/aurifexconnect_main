@@ -5,10 +5,10 @@ import lombok.Getter;
 import lombok.Setter;
 
 @Entity
-@Table(name = "quotation_product_mapper")
+@Table(name = "quotation_product")
 @Getter
 @Setter
-public class QuotationProductMapper {
+public class QuotationProduc {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)

@@ -14,14 +14,17 @@ import java.time.LocalDateTime;
 @Entity
 @Getter
 @Setter
+@Table(name = "enhance_quotation")
 public class EnhanceQuotation {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
+    @Column(name = "lead_id")
     private Long leadId;
 
+    @Column(name = "customer_id")
     private Long customerId;
 
     @Column(name = "full_name", length = 150, nullable = false)
@@ -33,11 +36,11 @@ public class EnhanceQuotation {
     @Column(length = 150)
     private String email;
 
-    @Column(name = "phone_number", length = 20)
-    private String phoneNumber;
+    @Column(name = "phone", length = 20)
+    private String phone;
 
-    @Column(name = "alternate_phone_number", length = 20)
-    private String alternatePhoneNumber;
+    @Column(name = "alternate_phone", length = 20)
+    private String alternatePhone;
 
     @Column(name = "address_line_1", columnDefinition = "TEXT")
     private String addressLine1;
@@ -63,15 +66,14 @@ public class EnhanceQuotation {
     @Column(name = "location_url", columnDefinition = "TEXT")
     private String locationUrl;
 
-    @Column(name = "quotation_number", length = 50, unique = true, nullable = false)
+    @Column(name = "quotation_number", length = 50, unique = true)
     private String quotationNumber;
 
     @Column(name = "quotation_date")
     private LocalDate quotationDate;
 
-    @Enumerated(EnumType.STRING)
     @Column(name = "service_category", length = 20)
-    private ServiceCategory serviceCategory;
+    private String serviceCategory;
 
     @Column(precision = 10, scale = 2)
     private BigDecimal sqft;
@@ -95,28 +97,33 @@ public class EnhanceQuotation {
     @Column(name = "lead_type", length = 20, nullable = false)
     private String leadType;
 
-    @Enumerated(EnumType.STRING)
     @Column(nullable = false, length = 30)
     private String status;
 
     @Column(name = "sent_date")
     private LocalDateTime sentDate;
 
-    @Enumerated(EnumType.STRING)
     @Column(name = "sent_via", length = 30)
     private String sentVia;
 
     @Column(name = "is_recurring")
     private Boolean isRecurring = false;
 
-    @Enumerated(EnumType.STRING)
     @Column(name = "recurring_type", length = 20)
     private String recurringType;
 
+    @Column(name = "recurring_interval")
     private Integer recurringInterval;
+
+    @Column(name = "recurring_cycles")
     private Integer recurringCycles;
+
+    @Column(name = "start_date")
     private LocalDate startDate;
+
+    @Column(name = "next_recurring_date")
     private LocalDate nextRecurringDate;
+    @Column(name = "end_date")
     private LocalDate endDate;
 
     @Column(columnDefinition = "TEXT")
