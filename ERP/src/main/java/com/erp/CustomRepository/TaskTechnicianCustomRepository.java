@@ -181,8 +181,10 @@ public class TaskTechnicianCustomRepository {
     }
 
     private void bindFilterConditions(Map<String, String> filters, StringBuilder sql, StringBuilder countSql) {
-        if (filters == null) return;
-        // same filtering conditions as before
+        if (filters.containsKey("technicianId")) {
+            sql.append(" AND u.id = :technicianId ");
+            countSql.append(" AND u.id = :technicianId ");
+        }
     }
 
     private boolean notEmpty(String v) {
@@ -190,8 +192,11 @@ public class TaskTechnicianCustomRepository {
     }
 
     private void bindParameters(Map<String, String> filters, Query dataQuery, Query countQuery) {
-        if (filters == null) return;
-        // existing parameter binding logic
+        if (filters.containsKey("technicianId")) {
+            Long technicianId = Long.valueOf(filters.get("technicianId"));
+            dataQuery.setParameter("technicianId", technicianId);
+            countQuery.setParameter("technicianId", technicianId);
+        }
     }
 
     private String getString(Object o) { return o != null ? o.toString() : null; }

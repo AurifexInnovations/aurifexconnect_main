@@ -27,7 +27,7 @@ public class UserController {
 
     private final UserServices userServices;
 
-    @PreAuthorize("hasAnyRole('ROLE_ADMIN','ROLE_BRANCHADMIN','ROLE_HR','ROLE_ACCOUNTANT','ROLE_SALESADMIN')")
+    @PreAuthorize("hasAnyRole('ROLE_ADMIN','ROLE_BRANCHADMIN','ROLE_HR','ROLE_ACCOUNTANT','ROLE_SALESADMIN','ROLE_TECHNICIANMANAGER')")
     @PostMapping("/users")
     public ResponseEntity<ResponseStructure<UserResponse>> createUser(@RequestBody UserRequest userRequest) {
 

@@ -9,6 +9,7 @@ import com.erp.Enum.TaskStatus;
 import com.erp.Exception.BadRequestException;
 import com.erp.Exception.DBReltedException;
 import com.erp.Exception.GlobalMessageExceptionHandler;
+import com.erp.Exception.Inventory_Exception.InventoryNotFoundException;
 import com.erp.Exception.ResourceNotFoundException;
 import com.erp.Exception.Task.TaskNoFoundException;
 
@@ -21,6 +22,7 @@ import com.erp.Model.*;
 import com.erp.Projection.*;
 import com.erp.Repository.Feedback.FeedbackRepository;
 import com.erp.Repository.Inventory.InventoryRepository;
+import com.erp.Repository.Inventory.InventoryRepositoryV2;
 import com.erp.Repository.Task.*;
 import com.erp.Repository.Utility.FileRepository;
 import com.erp.Security.util.UserIdentity;
@@ -81,9 +83,11 @@ public class TaskServiceImpl implements TaskService {
 
     private final InventoryCustomRepository inventoryCustomRepository;
 
-    private  final FileRepository fileRepository;
+    private final FileRepository fileRepository;
 
     private final InventoryRepository inventoryRepository;
+
+    private final InventoryRepositoryV2 inventoryRepositoryV2;
 
     @Lazy
     @Autowired
@@ -428,8 +432,7 @@ public class TaskServiceImpl implements TaskService {
 
             if (fromIndex >= result.size()) {
                 paginated = Collections.emptyList();
-            }
-            else{
+            } else {
                 paginated = result.subList(fromIndex, toIndex);
             }
 
@@ -569,10 +572,35 @@ public class TaskServiceImpl implements TaskService {
 
         saveTaskMaterials(taskId, completeTaskRequestDTO.getTaskMaterialList(), existingMaterials);
 
+        updateInventoryAccordingToTask(completeTaskRequestDTO.getTaskMaterialList());
+
         updateTaskScheduleForCompletion(taskId);
         updateTaskStatusToCompleted(taskId);
 
         return otpResponseDTO;
+    }
+
+    private void updateInventoryAccordingToTask(List<TaskMaterialDTO> taskMaterialList) {
+        for (TaskMaterialDTO materialDTO : taskMaterialList) {
+            long id = materialDTO.getMaterialId();
+
+            InventoryV2 inventoryV2 = inventoryRepositoryV2.findById(id)
+                    .orElseThrow(() -> new InventoryNotFoundException("Inventory Not Found !!"));
+
+            if (materialDTO.getUnit().equalsIgnoreCase("gram")) {
+                Double val = materialDTO.getQuantity() / 1000;
+                inventoryV2.setStockQuantity( inventoryV2.getStockQuantity() - val );
+            } else if (materialDTO.getUnit().equalsIgnoreCase("milliliter")) {
+                Double val = materialDTO.getQuantity() / 1000;
+                inventoryV2.setStockQuantity( inventoryV2.getStockQuantity() - val );
+            } else if (materialDTO.getUnit().equalsIgnoreCase("can")
+                    || materialDTO.getUnit().equalsIgnoreCase("box")) {
+                Double val = materialDTO.getQuantity();
+                inventoryV2.setStockQuantity( inventoryV2.getStockQuantity() - val );
+            }
+
+            inventoryRepositoryV2.save(inventoryV2);
+        }
     }
 
     @Transactional
@@ -712,6 +740,7 @@ public class TaskServiceImpl implements TaskService {
         return technicianTaskMapperRepository.getTechnitianFeedbackDetails(feedbackId);
     }
 
+    @Override
     public ResultDto<TechnicianResponseDTO> searchTasks(FilterRequest filterRequest) {
 
         ResultDto<TechnicianResponseDTO> resultDto =
@@ -726,12 +755,12 @@ public class TaskServiceImpl implements TaskService {
             task.setAfterImagerUrl(fileRepository.findByGenIdAndCategory(task.getTaskId(), FileUploadConstants.AFTER_SERVICE));
             task.setBeforeImageUrl(fileRepository.findByGenIdAndCategory(task.getTaskId(), FileUploadConstants.BEFORE_SERVICE));
 
-            task.setMaterials(getTaskMaterial(task.getTaskId()));
         }
 
 
         return resultDto;
     }
+
     @Override
     public ResultDto<TechnicianResponseDTO> searchTasks() {
         ResultDto<TechnicianResponseDTO> resultDto =
@@ -751,27 +780,26 @@ public class TaskServiceImpl implements TaskService {
     }
 
 
-    private  List<MaterialDtoResponse> getTaskMaterial(Long taskId){
+    private List<MaterialDtoResponse> getTaskMaterial(Long taskId) {
+
         List<TaskMaterial> taskMaterialList = taskMaterialRepository.findByTaskId(taskId);
         List<MaterialDtoResponse> list = new ArrayList<>();
-        MaterialDtoResponse materialResponseDto = new MaterialDtoResponse();
-        for( TaskMaterial  task :taskMaterialList){
-            Inventory  item = inventoryRepository.findByItemId(task.getMaterialId());
-            if(item!=null){
-                materialResponseDto.setMaterialId(item.getItemId());
-                materialResponseDto.setMaterialName(item.getItemName());
-                materialResponseDto.setMaterialUnit(task.getUnit());
-                materialResponseDto.setMaterialQuantity(task.getQuantity());
-            }
-            list.add(materialResponseDto);
 
+        for (TaskMaterial task : taskMaterialList) {
+
+            Inventory item = inventoryRepository.findByItemId(task.getMaterialId());
+            if (item == null) continue;
+
+            MaterialDtoResponse dto = new MaterialDtoResponse(); // ✅ NEW object
+            dto.setMaterialId(item.getItemId());
+            dto.setMaterialName(item.getItemName());
+            dto.setMaterialUnit(task.getUnit());
+            dto.setMaterialQuantity(task.getQuantity());
+
+            list.add(dto);
         }
-
         return list;
     }
-
-
-
 
 
 
