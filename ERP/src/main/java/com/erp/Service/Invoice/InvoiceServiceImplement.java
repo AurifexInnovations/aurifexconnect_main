@@ -31,9 +31,21 @@ public class InvoiceServiceImplement implements InvoiceOrder {
         log.info("Service addInvoice called");
 
         Invoice invoice = InvoiceMapper.toEntity(request);
+        invoice.setInvoiceNumber(generateInvoiceNumber());
         invoice.setCreatedAt(LocalDateTime.now());
 
         return InvoiceMapper.toDto(invoiceRepository.save(invoice));
+    }
+
+    private String generateInvoiceNumber() {
+        // Get current year
+        int year = LocalDateTime.now().getYear();
+
+        // Get the count of invoices for sequential numbering
+        long count = invoiceRepository.count();
+
+        // Format: INV-YYYY-XXXX (e.g., INV-2025-0001)
+        return String.format("INV-%d-%04d", year, count + 1);
     }
 
     @Override

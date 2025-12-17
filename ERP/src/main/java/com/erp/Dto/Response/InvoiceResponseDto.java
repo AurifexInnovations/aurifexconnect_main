@@ -13,7 +13,7 @@ import java.time.LocalDateTime;
 
 @Data
 @RequiredArgsConstructor
-@NoArgsConstructor
+
 public class InvoiceResponseDto {
 
     private Long id;

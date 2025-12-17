@@ -5,6 +5,7 @@ import com.erp.Enum.InvoiceType;
 import com.erp.Enum.ServiceCategory;
 import jakarta.persistence.*;
 import lombok.Data;
+import org.hibernate.annotations.UpdateTimestamp;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
@@ -85,6 +86,7 @@ public class Invoice {
     @Column(name = "created_at")
     private LocalDateTime createdAt;
 
+    @UpdateTimestamp
     @Column(name = "updated_at")
     private LocalDateTime updatedAt;
 }
