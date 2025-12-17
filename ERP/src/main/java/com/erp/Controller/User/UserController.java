@@ -1,9 +1,6 @@
 package com.erp.Controller.User;
 
-import com.erp.Dto.Request.CommanParam;
-import com.erp.Dto.Request.UserProfileRequest;
-import com.erp.Dto.Request.UserRequest;
-import com.erp.Dto.Request.UserUpdateRequest;
+import com.erp.Dto.Request.*;
 import com.erp.Dto.Response.DropDown;
 import com.erp.Dto.Response.ResultDto;
 import com.erp.Dto.Response.UserResponse;
@@ -97,5 +94,11 @@ public class UserController {
     public ResponseEntity<ResponseStructure<ResultDto<UserResponse>>> getUsersBranchWise(){
         ResultDto<UserResponse> resultDto = userServices.getUsersBranchWise();
         return ResponseBuilder.success(HttpStatus.OK, "Fetched Users Successfully", resultDto);
+    }
+
+    @PostMapping("/user/filter")
+    public ResponseEntity<ResponseStructure<ResultDto<UserResponse>>> getUserFilterWise(@RequestBody FilterRequest filterRequest){
+        ResultDto<UserResponse> resultDto = userServices.getUsersFilterWise(filterRequest);
+        return ResponseBuilder.success(HttpStatus.OK, "Filter Wise Fetched Users Successfully", resultDto);
     }
 }

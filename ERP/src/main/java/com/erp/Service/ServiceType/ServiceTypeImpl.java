@@ -5,6 +5,7 @@ import com.erp.Dto.Request.CommanParam;
 import com.erp.Dto.Request.FilterRequest;
 import com.erp.Dto.Request.ServiceRequest;
 import com.erp.Dto.Request.ServiceTypeGetRequest;
+import com.erp.Dto.Response.DropDown;
 import com.erp.Dto.Response.ResultDto;
 import com.erp.Dto.Response.ServiceResponse;
 import com.erp.Dto.Response.ServiceTypeResponse;
@@ -219,5 +220,24 @@ public class ServiceTypeImpl implements ServiceType
         ServiceResponse serviceResponse = serviceMapper.mapToServiceResponse(service);
         serviceResponse.setBranchId(service.getBranch().getBranchId());
         return serviceResponse;
+    }
+
+    @Override
+    public ResultDto<DropDown> findServicesBranchWiseDropDown() {
+        GenericUser genericUser = userIdentity.getCurrentUser();
+
+        User user = userRepository.findByEmail(genericUser.getEmail())
+                .orElseThrow(() -> new UserNotFoundException("User Not Found!!"));
+
+        List<DropDown> services = new ArrayList<>();
+        for(Service s : repository.findByBranch_BranchId(user.getBranch().getBranchId())){
+            services.add(new DropDown(s.getServiceId(), s.getServiceName()));
+        }
+        ResultDto<DropDown> resultDto = new ResultDto<>();
+
+        resultDto.setResults(services);
+        resultDto.setCount(services.size());
+
+        return resultDto;
     }
 }

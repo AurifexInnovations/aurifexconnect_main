@@ -4,6 +4,7 @@ import com.erp.Dto.Request.CommanParam;
 import com.erp.Dto.Request.FilterRequest;
 import com.erp.Dto.Request.ServiceRequest;
 import com.erp.Dto.Request.ServiceTypeGetRequest;
+import com.erp.Dto.Response.DropDown;
 import com.erp.Dto.Response.ResultDto;
 import com.erp.Dto.Response.ServiceResponse;
 import com.erp.Dto.Response.ServiceTypeResponse;
@@ -189,5 +190,11 @@ public class ServicesController
     public ResponseEntity<ResponseStructure<ResultDto<ServiceResponse>>> getAllServicesManagerWise(){
         ResultDto<ServiceResponse> resultDto = serviceTypeService.fetchAllServicesManagerWise();
         return ResponseBuilder.success(HttpStatus.OK, "Services Fetched Successdully", resultDto);
+    }
+
+    @GetMapping("/dropdown")
+    public ResponseEntity<ResponseStructure<ResultDto<DropDown>>> getServiceDropdown(){
+        ResultDto<DropDown> resultDto = serviceTypeService.findServicesBranchWiseDropDown();
+        return ResponseBuilder.success(HttpStatus.OK, "Services Drop Down Fetched !!", resultDto);
     }
 }

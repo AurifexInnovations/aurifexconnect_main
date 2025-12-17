@@ -2,10 +2,7 @@ package com.erp.Service.InventoryService;
 
 import com.erp.Dto.Request.InventoryRequestV2;
 import com.erp.Dto.Request.InventoryUpdateRequestV2;
-import com.erp.Dto.Response.InventoryResponse;
-import com.erp.Dto.Response.InventoryResponseV2;
-import com.erp.Dto.Response.ResultDto;
-import com.erp.Dto.Response.ServiceResponse;
+import com.erp.Dto.Response.*;
 import com.erp.Dto.VarientDto;
 import com.erp.Exception.Branch_Exception.BranchNotFoundException;
 import com.erp.Exception.Inventory_Exception.InventoryNotFoundException;
@@ -216,6 +213,26 @@ public class InventoryServiceImplV2 implements InventoryServiceV2 {
 
         resultDto.setResults(responseV2s != null ? responseV2s : List.of());
         resultDto.setCount(responseV2s != null ? responseV2s.size() : 0);
+
+        return resultDto;
+    }
+
+    @Override
+    public ResultDto<DropDown> getDropDown() {
+        GenericUser genericUser = userIdentity.getCurrentUser();
+
+        User user = userRepository.findByEmail(genericUser.getEmail())
+                .orElseThrow(() -> new UserNotFoundException("User Not Found!!"));
+
+        List<DropDown> list = new ArrayList<>();
+        for(InventoryV2 inventoryV2 : inventoryRepositoryV2.findByBranch_BranchIdAndRentableFalse(user.getBranch().getBranchId())){
+            list.add(new DropDown(inventoryV2.getItemId(), inventoryV2.getItemName()));
+        }
+
+        ResultDto<DropDown> resultDto = new ResultDto<>();
+
+        resultDto.setCount(list.size());
+        resultDto.setResults(list);
 
         return resultDto;
     }

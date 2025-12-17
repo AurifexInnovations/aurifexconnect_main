@@ -1,5 +1,6 @@
 package com.erp.Service.User;
 
+import com.erp.CustomRepository.UserCustomRepository;
 import com.erp.Dto.Request.*;
 import com.erp.Dto.Response.DropDown;
 import com.erp.Dto.Response.ResultDto;
@@ -47,6 +48,7 @@ public class UserServiceImpl implements UserServices {
     private final SubscriptionRepository subscriptionRepository;
     private final MetaAdminRepository metaAdminRepository;
     private final BranchRepository branchRepository;
+    private final UserCustomRepository userCustomRepository;
     private final static String DEFAULT_ROLE = "EMPLOYEE";
 
 
@@ -468,5 +470,10 @@ public class UserServiceImpl implements UserServices {
         resultDto.setCount(userResponseList.size());
         resultDto.setResults(userResponseList);
         return resultDto;
+    }
+
+    @Override
+    public ResultDto<UserResponse> getUsersFilterWise(FilterRequest filterRequest) {
+        return userCustomRepository.filterUsers(filterRequest);
     }
 }
