@@ -105,6 +105,7 @@ CREATE TABLE IF NOT EXISTS sales_orders (
     phone_number VARCHAR(20),
     alternate_phone_number VARCHAR(20),
     sales_order_date DATE,
+    customer_name VARCHAR(40),
     company_name VARCHAR(150),
     email VARCHAR(150),
     address TEXT,

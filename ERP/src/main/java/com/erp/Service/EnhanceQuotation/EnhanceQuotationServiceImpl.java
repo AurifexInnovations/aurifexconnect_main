@@ -11,6 +11,7 @@ import com.erp.Model.QuotationService;
 import com.erp.Repository.EnhanceQuotation.EnhanceQuotationRepository;
 import com.erp.Repository.QuotationProductMapperRepository.QuotationProductMapperRepository;
 import com.erp.Repository.QuotationServiceMapper.QuotationServiceMapperRepository;
+import com.erp.Utility.NumberGenerator.NumberGeneratorUtil;
 import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Service;
 
@@ -105,7 +106,7 @@ public class EnhanceQuotationServiceImpl implements EnhanceQuotationService {
        STEP 4: CORE DETAILS
        ========================= */
 
-        quotation.setQuotationNumber("QT-" + System.currentTimeMillis());
+        quotation.setQuotationNumber(NumberGeneratorUtil.generate("QT",enhanceQuotationRepository.count()+1));
         quotation.setQuotationDate(LocalDate.now());
 
         // Status

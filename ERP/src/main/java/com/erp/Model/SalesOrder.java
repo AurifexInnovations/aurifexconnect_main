@@ -39,6 +39,8 @@ public class SalesOrder {
     @Column(name = "sales_order_date")
     private LocalDate salesOrderDate;
 
+    @Column(name = "customer_name")
+    private String customerName;
 
     @Column(name = "company_name", length = 150)
     private String companyName;

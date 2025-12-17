@@ -25,6 +25,7 @@ public class PaymentServiceImpl implements PaymentService {
         log.info("Creating payment for invoiceId={}", requestDto.getInvoiceId());
 
        Payment payment = PaymentMapper.toEntity(requestDto);
+
       Payment savedPayment = paymentRepository.save(payment);
 
         log.info("Payment created successfully with id={}", savedPayment.getId());

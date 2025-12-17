@@ -6,6 +6,7 @@ import com.erp.Dto.Response.ReceiptResponseDto;
 import com.erp.Mapper.receipt.ReceiptMapper;
 import com.erp.Model.Receipt;
 import com.erp.Repository.receipt.ReceiptRepository;
+import com.erp.Utility.NumberGenerator.NumberGeneratorUtil;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -33,6 +34,7 @@ public class ReceiptServiceImpl implements ReceiptService {
         validateRequest(requestDto);
 
         Receipt receipt = ReceiptMapper.toEntity(requestDto);
+        receipt.setReceiptNumber(NumberGeneratorUtil.generate("RCT",receiptRepository.count()+1));
         Receipt savedReceipt = receiptRepository.save(receipt);
 
         log.info("Receipt created successfully | receiptId={}", savedReceipt.getId());
@@ -160,10 +162,6 @@ public class ReceiptServiceImpl implements ReceiptService {
 
         if (requestDto.getCustomerId() == null || requestDto.getCustomerId() <= 0) {
             throw new IllegalArgumentException("Invalid customerId");
-        }
-
-        if (!StringUtils.hasText(requestDto.getReceiptNumber())) {
-            throw new IllegalArgumentException("Receipt number is required");
         }
 
         if (requestDto.getAmountReceived() == null ||

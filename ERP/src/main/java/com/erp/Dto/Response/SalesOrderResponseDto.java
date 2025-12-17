@@ -18,6 +18,7 @@ public class SalesOrderResponseDto {
     private Long customerId;
 
     private String phoneNumber;
+    private String customerName;
     private String companyName;
     private String email;
 
