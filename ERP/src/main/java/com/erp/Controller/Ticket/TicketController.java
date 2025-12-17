@@ -6,6 +6,7 @@ import com.erp.Dto.Response.ResultDto;
 import com.erp.Dto.Response.TicketResponseDTO;
 import com.erp.Dto.Response.TicketSearchResponse;
 
+import com.erp.Dto.Response.TicketViewDTO;
 import com.erp.Service.Ticket.customerHelpTicket.TicketService;
 import com.erp.Utility.ResponseBuilder;
 import com.erp.Utility.ResponseStructure;
@@ -30,7 +31,7 @@ public class TicketController {
     public ResponseEntity<ResponseStructure<TicketResponseDTO>> createTicket(@RequestBody TicketRequestDTO ticketRequestDTO) {
         log.info("Controller: createTicket called for customerId={}", ticketRequestDTO.getCustomerId());
         TicketResponseDTO response = ticketService.createTicket(ticketRequestDTO);
-        return ResponseBuilder.success(HttpStatus.CREATED, "Ticket Created", response);
+        return ResponseBuilder.success(HttpStatus.CREATED, "Ticket Created & Task Created !!", response);
     }
 
     @DeleteMapping
@@ -52,5 +53,12 @@ public class TicketController {
         log.info("Received All Tickets");
         ResultDto<TicketResponseDTO> resultDto = ticketService.getAll();
         return ResponseBuilder.success(HttpStatus.OK, "All Tickets", resultDto);
+    }
+
+    @GetMapping("/dash")
+    public ResponseEntity<ResponseStructure<ResultDto<TicketViewDTO>>> fetchAllTickets(){
+        log.info("Received All Tickets for Dashboard");
+        ResultDto<TicketViewDTO> resultDto = ticketService.getAllTickets();
+        return ResponseBuilder.success(HttpStatus.OK, "All Tickets for Dashboard", resultDto);
     }
 }

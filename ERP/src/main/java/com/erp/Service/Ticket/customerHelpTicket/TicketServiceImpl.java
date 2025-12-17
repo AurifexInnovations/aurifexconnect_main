@@ -1,14 +1,29 @@
 package com.erp.Service.Ticket.customerHelpTicket;
 
+import com.erp.CustomRepository.InventoryCustomRepository;
+import com.erp.CustomRepository.TaskTechnicianCustomRepository;
 import com.erp.Dto.Request.TicketRequestDTO;
 import com.erp.Dto.Request.TicketSearchRequest;
 import com.erp.Dto.Response.ResultDto;
 import com.erp.Dto.Response.TicketResponseDTO;
 import com.erp.Dto.Response.TicketSearchResponse;
+import com.erp.Dto.Response.TicketViewDTO;
+import com.erp.Enum.TaskStatus;
 import com.erp.Enum.TicketStatus;
+import com.erp.Exception.ResourceNotFoundException;
+import com.erp.Exception.Task.TaskNoFoundException;
+import com.erp.Mapper.TaskMapper.TaskDetailsMapper;
+import com.erp.Mapper.TaskMapper.TaskMapper;
 import com.erp.Mapper.Ticket.TicketMapper;
-import com.erp.Model.Ticket;
+import com.erp.Model.*;
+import com.erp.Repository.Feedback.FeedbackRepository;
+import com.erp.Repository.Inventory.InventoryRepository;
+import com.erp.Repository.Inventory.InventoryRepositoryV2;
+import com.erp.Repository.Task.*;
 import com.erp.Repository.Ticket.TicketRepository;
+import com.erp.Repository.Utility.FileRepository;
+import com.erp.Security.util.UserIdentity;
+import com.erp.Service.TaskService.TaskService;
 import jakarta.persistence.criteria.CriteriaBuilder;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -22,7 +37,9 @@ import jakarta.persistence.criteria.Root;
 import jakarta.persistence.*;
 import jakarta.persistence.criteria.*;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.time.LocalTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -35,8 +52,21 @@ import java.util.Map;
 public class TicketServiceImpl implements TicketService {
 
     private final TicketRepository ticketRepository;
-
     private final TicketMapper ticketMapper;
+    private final TaskRepository taskRepository;
+    private final TaskScheduleRepository taskScheduleRepository;
+    private final TaskServiceMapperRepository taskServiceMapperRepository;
+    private final TechnicianTaskMapperRepository technicianTaskMapperRepository;
+    private final TaskMaterialRepository taskMaterialRepository;
+    private final TaskMapper taskMapper;
+    private final TaskDetailsMapper taskDetailsMapper;
+    private final FeedbackRepository feedbackRepository;
+    private final TaskTechnicianCustomRepository taskTechnicianCustomRepository;
+    private final InventoryCustomRepository inventoryCustomRepository;
+    private final FileRepository fileRepository;
+    private final InventoryRepository inventoryRepository;
+    private final InventoryRepositoryV2 inventoryRepositoryV2;
+    private final UserIdentity userIdentity;
 
     @PersistenceContext
     private EntityManager entityManager;
@@ -55,7 +85,7 @@ public class TicketServiceImpl implements TicketService {
 
                 log.info("Existing ticket found. Updating ticket with id={}", ticketId);
                 ticket = ticketRepository.findById(ticketId).orElseThrow(() ->
-                        new RuntimeException("Ticket not found with id=" + ticketId));
+                        new ResourceNotFoundException("Ticket not found with id=" + ticketId));
 
                 if(TicketStatus.CLOSED.equals(ticket.getTicketStatus())){
                     ticket.setResolvedAt(LocalDateTime.now());
@@ -64,11 +94,73 @@ public class TicketServiceImpl implements TicketService {
             } else {
                 log.info("No existing ticket found. Creating a new ticket for customerId={}", ticketRequestDTO.getCustomerId());
 
+                Task old = taskRepository.findById(ticketRequestDTO.getTaskId())
+                        .orElseThrow(() -> new TaskNoFoundException("Task Not Found !!"));
+
+                Task task = new Task();
+
+                GenericUser genericUser = userIdentity.getCurrentUser();
+                task.setTaskName(old.getTaskName());
+                task.setCustomerId(old.getCustomerId());
+                task.setTaskCategory(old.getTaskCategory());
+                task.setTaskDetails(old.getTaskDetails());
+                task.setTaskStatus(old.getTaskStatus());
+                task.setCreatedBy(genericUser.getId());
+                task.setLatitude(old.getLatitude());
+                task.setLongitude(old.getLongitude());
+
+                TaskSchedule taskScheduleOld = taskScheduleRepository.findByTaskId(ticketRequestDTO.getTaskId());
+                List<TaskServiceMapper> taskServices = new ArrayList<>();
+                List<TechnicianTaskMapper> technicianMappers = new ArrayList<>();
+                List<TaskMaterial> materials = new ArrayList<>();
+
+                Task saved = taskRepository.save(task);
+                TaskSchedule taskSchedule = new TaskSchedule();
+                taskSchedule.setTaskId(saved.getTaskId());
+                taskSchedule.setAssignedTime(ticketRequestDTO.getAssignedTime());
+                taskSchedule.setAssignedDate(ticketRequestDTO.getAssignedDate());
+                taskSchedule.setGoogleLocationLink(taskScheduleOld.getGoogleLocationLink());
+                taskSchedule.setFieldType(taskScheduleOld.getFieldType());
+                taskSchedule.setServiceLocation(taskScheduleOld.getServiceLocation());
+
+                for(TaskServiceMapper taskServiceMapper : taskServiceMapperRepository.findByTaskId(ticketRequestDTO.getTaskId())){
+                    TaskServiceMapper newObj = new TaskServiceMapper();
+
+                    newObj.setTaskId(saved.getTaskId());
+                    newObj.setServiceId(taskServiceMapper.getServiceId());
+
+                    taskServices.add(newObj);
+                }
+
+                for(TechnicianTaskMapper technicianTaskMapper : technicianTaskMapperRepository.getTechnitiansByTaskId(ticketRequestDTO.getTaskId())){
+                    TechnicianTaskMapper newobj = new TechnicianTaskMapper();
+
+                    newobj.setTaskId(saved.getTaskId());
+                    newobj.setTechnicianId(ticketRequestDTO.getTechnicianId());
+
+                    technicianMappers.add(newobj);
+                }
+
+                for(TaskMaterial taskMaterial : taskMaterialRepository.findByTaskId(ticketRequestDTO.getTaskId())){
+                    TaskMaterial newObj = new TaskMaterial();
+
+                    newObj.setTaskId(saved.getTaskId());
+                    newObj.setMaterialId(taskMaterial.getMaterialId());
+                    newObj.setQuantity(taskMaterial.getQuantity());
+                    newObj.setUnit(taskMaterial.getUnit());
+                    newObj.setIsUsed(taskMaterial.getIsUsed());
+
+                    materials.add(newObj);
+                }
+
+                taskScheduleRepository.save(taskSchedule);
+                taskMaterialRepository.saveAll(materials);
+                technicianTaskMapperRepository.saveAll(technicianMappers);
+                taskServiceMapperRepository.saveAll(taskServices);
 
                 ticket = ticketMapper.mapToTicket(ticketRequestDTO);
             }
 
-            ticket.setCreatedAt(LocalDateTime.now());
             ticketRepository.save(ticket);
             log.info("Ticket saved successfully with id={}", ticket.getId());
 
@@ -200,6 +292,17 @@ public class TicketServiceImpl implements TicketService {
 
         resultDto.setResults(result);
         resultDto.setCount(result.size());
+
+        return resultDto;
+    }
+
+    @Override
+    public ResultDto<TicketViewDTO> getAllTickets() {
+        List<TicketViewDTO> list = ticketRepository.findAllTicketViews();
+        ResultDto<TicketViewDTO> resultDto = new ResultDto<>();
+
+        resultDto.setResults(list);
+        resultDto.setCount(list.size());
 
         return resultDto;
     }
