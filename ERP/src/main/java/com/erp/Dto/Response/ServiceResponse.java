@@ -8,6 +8,7 @@ import lombok.Setter;
 import org.springframework.data.annotation.CreatedDate;
 import org.springframework.data.annotation.LastModifiedDate;
 
+import java.math.BigDecimal;
 import java.time.LocalDateTime;
 
 @Getter
@@ -17,7 +18,9 @@ public class ServiceResponse
     private long serviceId;
     private String serviceName;
     private String serviceDescription;
-    private double servicePrice;
+    private BigDecimal servicePrice;
+    private BigDecimal residentialPrice;
+    private BigDecimal commercialPrice;
     private ServiceStatus serviceStatus;
     private ServiceCategory serviceCategory;
     private LocalDateTime createdAt;

@@ -6,16 +6,19 @@ import com.erp.Dto.Request.LeadRequest;
 
 import com.erp.Dto.Request.LeadResponse;
 import com.erp.Dto.Request.LeadServiceMapperDto;
+import com.erp.Dto.Response.DropDown;
 import com.erp.Dto.Response.ResultDto;
+import com.erp.Exception.Branch_Exception.BranchNotFoundException;
 import com.erp.Exception.ResourceNotFoundException;
+import com.erp.Exception.User.UserNotFoundException;
 import com.erp.Mapper.crm.LeadMapper;
-import com.erp.Model.Lead;
-import com.erp.Model.LeadProductMapper;
-import com.erp.Model.LeadServiceMapper;
-import com.erp.Model.Leads;
+import com.erp.Model.*;
+import com.erp.Repository.Branch.BranchRepository;
 import com.erp.Repository.Lead.LeadProductMapperRepository;
 import com.erp.Repository.Lead.LeadRepositorys;
+import com.erp.Repository.User.UserRepository;
 import com.erp.Repository.crm.LeadServiceMapperRepository;
+import com.erp.Security.util.UserIdentity;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -36,6 +39,9 @@ public class LeadServiceImpls implements LeadServices {
     private final LeadProductMapperRepository leadProductRepository;
     private final LeadMapper leadMapper;
     private final LeadServiceMapperRepository leadServiceMapperRepository;
+    private final BranchRepository branchRepository;
+    private final UserIdentity userIdentity;
+    private final UserRepository userRepository;
 
     @Override
     @Transactional
@@ -102,6 +108,10 @@ public class LeadServiceImpls implements LeadServices {
 
     @Override
     public LeadResponse addService(LeadRequest request) {
+
+        Branch branch = branchRepository.findById(request.getBranchId())
+                .orElseThrow(() -> new BranchNotFoundException("Branch Not Found !!"));
+
         Leads leads = new Leads();
 
         leads.setLeadName(request.getLeadName());
@@ -113,6 +123,7 @@ public class LeadServiceImpls implements LeadServices {
         leads.setLeadStatus(request.getLeadStatus());
         leads.setEngagementScore(request.getEngagementScore());
         leads.setRemarks(request.getRemarks());
+        leads.setBranch(branch);
 
         if (request.getTypeOfLead().equals("SERVICE")) {
             leads.setSqrt(request.getSqrt());
@@ -152,6 +163,11 @@ public class LeadServiceImpls implements LeadServices {
 
     private LeadResponse toResponseDto(Leads leads) {
         LeadResponse leadResponse = leadMapper.toResponseDto(leads);
+
+        // For setting a branch in response
+        leadResponse.setBranchId(leads.getBranch().getBranchId());
+
+        // for setting Products and services in response
         List<LeadProductMapper> leadMappers = leadProductRepository.findByLeadId(leads.getId());
         List<LeadProductRequestDto> leadProductRequestDtos = new ArrayList<>();
         for (LeadProductMapper leadProductMapper : leadMappers) {
@@ -217,5 +233,43 @@ public class LeadServiceImpls implements LeadServices {
 
         Leads updated = leadRepository.save(leads);
         return toResponseDto(updated);
+    }
+
+    @Override
+    public ResultDto<LeadResponse> getAllBranchWise() {
+        GenericUser genericUser = userIdentity.getCurrentUser();
+
+        User user = userRepository.findById(genericUser.getId())
+                .orElseThrow(() -> new UserNotFoundException("User Not Found !!"));
+
+        List<LeadResponse> leadResponseList = new ArrayList<>();
+        for(Leads leads : leadRepository.findByBranch_BranchId(user.getBranch().getBranchId())){
+            LeadResponse response = toResponseDto(leads);
+            leadResponseList.add(response);
+        }
+
+        ResultDto<LeadResponse> resultDto = new ResultDto<>();
+        resultDto.setResults(leadResponseList);
+        resultDto.setCount(leadResponseList.size());
+        return resultDto;
+    }
+
+    @Override
+    public ResultDto<DropDown> getDropDown() {
+        GenericUser genericUser = userIdentity.getCurrentUser();
+
+        User user = userRepository.findById(genericUser.getId())
+                .orElseThrow(() -> new UserNotFoundException("User Not Found !!"));
+
+        List<DropDown> dropDowns = new ArrayList<>();
+        for(Leads leads : leadRepository.findByBranch_BranchId(user.getBranch().getBranchId())){
+            DropDown response = new DropDown(leads.getId(), leads.getLeadName());
+            dropDowns.add(response);
+        }
+
+        ResultDto<DropDown> resultDto = new ResultDto<>();
+        resultDto.setResults(dropDowns);
+        resultDto.setCount(dropDowns.size());
+        return resultDto;
     }
 }

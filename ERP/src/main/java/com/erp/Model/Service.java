@@ -10,6 +10,7 @@ import org.springframework.data.annotation.CreatedDate;
 import org.springframework.data.annotation.LastModifiedDate;
 import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
+import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.List;
 
@@ -23,7 +24,7 @@ import java.util.List;
                         @ColumnResult(name = "service_id", type = Long.class),
                         @ColumnResult(name = "service_name", type = String.class),
                         @ColumnResult(name = "service_description", type = String.class),
-                        @ColumnResult(name = "service_price", type = Double.class),
+                        @ColumnResult(name = "service_price", type = BigDecimal.class),
                         @ColumnResult(name = "service_status", type = String.class),
                         @ColumnResult(name = "service_category", type = String.class),
                         @ColumnResult(name = "created_at", type = LocalDateTime.class),
@@ -48,7 +49,13 @@ public class Service {
     private String serviceDescription;
 
     @Column(name = "service_price")
-    private double servicePrice;
+    private BigDecimal servicePrice;
+
+    @Column(name = "residential_price")
+    private BigDecimal residentialPrice;
+
+    @Column(name = "commercial_price")
+    private BigDecimal commercialPrice;
 
     @Enumerated(EnumType.STRING)
     @Column(name = "service_status")

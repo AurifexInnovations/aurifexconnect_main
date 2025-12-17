@@ -204,7 +204,7 @@ public class TaskController {
     }
 
 
-    @PostMapping("/task/start/{taskId}")
+    @PostMapping("/task/start")
     @Operation(
             summary = "Update Task Status to IN_PROGRESS",
             description = "Update the status of a task to IN_PROGRESS by task ID",
@@ -213,7 +213,7 @@ public class TaskController {
                     @ApiResponse(responseCode = "400", description = "Invalid task ID")
             }
     )
-    public ResponseEntity<ResponseStructure<String>> updateTaskStatusTOInProgress(@PathVariable Long taskId,
+    public ResponseEntity<ResponseStructure<String>> updateTaskStatusTOInProgress(@RequestParam Long taskId,
                                                                             @RequestParam("files") MultipartFile[] selfie) {
         taskService.updateTaskStatusTOInProgress(taskId,selfie);
         return ResponseBuilder.success(HttpStatus.OK, "Task status updated to IN_PROGRESS", "Task ID: " + taskId);
@@ -221,7 +221,7 @@ public class TaskController {
 
 
 
-    @PostMapping("/task/completed/{taskId}")
+    @PostMapping("/task/completed")
     @Operation(
             summary = "Submit completion details for a task",
             description = "Submit feedback and materials for the given task ID",
@@ -231,7 +231,7 @@ public class TaskController {
             }
     )
     public ResponseEntity<ResponseStructure<OtpResponseDTO>> submitCompletionDetails(
-            @PathVariable("taskId") Long taskId,
+            @RequestParam("taskId") Long taskId,
             @RequestBody CompleteTaskRequestDTO completeTaskRequestDTO) {
 
         OtpResponseDTO otpResponseDTO =
@@ -244,7 +244,7 @@ public class TaskController {
         );
     }
 
-    @PostMapping(value = "/task/completed/images/{taskId}",
+    @PostMapping(value = "/task/completed/images",
             consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     @Operation(
             summary = "Upload task completion images",
@@ -255,7 +255,7 @@ public class TaskController {
             }
     )
     public ResponseEntity<ResponseStructure<String>> uploadCompletionImages(
-            @PathVariable("taskId") Long taskId,
+            @RequestParam("taskId") Long taskId,
             @RequestParam("beforeImages") MultipartFile[] beforeImages,
             @RequestParam("afterImages") MultipartFile[] afterImages) {
 
@@ -274,6 +274,8 @@ public class TaskController {
         log.info("[TaskTechnicianController] /search called");
         return taskService.searchTasks(filterRequest);
     }
+
+
     @GetMapping ("/task/all")
     public ResultDto<TechnicianResponseDTO> searchTasks() {
         log.info("[TaskTechnicianController] /search called");

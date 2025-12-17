@@ -460,7 +460,7 @@ public class InventoryCustomRepository {
             if (r[22] != null) {
                 VarientDto variant = new VarientDto(
                         ((Number) r[22]).longValue(),        // id
-                        r[23] != null ? ((Number) r[23]).intValue() : 0,
+                        r[23] != null ? ((Number) r[23]).doubleValue() : 0,
                         (String) r[24],
                         r[25] != null ? ((Number) r[25]).doubleValue() : 0,
                         (String) r[26],

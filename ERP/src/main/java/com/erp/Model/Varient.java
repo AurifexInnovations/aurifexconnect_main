@@ -20,7 +20,7 @@ public class Varient {
     @Column(name = "item_id")
     private long itemId;
     @Column(name = "stock_quantity")
-    private int stockQuantity;
+    private Double stockQuantity;
     @Column(name = "selling_price_type")
     private String sellingPriceType;
     @Column(name = "selling_price")

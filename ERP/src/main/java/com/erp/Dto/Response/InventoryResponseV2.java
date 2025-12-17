@@ -39,7 +39,7 @@ public class InventoryResponseV2 {
     private boolean active;
 
     // Variant data
-    private Integer stockQuantity;
+    private Double stockQuantity;
     private String sellingPriceType;
     private Double sellingPrice;
     private String purchasePriceType;

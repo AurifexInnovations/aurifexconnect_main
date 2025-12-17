@@ -12,7 +12,7 @@ import java.time.LocalDateTime;
 public class VarientDto {
     private long id;
     private long itemId;
-    private int stockQuantity;
+    private Double stockQuantity;
     private String sellingPriceType;
     private double sellingPrice;
     private String purchasePriceType;
@@ -23,7 +23,7 @@ public class VarientDto {
     private double measurement;
     private LocalDateTime expiryDate;
 
-    public VarientDto(long id, int stockQuantity, String sellingPriceType, double sellingPrice, String purchasePriceType,
+    public VarientDto(long id, Double stockQuantity, String sellingPriceType, double sellingPrice, String purchasePriceType,
                       double purchasePrice, String unitType, double unitTypeValue, String measurementType,
                       double measurement, LocalDateTime expiryDate) {
         this.id = id;

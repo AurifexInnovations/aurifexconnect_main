@@ -4,6 +4,7 @@ import com.erp.Dto.Request.CustomerDetailsRequestDto;
 import com.erp.Dto.Request.FilterRequest;
 import com.erp.Dto.Response.CustomerResponse;
 import com.erp.Dto.Response.CustomerResponseDtos;
+import com.erp.Dto.Response.DropDown;
 import com.erp.Dto.Response.ResultDto;
 
 
@@ -19,4 +20,8 @@ public interface CustomerDetailsService {
     CustomerResponse getById(long id);
 
     CustomerResponse deleteById(long id);
+
+    ResultDto<CustomerResponse> getByBranchWise();
+
+    ResultDto<DropDown> getDropdown();
 }

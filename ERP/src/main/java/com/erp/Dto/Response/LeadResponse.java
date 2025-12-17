@@ -37,4 +37,6 @@ public class LeadResponse {
     private ServiceCategory serviceCategory;
     private double sqrt;
     private List<Long> services;
+
+    private long branchId;
 }
