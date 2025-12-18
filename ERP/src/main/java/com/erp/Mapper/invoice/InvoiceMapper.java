@@ -2,10 +2,19 @@ package com.erp.Mapper.invoice;
 
 import com.erp.Dto.Request.InvoiceRequestDto;
 import com.erp.Dto.Response.InvoiceResponseDto;
+import com.erp.Exception.ResourceNotFoundException;
+import com.erp.Model.CustomerDetails;
 import com.erp.Model.Invoice;
+import com.erp.Repository.costumer.CustomerDetailsRepository;
+import lombok.AllArgsConstructor;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
+
+
 
 
 public class InvoiceMapper {
+
 
     // CREATE
     public static Invoice toEntity(InvoiceRequestDto dto) {
@@ -61,6 +70,8 @@ public class InvoiceMapper {
         dto.setNotes(invoice.getNotes());
         dto.setCreatedAt(invoice.getCreatedAt());
         dto.setUpdatedAt(invoice.getUpdatedAt());
+
+
         return dto;
     }
 }

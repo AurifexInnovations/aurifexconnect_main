@@ -2,6 +2,7 @@ package com.erp.Service.Invoice;
 
 import com.erp.Dto.Request.InvoiceRequestDto;
 import com.erp.Dto.Response.InvoiceResponseDto;
+import com.erp.Dto.Response.ResultDto;
 import com.erp.Model.Invoice;
 import com.erp.Projection.InvoiceProjection;
 
@@ -16,7 +17,7 @@ public interface InvoiceOrder {
 
     InvoiceResponseDto getInvoiceById(Long id);
 
-    List<InvoiceProjection> getAllInvoices(Long invoiceId, int page, int size);
+    ResultDto<InvoiceResponseDto> getAllInvoices();
 
     void deleteInvoice(Long id);
 

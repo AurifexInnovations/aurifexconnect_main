@@ -3,19 +3,23 @@ package com.erp.Service.Invoice;
 
 import com.erp.Dto.Request.InvoiceRequestDto;
 import com.erp.Dto.Response.InvoiceResponseDto;
+import com.erp.Dto.Response.ResultDto;
 import com.erp.Exception.ResourceNotFoundException;
 import com.erp.Mapper.invoice.InvoiceMapper;
+import com.erp.Model.CustomerDetails;
 import com.erp.Model.Invoice;
 
 import com.erp.Projection.InvoiceProjection;
 import com.erp.Repository.Invoice.InvoiceMasterRepository;
 import com.erp.Repository.Invoice.InvoiceRepository;
+import com.erp.Repository.costumer.CustomerDetailsRepository;
 import com.erp.Utility.NumberGenerator.NumberGeneratorUtil;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -25,6 +29,7 @@ import java.util.stream.Collectors;
 public class InvoiceServiceImplement implements InvoiceOrder {
 
     private final InvoiceMasterRepository invoiceRepository;
+    private final CustomerDetailsRepository customerDetailsRepository;
 
     @Override
     public InvoiceResponseDto addInvoice(InvoiceRequestDto request) {
@@ -35,8 +40,19 @@ public class InvoiceServiceImplement implements InvoiceOrder {
         invoice.setInvoiceNumber(NumberGeneratorUtil.generate("INV",invoiceRepository.count()+1));
         invoice.setCreatedAt(LocalDateTime.now());
 
-        return InvoiceMapper.toDto(invoiceRepository.save(invoice));
+        return toResponseDto(invoiceRepository.save(invoice));
     }
+
+    private InvoiceResponseDto toResponseDto(Invoice invoice){
+
+        InvoiceResponseDto responseDto = InvoiceMapper.toDto(invoice);
+        CustomerDetails customerDetails = customerDetailsRepository.findById(invoice.getCustomerId()).
+                orElseThrow(()-> new ResourceNotFoundException("Customer Not FOund !!"));
+        responseDto.setCustomerName(customerDetails.getCustomerName());
+
+        return responseDto;
+    }
+
 
 
     @Override
@@ -58,15 +74,22 @@ public class InvoiceServiceImplement implements InvoiceOrder {
         Invoice invoice = invoiceRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Invoice not found"));
 
-        return InvoiceMapper.toDto(invoice);
+        return toResponseDto(invoice);
     }
 
     @Override
-    public List<InvoiceProjection> getAllInvoices(Long invoiceId, int page, int size) {
+    public ResultDto<InvoiceResponseDto> getAllInvoices() {
 
         log.info("Service getAllInvoices called");
+        List<InvoiceResponseDto> responseDtos = new ArrayList<>();
+        for (Invoice invoice : invoiceRepository.findAll()){
+            responseDtos.add(toResponseDto(invoice));
+        }
+        ResultDto<InvoiceResponseDto> responseDtoResultDto = new ResultDto<>();
+        responseDtoResultDto.setCount(responseDtos.size());
+        responseDtoResultDto.setResults(responseDtos);
 
-        return invoiceRepository.getAllInvoiceDetailsList(invoiceId,page,size);
+        return responseDtoResultDto;
     }
 
     @Override

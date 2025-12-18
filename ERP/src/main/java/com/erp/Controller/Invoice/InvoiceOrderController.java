@@ -2,6 +2,7 @@ package com.erp.Controller.Invoice;
 
 import com.erp.Dto.Request.InvoiceRequestDto;
 import com.erp.Dto.Response.InvoiceResponseDto;
+import com.erp.Dto.Response.ResultDto;
 import com.erp.Model.Invoice;
 import com.erp.Projection.InvoiceProjection;
 import com.erp.Service.Invoice.InvoiceOrder;
@@ -74,15 +75,12 @@ public class InvoiceOrderController {
     }
 
     @GetMapping("/all")
-    public ResponseEntity<ListResponseStructure<InvoiceProjection>> getAllInvoices(
-            @RequestParam(value = "invoiceId", required = false) Long invoiceId,
-            @RequestParam(value = "page", defaultValue = "0") int page,
-            @RequestParam(value = "size", defaultValue = "10") int size
+    public ResponseEntity<ResponseStructure< ResultDto<InvoiceResponseDto>>> getAllInvoices(
     ) {
 
         log.info("API /api/invoices/all called");
 
-        List<InvoiceProjection> list = invoiceService.getAllInvoices(invoiceId, page, size);
+        ResultDto<InvoiceResponseDto> list = invoiceService.getAllInvoices();
 
         return ResponseBuilder.success(
                 HttpStatus.OK,

@@ -18,6 +18,7 @@ public class InvoiceResponseDto {
 
     private Long id;
     private Long customerId;
+    private String customerName;
     private Long salesOrderId;
     private Long quotationId;
 
