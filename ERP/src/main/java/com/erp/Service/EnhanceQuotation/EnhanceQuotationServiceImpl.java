@@ -1,9 +1,8 @@
 package com.erp.Service.EnhanceQuotation;
 
-import com.erp.Dto.Request.CommanParam;
-import com.erp.Dto.Request.QuotationProductRequestDto;
-import com.erp.Dto.Request.QuotationRequestDto;
+import com.erp.Dto.Request.*;
 import com.erp.Dto.Response.QuotationResponseDto;
+import com.erp.Enum.ServiceCategory;
 import com.erp.Exception.BadRequestException;
 import com.erp.Model.EnhanceQuotation;
 import com.erp.Model.QuotationProduc;
@@ -11,6 +10,8 @@ import com.erp.Model.QuotationService;
 import com.erp.Repository.EnhanceQuotation.EnhanceQuotationRepository;
 import com.erp.Repository.QuotationProductMapperRepository.QuotationProductMapperRepository;
 import com.erp.Repository.QuotationServiceMapper.QuotationServiceMapperRepository;
+import com.erp.Utility.AmountCalculationUtil;
+import com.erp.Utility.NumberGenerator.NumberGeneratorUtil;
 import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Service;
 
@@ -29,14 +30,13 @@ public class EnhanceQuotationServiceImpl implements EnhanceQuotationService {
     final private EnhanceQuotationRepository enhanceQuotationRepository;
     final private QuotationProductMapperRepository quotationProductMapperRepository;
     final private QuotationServiceMapperRepository quotationServiceMapperRepository;
+    private final AmountCalculationUtil amountCalculationUtil;
 
-    @Override
     public QuotationResponseDto addQuotation(QuotationRequestDto dto) {
 
     /* =========================
        STEP 1: VALIDATION
        ========================= */
-
         if (dto.getLeadId() == null && dto.getCustomerId() == null) {
             throw new BadRequestException("Either leadId or customerId is required");
         }
@@ -55,21 +55,17 @@ public class EnhanceQuotationServiceImpl implements EnhanceQuotationService {
     /* =========================
        STEP 2: CREATE QUOTATION
        ========================= */
-
         EnhanceQuotation quotation = new EnhanceQuotation();
 
-        // Lead / Customer
         quotation.setLeadId(dto.getLeadId());
         quotation.setCustomerId(dto.getCustomerId());
 
-        // Personal
         quotation.setFullName(dto.getFullName());
         quotation.setCompanyName(dto.getCompanyName());
         quotation.setEmail(dto.getEmail());
         quotation.setPhone(dto.getPhone());
         quotation.setAlternatePhone(dto.getAlternatePhone());
 
-        // Address
         quotation.setAddressLine1(dto.getAddressLine1());
         quotation.setAddressLine2(dto.getAddressLine2());
         quotation.setLandmark(dto.getLandmark());
@@ -79,53 +75,65 @@ public class EnhanceQuotationServiceImpl implements EnhanceQuotationService {
         quotation.setPincode(dto.getPincode());
         quotation.setLocationUrl(dto.getLocationUrl());
 
-        // Category / Size
         quotation.setServiceCategory(dto.getServiceCategory());
-        quotation.setSqft(dto.getSqrt() != null ? BigDecimal.valueOf(dto.getSqrt()) : BigDecimal.ZERO);
+        quotation.setSqft(
+                dto.getSqrt() != null ? BigDecimal.valueOf(dto.getSqrt()) : BigDecimal.ZERO
+        );
 
     /* =========================
        STEP 3: FINANCIALS
        ========================= */
+        BigDecimal discount =
+                dto.getDiscountAmount() != null ? dto.getDiscountAmount() : BigDecimal.ZERO;
 
-        quotation.setSubtotal(dto.getSubtotal() != null ? dto.getSubtotal() : BigDecimal.ZERO);
-        quotation.setTaxAmount(dto.getTaxAmount() != null ? dto.getTaxAmount() : BigDecimal.ZERO);
-        quotation.setDiscountAmount(dto.getDiscountAmount() != null ? dto.getDiscountAmount() : BigDecimal.ZERO);
+        CalculationVar calc;
 
-        // totalAmount = subtotal + tax
-        quotation.setTotalAmount(
-                quotation.getSubtotal().add(quotation.getTaxAmount())
-        );
+        // SERVICE QUOTATION
+        if (hasServices) {
 
-        // grandTotal = totalAmount - discount
-        quotation.setGrandTotal(
-                quotation.getTotalAmount().subtract(quotation.getDiscountAmount())
-        );
+            List<CommanParam> serviceParams =
+                    dto.getServices().stream()
+                            .map(CommanParam::new)
+                            .toList();
+
+            calc = amountCalculationUtil.serviceAmoCal(
+                    serviceParams,
+                    dto.getSqrt(),
+                    discount.doubleValue(),   // util expects Double (can be improved later)
+                    ServiceCategory.valueOf(dto.getServiceCategory())  // already enum
+            );
+        }
+        // PRODUCT QUOTATION
+        else {
+            calc = amountCalculationUtil.getCounting(
+                    dto.getProducts(),
+                    discount.doubleValue()
+            );
+        }
+
+        // ✅ Single source of truth for financials
+        quotation.setSubtotal(calc.getTotal());
+        quotation.setTaxAmount(calc.getTaxAmount());
+        quotation.setTotalAmount(calc.getSubTotal());
+        quotation.setDiscountAmount(discount);
+        quotation.setGrandTotal(calc.getGrandTotal());
 
     /* =========================
        STEP 4: CORE DETAILS
        ========================= */
-
-        quotation.setQuotationNumber("QT-" + System.currentTimeMillis());
-        quotation.setQuotationDate(LocalDate.now());
-
-        // Status
-        quotation.setStatus(
-                dto.getStatus() != null ? dto.getStatus() : "DRAFT"
+        quotation.setQuotationNumber(
+                NumberGeneratorUtil.generate("QT", enhanceQuotationRepository.count() + 1)
         );
-
-        // Lead Type
+        quotation.setQuotationDate(LocalDate.now());
+        quotation.setStatus(dto.getStatus() != null ? dto.getStatus() : "DRAFT");
         quotation.setLeadType(hasProducts ? "PRODUCT" : "SERVICE");
 
-        // Sent info
-
-            quotation.setSentDate(LocalDateTime.now());
-            quotation.setSentVia(dto.getSentVia());
-
+        quotation.setSentDate(LocalDateTime.now());
+        quotation.setSentVia(dto.getSentVia());
 
     /* =========================
        STEP 5: RECURRING
        ========================= */
-
         quotation.setIsRecurring(dto.getIsRecurring());
 
         if (Boolean.TRUE.equals(dto.getIsRecurring())) {
@@ -135,13 +143,6 @@ public class EnhanceQuotationServiceImpl implements EnhanceQuotationService {
             quotation.setStartDate(dto.getStartDate());
             quotation.setNextRecurringDate(dto.getNextRecurringDate());
             quotation.setEndDate(dto.getEndDate());
-        } else {
-            quotation.setRecurringType(null);
-            quotation.setRecurringInterval(null);
-            quotation.setRecurringCycles(null);
-            quotation.setStartDate(null);
-            quotation.setNextRecurringDate(null);
-            quotation.setEndDate(null);
         }
 
         quotation.setNotes(dto.getNotes());
@@ -151,38 +152,40 @@ public class EnhanceQuotationServiceImpl implements EnhanceQuotationService {
     /* =========================
        STEP 6: LINE ITEMS
        ========================= */
-
-        // PRODUCTS
         if (hasProducts) {
-            List<QuotationProduc> productList = new ArrayList<>();
-            for (QuotationProductRequestDto p : dto.getProducts()) {
-                QuotationProduc qp = new QuotationProduc();
-                qp.setQuotationId(savedQuotation.getId());
-                qp.setProductId(p.getProductId());
-                qp.setQuantity(p.getQuantity());
-                productList.add(qp);
-            }
-            quotationProductMapperRepository.saveAll(productList);
+            List<QuotationProduc> products = dto.getProducts().stream()
+                    .map(p -> {
+                        QuotationProduc qp = new QuotationProduc();
+                        qp.setQuotationId(savedQuotation.getId());
+                        qp.setProductId(p.getProductId());
+                        qp.setQuantity(p.getQuantity());
+                        return qp;
+                    })
+                    .toList();
+
+            quotationProductMapperRepository.saveAll(products);
         }
 
-        // SERVICES
         if (hasServices) {
-            List<QuotationService> serviceList = new ArrayList<>();
-            for (Long serviceId : dto.getServices()) {
-                QuotationService qs = new QuotationService();
-                qs.setQuotationId(savedQuotation.getId());
-                qs.setServiceId(serviceId);
-                serviceList.add(qs);
-            }
-            quotationServiceMapperRepository.saveAll(serviceList);
+            List<QuotationService> services = dto.getServices().stream()
+                    .map(id -> {
+                        QuotationService qs = new QuotationService();
+                        qs.setQuotationId(savedQuotation.getId());
+                        qs.setServiceId(id);
+                        return qs;
+                    })
+                    .toList();
+
+            quotationServiceMapperRepository.saveAll(services);
         }
 
     /* =========================
        STEP 7: RESPONSE
        ========================= */
-
         return toResponseDto(savedQuotation);
     }
+
+
 
 
     private QuotationResponseDto toResponseDto(EnhanceQuotation quotation) {

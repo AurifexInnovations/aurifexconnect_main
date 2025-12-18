@@ -69,6 +69,7 @@ public class EnhanceQuotation {
     @Column(name = "quotation_number", length = 50, unique = true)
     private String quotationNumber;
 
+    @CreationTimestamp
     @Column(name = "quotation_date")
     private LocalDate quotationDate;
 

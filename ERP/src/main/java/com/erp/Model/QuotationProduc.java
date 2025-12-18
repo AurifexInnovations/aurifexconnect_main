@@ -21,6 +21,6 @@ public class QuotationProduc {
     private Long productId;
 
     @Column(name = "quantity")
-    private Integer quantity;
+    private Long quantity;
 
 }
