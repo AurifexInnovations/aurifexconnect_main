@@ -5,11 +5,15 @@ import com.erp.Dto.Request.PaymentRequestDto;
 import com.erp.Dto.Response.PaymentResponseDto;
 import com.erp.Mapper.payments.PaymentMapper;
 import com.erp.Model.Payment;
+import com.erp.Model.Receipt;
 import com.erp.Repository.payment.PaymentRepository;
+import com.erp.Repository.receipt.ReceiptRepository;
+import com.erp.Utility.NumberGenerator.NumberGeneratorUtil;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -19,6 +23,7 @@ import java.util.stream.Collectors;
 public class PaymentServiceImpl implements PaymentService {
 
     private final PaymentRepository paymentRepository;
+    private final ReceiptRepository receiptRepository;
 
     @Override
     public PaymentResponseDto createPayment(PaymentRequestDto requestDto) {
@@ -27,6 +32,16 @@ public class PaymentServiceImpl implements PaymentService {
        Payment payment = PaymentMapper.toEntity(requestDto);
 
       Payment savedPayment = paymentRepository.save(payment);
+
+        Receipt receipt = new Receipt();
+        receipt.setReceiptNumber(NumberGeneratorUtil.generate("RCT",receiptRepository.count()+1));
+        receipt.setPaymentId(payment.getId());
+        receipt.setInvoiceId(payment.getInvoiceId());
+        receipt.setCustomerId(payment.getCustomerId());
+        receipt.setReceiptDate(LocalDateTime.now());
+        receipt.setAmountReceived(payment.getAmountPaid());
+        receipt.setPaymentMethod(payment.getPaymentMethod());
+        receiptRepository.save(receipt);
 
         log.info("Payment created successfully with id={}", savedPayment.getId());
         return PaymentMapper.toDto(savedPayment);
