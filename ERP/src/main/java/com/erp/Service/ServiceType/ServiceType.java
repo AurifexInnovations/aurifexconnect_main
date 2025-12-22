@@ -9,12 +9,13 @@ import com.erp.Dto.Response.ServiceResponse;
 import com.erp.Dto.Response.ServiceTypeResponse;
 import com.erp.Model.Service;
 import com.erp.Dto.Request.FilterRequest;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.util.List;
 
 public interface ServiceType {
 
-    ServiceResponse addService(ServiceRequest serviceRequest);
+    ServiceResponse addService(ServiceRequest serviceRequest, MultipartFile[] files);
 
     ServiceResponse updateById(ServiceRequest serviceRequest);
 

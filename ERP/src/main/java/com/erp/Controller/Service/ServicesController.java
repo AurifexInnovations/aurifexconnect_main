@@ -22,8 +22,10 @@ import jakarta.validation.Valid;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.util.List;
 import java.util.ResourceBundle;
@@ -39,7 +41,7 @@ public class ServicesController
     private final ServiceType serviceTypeService;
 
     // POST /service
-    @PostMapping
+    @PostMapping(consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     @Operation(
             summary = "Add a new service",
             description = "API to add a new service record.",
@@ -49,9 +51,10 @@ public class ServicesController
                             content = @Content(schema = @Schema(implementation = SimpleErrorResponse.class)))
             }
     )
-    public ResponseEntity<ResponseStructure<ServiceResponse>> addService(@Valid @RequestBody ServiceRequest serviceRequest)
+    public ResponseEntity<ResponseStructure<ServiceResponse>> addService(@Valid @RequestPart("service") ServiceRequest serviceRequest,
+                                                                         @RequestPart("files") MultipartFile[] files)
     {
-        ServiceResponse servicesResponse = serviceTypeService.addService(serviceRequest);
+        ServiceResponse servicesResponse = serviceTypeService.addService(serviceRequest, files);
         return ResponseBuilder.success(HttpStatus.CREATED, "Service added successfully!!", servicesResponse);
     }
 

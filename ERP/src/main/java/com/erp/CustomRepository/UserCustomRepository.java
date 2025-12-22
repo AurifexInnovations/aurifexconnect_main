@@ -2,14 +2,11 @@ package com.erp.CustomRepository;
 
 import com.erp.Dto.Request.FilterRequest;
 import com.erp.Dto.Response.ResultDto;
-import com.erp.Dto.Response.ShipmentDetailsResponseDTO;
 import com.erp.Dto.Response.UserResponse;
 import com.erp.Enum.Designation;
-import com.erp.Enum.ShipmentStatus;
 import com.erp.Mapper.User.UserMapper;
-import com.erp.Model.ShipmentDetails;
 import com.erp.Model.User;
-import com.erp.Repository.User.UserRepository;
+import com.erp.Repository.Inventory.InventoryRepositoryV2;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.PersistenceContext;
 import jakarta.persistence.TypedQuery;
@@ -29,6 +26,7 @@ public class UserCustomRepository {
     private EntityManager entityManager;
 
     @Autowired private UserMapper userMapper;
+    @Autowired private InventoryRepositoryV2 inventoryRepositoryV2;
 
     public ResultDto<UserResponse> filterUsers(FilterRequest filterRequest) {
 
@@ -118,4 +116,5 @@ public class UserCustomRepository {
 
         return resultDto;
     }
+
 }

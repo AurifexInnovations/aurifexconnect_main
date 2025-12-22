@@ -1,5 +1,6 @@
 package com.erp.Service.TaskService;
 
+import com.erp.Config.AmazonS3Config;
 import com.erp.CustomRepository.InventoryCustomRepository;
 import com.erp.CustomRepository.TaskTechnicianCustomRepository;
 import com.erp.Dto.Request.*;
@@ -30,6 +31,7 @@ import com.erp.Security.util.UserIdentity;
 import com.erp.Service.InventoryService.InventoryService;
 import com.erp.Service.Otp.OtpService;
 import com.erp.Service.Utility.FileService;
+import com.erp.Utility.inerfaces.S3StorageService;
 import com.erp.constants.FileUploadConstants;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
@@ -88,6 +90,8 @@ public class TaskServiceImpl implements TaskService {
     private final InventoryRepository inventoryRepository;
 
     private final InventoryRepositoryV2 inventoryRepositoryV2;
+
+    private final S3StorageService s3StorageService;
 
     @Lazy
     @Autowired
@@ -510,7 +514,8 @@ public class TaskServiceImpl implements TaskService {
             throw new BadRequestException("Selfie file is required to update task status.");
         }
 
-        fileService.uploadFiles(taskId, FileUploadConstants.SELFIE, selfie);
+        List<FileUploadResponse> fileUploadResponses = s3StorageService.uploadFile(selfie, "service");
+        List<ServiceDocuments> beforeImages = new ArrayList<>();
 
 
         int rowsUpdated = taskRepository.updateTaskStatus(taskId, TaskStatus.IN_PROGRESS);

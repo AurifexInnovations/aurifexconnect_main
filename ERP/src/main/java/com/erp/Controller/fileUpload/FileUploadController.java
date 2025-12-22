@@ -19,28 +19,28 @@ import java.util.Map;
 public class FileUploadController {
     private final S3StorageService storageService;
 
-    @PostMapping("/{tenant}/files")
-    public ResponseEntity<FileUploadResponse> uploadFile(@PathVariable("tenant") final String tenant,
-                                                         @RequestPart("file") final MultipartFile file,
-                                                         @RequestParam final MultiValueMap<String, String> params) {
-        // optional additional metadata as request params; adapt as needed
-        Map<String, String> metadata = new HashMap<>();
-        params.forEach((k, v) -> metadata.put(k, v.get(0)));
-
-        FileUploadResponse resp = storageService.uploadFile(file, tenant, metadata);
-        return ResponseEntity.ok(resp);
-    }
-
-
-    @GetMapping("/{tenant}")
-    public ResponseEntity<byte[]> downloadFile(@PathVariable("tenant") final String tenant,
-                                               @RequestBody final FileRequestDto requestDto) {
-        byte[] data = storageService.downloadFile(tenant, requestDto.file());
-        if (data == null) {
-            return ResponseEntity.notFound().build();
-        }
-        return ResponseEntity.ok().header(HttpHeaders.CONTENT_DISPOSITION,
-                        "attachment; filename=\"" + requestDto.file() + "\"").contentType(MediaType.APPLICATION_OCTET_STREAM)
-                .contentLength(data.length).body(data);
-    }
+//    @PostMapping("/{tenant}/files")
+//    public ResponseEntity<FileUploadResponse> uploadFile(@PathVariable("tenant") final String tenant,
+//                                                         @RequestPart("file") final MultipartFile file,
+//                                                         @RequestParam final MultiValueMap<String, String> params) {
+//        // optional additional metadata as request params; adapt as needed
+//        Map<String, String> metadata = new HashMap<>();
+//        params.forEach((k, v) -> metadata.put(k, v.get(0)));
+//
+//        FileUploadResponse resp = storageService.uploadFile(file, tenant, metadata);
+//        return ResponseEntity.ok(resp);
+//    }
+//
+//
+//    @GetMapping("/{tenant}")
+//    public ResponseEntity<byte[]> downloadFile(@PathVariable("tenant") final String tenant,
+//                                               @RequestBody final FileRequestDto requestDto) {
+//        byte[] data = storageService.downloadFile(tenant, requestDto.file());
+//        if (data == null) {
+//            return ResponseEntity.notFound().build();
+//        }
+//        return ResponseEntity.ok().header(HttpHeaders.CONTENT_DISPOSITION,
+//                        "attachment; filename=\"" + requestDto.file() + "\"").contentType(MediaType.APPLICATION_OCTET_STREAM)
+//                .contentLength(data.length).body(data);
+//    }
 }

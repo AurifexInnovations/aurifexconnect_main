@@ -8,4 +8,5 @@ import lombok.Data;
 public class FileUploadResponse {
     private String s3Url;
     private String s3Key;
+    private String fileName;
 }
