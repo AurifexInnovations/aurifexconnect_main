@@ -3,6 +3,7 @@ package com.erp.Service.User;
 import com.erp.CustomRepository.UserCustomRepository;
 import com.erp.Dto.Request.*;
 import com.erp.Dto.Response.DropDown;
+import com.erp.Dto.Response.FileUploadResponse;
 import com.erp.Dto.Response.ResultDto;
 import com.erp.Dto.Response.UserResponse;
 import com.erp.Exception.Admin.AdminNotFoundException;
@@ -26,18 +27,29 @@ import com.erp.Repository.User.UserRepository;
 import com.erp.Repository.UserPermission.UserPermissionRepository;
 import com.erp.Security.util.UserIdentity;
 import com.erp.Service.UserPermission.UserPermissionService;
+import com.erp.Utility.inerfaces.S3StorageService;
 import jakarta.transaction.Transactional;
 import lombok.AllArgsConstructor;
+import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.web.multipart.MultipartFile;
+import software.amazon.awssdk.services.s3.model.GetObjectRequest;
+import software.amazon.awssdk.services.s3.presigner.S3Presigner;
+import software.amazon.awssdk.services.s3.presigner.model.PresignedGetObjectRequest;
 
+import java.time.Duration;
 import java.time.LocalDateTime;
 import java.util.*;
 import java.util.stream.Collectors;
 
 @Service
-@AllArgsConstructor
+@RequiredArgsConstructor
 public class UserServiceImpl implements UserServices {
+
+    @Value("${aws.s3.bucket}")
+    private String bucket;
 
     private final UserRepository userRepository;
     private final UserMapper userMapper;
@@ -50,6 +62,8 @@ public class UserServiceImpl implements UserServices {
     private final BranchRepository branchRepository;
     private final UserCustomRepository userCustomRepository;
     private final static String DEFAULT_ROLE = "EMPLOYEE";
+    private final S3StorageService s3StorageService;
+    private final S3Presigner s3Presigner;
 
 
     RoleActionPermissionRepository roleActionPermissionRepository;
@@ -388,6 +402,9 @@ public class UserServiceImpl implements UserServices {
 
         response.setRoleNames(roleNames);
 
+        String s3Key = generatePresignedUrl(user.getDocumentUrl());
+        response.setProfileUrl(s3Key);
+
         return response;
     }
 
@@ -402,7 +419,8 @@ public class UserServiceImpl implements UserServices {
     }
 
     @Override
-    public UserResponse updateUser(UserProfileRequest userProfileRequest) {
+    @Transactional
+    public UserResponse updateUser(UserProfileRequest userProfileRequest, MultipartFile[] files) {
         String email = userIdentity.getCurrentUserEmail();
 
         User user = userRepository.findByEmail(email)
@@ -412,7 +430,14 @@ public class UserServiceImpl implements UserServices {
         user.setLastName(userProfileRequest.getLastName());
         user.setPhoneNo(userProfileRequest.getPhoneNo());
 
-        userRepository.save(user);
+        if (files != null && files.length > 0) {
+            List<FileUploadResponse> fileUploadResponses =
+                    s3StorageService.uploadFile(files, "user/profile");
+
+            if (!fileUploadResponses.isEmpty()) {
+                user.setDocumentUrl(fileUploadResponses.get(0).getS3Key());
+            }
+        }
 
         return toResponse(user);
     }
@@ -477,5 +502,20 @@ public class UserServiceImpl implements UserServices {
     @Override
     public ResultDto<UserResponse> getUsersFilterWise(FilterRequest filterRequest) {
         return userCustomRepository.filterUsers(filterRequest);
+    }
+
+    private String generatePresignedUrl(String s3Key) {
+
+        GetObjectRequest getObjectRequest = GetObjectRequest.builder()
+                .bucket(bucket)
+                .key(s3Key)
+                .build();
+
+        PresignedGetObjectRequest presignedRequest =
+                s3Presigner.presignGetObject(p -> p
+                        .getObjectRequest(getObjectRequest)
+                        .signatureDuration(Duration.ofMinutes(10)));
+
+        return presignedRequest.url().toString();
     }
 }
