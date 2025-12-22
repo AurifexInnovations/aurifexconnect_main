@@ -412,6 +412,8 @@ public class UserServiceImpl implements UserServices {
         user.setLastName(userProfileRequest.getLastName());
         user.setPhoneNo(userProfileRequest.getPhoneNo());
 
+        userRepository.save(user);
+
         return toResponse(user);
     }
 
