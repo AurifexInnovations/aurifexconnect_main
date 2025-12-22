@@ -1,9 +1,6 @@
 package com.erp.Controller.User;
 
-import com.erp.Dto.Request.CommanParam;
-import com.erp.Dto.Request.UserProfileRequest;
-import com.erp.Dto.Request.UserRequest;
-import com.erp.Dto.Request.UserUpdateRequest;
+import com.erp.Dto.Request.*;
 import com.erp.Dto.Response.DropDown;
 import com.erp.Dto.Response.ResultDto;
 import com.erp.Dto.Response.UserResponse;
@@ -14,10 +11,13 @@ import com.erp.Utility.ResponseStructure;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Repository;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
+
 import java.util.List;
 
 @RestController
@@ -80,10 +80,14 @@ public class UserController {
         return ResponseBuilder.success(HttpStatus.OK, "User Fetched Successfully!!", userResponse);
     }
 
-    @PutMapping("/user/profile/update")
-    public ResponseEntity<ResponseStructure<UserResponse>> updateUser(@RequestBody UserProfileRequest userProfileRequest)
-    {
-        UserResponse response = userServices.updateUser(userProfileRequest);
+    @PutMapping(value = "/user/profile/update", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    public ResponseEntity<ResponseStructure<UserResponse>> updateUser(
+            @RequestPart("user") UserProfileRequest userProfileRequest,
+            @RequestPart(value = "profile", required = false) MultipartFile[] files) {
+        if (files == null) {
+            files = new MultipartFile[0]; // ensure non-null array
+        }
+        UserResponse response = userServices.updateUser(userProfileRequest, files);
         return ResponseBuilder.success(HttpStatus.OK, "User Updated Successfully!!", response);
     }
 
@@ -97,5 +101,11 @@ public class UserController {
     public ResponseEntity<ResponseStructure<ResultDto<UserResponse>>> getUsersBranchWise(){
         ResultDto<UserResponse> resultDto = userServices.getUsersBranchWise();
         return ResponseBuilder.success(HttpStatus.OK, "Fetched Users Successfully", resultDto);
+    }
+
+    @PostMapping("/user/filter")
+    public ResponseEntity<ResponseStructure<ResultDto<UserResponse>>> getUserFilterWise(@RequestBody FilterRequest filterRequest){
+        ResultDto<UserResponse> resultDto = userServices.getUsersFilterWise(filterRequest);
+        return ResponseBuilder.success(HttpStatus.OK, "Filter Wise Fetched Users Successfully", resultDto);
     }
 }

@@ -5,9 +5,7 @@ import com.erp.Dto.Request.CommanParam;
 import com.erp.Dto.Request.FilterRequest;
 import com.erp.Dto.Request.ServiceRequest;
 import com.erp.Dto.Request.ServiceTypeGetRequest;
-import com.erp.Dto.Response.ResultDto;
-import com.erp.Dto.Response.ServiceResponse;
-import com.erp.Dto.Response.ServiceTypeResponse;
+import com.erp.Dto.Response.*;
 import com.erp.Enum.ServiceCategory;
 import com.erp.Exception.Branch_Exception.BranchNotFoundException;
 import com.erp.Exception.Inventory_Exception.InventoryNotFoundException;
@@ -21,21 +19,34 @@ import com.erp.Repository.Branch.BranchRepository;
 import com.erp.Repository.Inventory.InventoryRepository;
 import com.erp.Repository.Inventory.InventoryRepositoryV2;
 import com.erp.Repository.Service.Entitymanager.ServiceTypeRepo;
+import com.erp.Repository.Service.ServiceDocumentsRepository;
 import com.erp.Repository.Service.ServiceRepository;
 import com.erp.Repository.User.UserRepository;
 import com.erp.Security.util.UserIdentity;
+import com.erp.Utility.inerfaces.S3StorageService;
+import jakarta.transaction.Transactional;
 import lombok.AllArgsConstructor;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.multipart.MultipartFile;
+import software.amazon.awssdk.services.s3.model.GetObjectRequest;
+import software.amazon.awssdk.services.s3.presigner.S3Presigner;
+import software.amazon.awssdk.services.s3.presigner.model.PresignedGetObjectRequest;
 
+import java.time.Duration;
 import java.util.ArrayList;
 import java.util.List;
 
 @org.springframework.stereotype.Service
-@AllArgsConstructor
+@RequiredArgsConstructor
 @Slf4j
 public class ServiceTypeImpl implements ServiceType
 {
+    @Value("${aws.s3.bucket}")
+    private String bucket;
+
     private final ServiceCustomRepository customRepository;
     private final ServiceRepository repository;
     private final ServiceMapper serviceMapper;
@@ -44,14 +55,21 @@ public class ServiceTypeImpl implements ServiceType
     private final UserIdentity userIdentity;
     private final UserRepository userRepository;
     private final InventoryRepositoryV2 inventoryRepository;
+    private final ServiceDocumentsRepository serviceDocumentsRepository;
+    private final S3StorageService s3StorageService;
+    private final S3Presigner s3Presigner;
 
     @Override
-    public ServiceResponse addService(ServiceRequest serviceRequest)
+    @Transactional
+    public ServiceResponse addService(ServiceRequest serviceRequest, MultipartFile[] files)
     {
         Service service = serviceMapper.mapToService(serviceRequest);
         Branch branch = branchRepository.findById(serviceRequest.getBranchId())
                         .orElseThrow(() -> new BranchNotFoundException("Branch Not Found"));
         service.setBranch(branch);
+
+        List<FileUploadResponse> fileUploadResponses = s3StorageService.uploadFile(files, "service");
+        List<ServiceDocuments> serviceDocuments = new ArrayList<>();
 
         if (serviceRequest.getInventoryIds() != null && !serviceRequest.getInventoryIds().isEmpty()) {
 
@@ -64,8 +82,18 @@ public class ServiceTypeImpl implements ServiceType
             service.setInventories(inventories);
         }
 
-        repository.save(service);
-        return toResponse(service);
+        Service saved = repository.save(service);
+
+        for(FileUploadResponse fileUploadResponse : fileUploadResponses){
+            ServiceDocuments serviceDocument = new ServiceDocuments();
+            serviceDocument.setService(saved);
+            serviceDocument.setDocumentUrl(fileUploadResponse.getS3Key());
+            serviceDocument.setDocumentName(fileUploadResponse.getFileName());
+            serviceDocuments.add(serviceDocument);
+        }
+
+        serviceDocumentsRepository.saveAll(serviceDocuments);
+        return toResponse(saved);
     }
 
 
@@ -218,6 +246,48 @@ public class ServiceTypeImpl implements ServiceType
     {
         ServiceResponse serviceResponse = serviceMapper.mapToServiceResponse(service);
         serviceResponse.setBranchId(service.getBranch().getBranchId());
+
+        List<String> files = serviceDocumentsRepository.findAllUrlsByServiceId(service.getServiceId());
+        List<String> imageUrls = files.stream()
+                .map(this::generatePresignedUrl)
+                .toList();
+        serviceResponse.setFiles(imageUrls);
+
         return serviceResponse;
+    }
+
+    private String generatePresignedUrl(String s3Key) {
+
+        GetObjectRequest getObjectRequest = GetObjectRequest.builder()
+                .bucket(bucket)
+                .key(s3Key)
+                .build();
+
+        PresignedGetObjectRequest presignedRequest =
+                s3Presigner.presignGetObject(p -> p
+                        .getObjectRequest(getObjectRequest)
+                        .signatureDuration(Duration.ofMinutes(10)));
+
+        return presignedRequest.url().toString();
+    }
+
+
+    @Override
+    public ResultDto<DropDown> findServicesBranchWiseDropDown() {
+        GenericUser genericUser = userIdentity.getCurrentUser();
+
+        User user = userRepository.findByEmail(genericUser.getEmail())
+                .orElseThrow(() -> new UserNotFoundException("User Not Found!!"));
+
+        List<DropDown> services = new ArrayList<>();
+        for(Service s : repository.findByBranch_BranchId(user.getBranch().getBranchId())){
+            services.add(new DropDown(s.getServiceId(), s.getServiceName()));
+        }
+        ResultDto<DropDown> resultDto = new ResultDto<>();
+
+        resultDto.setResults(services);
+        resultDto.setCount(services.size());
+
+        return resultDto;
     }
 }

@@ -37,4 +37,5 @@ public class UserResponse {
     private String reportingTo;
 
     private String fullName;
+    private String profileUrl;
 }

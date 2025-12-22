@@ -1,5 +1,6 @@
 package com.erp.Service.TaskService;
 
+import com.erp.Config.AmazonS3Config;
 import com.erp.CustomRepository.InventoryCustomRepository;
 import com.erp.CustomRepository.TaskTechnicianCustomRepository;
 import com.erp.Dto.Request.*;
@@ -30,6 +31,7 @@ import com.erp.Security.util.UserIdentity;
 import com.erp.Service.InventoryService.InventoryService;
 import com.erp.Service.Otp.OtpService;
 import com.erp.Service.Utility.FileService;
+import com.erp.Utility.inerfaces.S3StorageService;
 import com.erp.constants.FileUploadConstants;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
@@ -38,6 +40,7 @@ import lombok.extern.slf4j.Slf4j;
 
 import org.apache.regexp.RE;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -48,9 +51,12 @@ import org.springframework.stereotype.Service;
 
 
 import org.springframework.web.multipart.MultipartFile;
-import software.amazon.awssdk.services.s3.endpoints.internal.Value;
+import software.amazon.awssdk.services.s3.model.GetObjectRequest;
+import software.amazon.awssdk.services.s3.presigner.S3Presigner;
+import software.amazon.awssdk.services.s3.presigner.model.PresignedGetObjectRequest;
 
 import java.sql.Timestamp;
+import java.time.Duration;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
@@ -63,31 +69,25 @@ import java.util.stream.Collectors;
 @Slf4j
 public class TaskServiceImpl implements TaskService {
 
+    @Value("${aws.s3.bucket}")
+    private String bucket;
+
     private final TaskRepository taskRepository;
-
     private final TaskScheduleRepository taskScheduleRepository;
-
     private final TaskServiceMapperRepository taskServiceMapperRepository;
-
     private final TechnicianTaskMapperRepository technicianTaskMapperRepository;
-
     private final TaskMaterialRepository taskMaterialRepository;
-
     private final TaskMapper taskMapper;
-
     private final TaskDetailsMapper taskDetailsMapper;
-
     private final FeedbackRepository feedbackRepository;
-
     private final TaskTechnicianCustomRepository taskTechnicianCustomRepository;
-
     private final InventoryCustomRepository inventoryCustomRepository;
-
     private final FileRepository fileRepository;
-
     private final InventoryRepository inventoryRepository;
-
     private final InventoryRepositoryV2 inventoryRepositoryV2;
+    private final S3StorageService s3StorageService;
+    private final TaskDocumentsRepository taskDocumentsRepository;
+    private final S3Presigner s3Presigner;
 
     @Lazy
     @Autowired
@@ -501,17 +501,32 @@ public class TaskServiceImpl implements TaskService {
 
 
     @Override
+    @Transactional
     public void updateTaskStatusTOInProgress(Long taskId, MultipartFile[] selfie) {
         log.info("Updating status of task with ID: {}", taskId);
 
         validateTaskById(taskId);
 
+        Task task = taskRepository.findById(taskId).get();
+
         if (selfie == null || selfie.length == 0) {
             throw new BadRequestException("Selfie file is required to update task status.");
         }
 
-        fileService.uploadFiles(taskId, FileUploadConstants.SELFIE, selfie);
+        List<FileUploadResponse> fileUploadResponses = s3StorageService.uploadFile(selfie, "task/selfie");
+        List<TaskDocuments> selfies = new ArrayList<>();
 
+        for(FileUploadResponse fileUploadResponse : fileUploadResponses){
+            TaskDocuments taskDocuments = new TaskDocuments();
+            taskDocuments.setTask(task);
+            taskDocuments.setDocumentUrl(fileUploadResponse.getS3Key());
+            taskDocuments.setDocumentName(fileUploadResponse.getFileName());
+            taskDocuments.setDocumentType(FileUploadConstants.SELFIE);
+            selfies.add(taskDocuments);
+        }
+
+        taskDocumentsRepository.deleteAllByTask_TaskIdAndDocumentType(taskId, FileUploadConstants.SELFIE);
+        taskDocumentsRepository.saveAll(selfies);
 
         int rowsUpdated = taskRepository.updateTaskStatus(taskId, TaskStatus.IN_PROGRESS);
 
@@ -615,8 +630,33 @@ public class TaskServiceImpl implements TaskService {
             throw new BadRequestException("Both before and after images are required.");
         }
 
-        fileService.uploadFiles(taskId, FileUploadConstants.BEFORE_SERVICE, beforeImages);
-        fileService.uploadFiles(taskId, FileUploadConstants.AFTER_SERVICE, afterImages);
+        Task task = taskRepository.findById(taskId)
+                .orElseThrow(() -> new ResourceNotFoundException("Task Not Found !!"));
+
+        List<FileUploadResponse> beforeImagesList = s3StorageService.uploadFile(beforeImages, "task/before");
+        List<FileUploadResponse> afterImagesList = s3StorageService.uploadFile(afterImages, "task/after");
+
+        taskDocumentsRepository.deleteAllByTask_TaskIdAndDocumentType(taskId, FileUploadConstants.AFTER_SERVICE);
+        taskDocumentsRepository.deleteAllByTask_TaskIdAndDocumentType(taskId, FileUploadConstants.BEFORE_SERVICE);
+
+        List<TaskDocuments> taskDocumentsList = new ArrayList<>();
+        for(FileUploadResponse fileUploadResponse : beforeImagesList){
+            TaskDocuments taskDocuments = new TaskDocuments();
+            taskDocuments.setTask(task);
+            taskDocuments.setDocumentUrl(fileUploadResponse.getS3Key());
+            taskDocuments.setDocumentName(fileUploadResponse.getFileName());
+            taskDocuments.setDocumentType(FileUploadConstants.BEFORE_SERVICE);
+            taskDocumentsList.add(taskDocuments);
+        }
+        for(FileUploadResponse fileUploadResponse : afterImagesList){
+            TaskDocuments taskDocuments = new TaskDocuments();
+            taskDocuments.setTask(task);
+            taskDocuments.setDocumentUrl(fileUploadResponse.getS3Key());
+            taskDocuments.setDocumentName(fileUploadResponse.getFileName());
+            taskDocuments.setDocumentType(FileUploadConstants.AFTER_SERVICE);
+            taskDocumentsList.add(taskDocuments);
+        }
+        taskDocumentsRepository.saveAll(taskDocumentsList);
     }
 
 
@@ -750,15 +790,36 @@ public class TaskServiceImpl implements TaskService {
 
         for (int i = 0; i < tasks.size(); i++) {
             TechnicianResponseDTO task = tasks.get(i);
-
-            task.setSalfie(fileRepository.findByGenIdAndCategory(task.getTaskId(), FileUploadConstants.SELFIE));
-            task.setAfterImagerUrl(fileRepository.findByGenIdAndCategory(task.getTaskId(), FileUploadConstants.AFTER_SERVICE));
-            task.setBeforeImageUrl(fileRepository.findByGenIdAndCategory(task.getTaskId(), FileUploadConstants.BEFORE_SERVICE));
-
+            task.setSalfie(toRespectiveUrl(taskDocumentsRepository.findAllByTaskIdAndDocumentType(task.getTaskId(), FileUploadConstants.SELFIE)));
+            task.setAfterImagerUrl(toRespectiveUrl(taskDocumentsRepository.findAllByTaskIdAndDocumentType(task.getTaskId(), FileUploadConstants.AFTER_SERVICE)));
+            task.setBeforeImageUrl(toRespectiveUrl(taskDocumentsRepository.findAllByTaskIdAndDocumentType(task.getTaskId(), FileUploadConstants.BEFORE_SERVICE)));
         }
 
 
         return resultDto;
+    }
+
+    private List<String> toRespectiveUrl(List<String> files) {
+        List<String> imageUrls = files.stream()
+                .map(this::generatePresignedUrl)
+                .toList();
+
+        return imageUrls;
+    }
+
+    private String generatePresignedUrl(String s3Key) {
+
+        GetObjectRequest getObjectRequest = GetObjectRequest.builder()
+                .bucket(bucket)
+                .key(s3Key)
+                .build();
+
+        PresignedGetObjectRequest presignedRequest =
+                s3Presigner.presignGetObject(p -> p
+                        .getObjectRequest(getObjectRequest)
+                        .signatureDuration(Duration.ofMinutes(10)));
+
+        return presignedRequest.url().toString();
     }
 
     @Override
@@ -771,9 +832,9 @@ public class TaskServiceImpl implements TaskService {
         for (int i = 0; i < tasks.size(); i++) {
             TechnicianResponseDTO task = tasks.get(i);
 
-            task.setSalfie(fileRepository.findByGenIdAndCategory(task.getTaskId(), FileUploadConstants.SELFIE));
-            task.setAfterImagerUrl(fileRepository.findByGenIdAndCategory(task.getTaskId(), FileUploadConstants.AFTER_SERVICE));
-            task.setBeforeImageUrl(fileRepository.findByGenIdAndCategory(task.getTaskId(), FileUploadConstants.BEFORE_SERVICE));
+            task.setSalfie(toRespectiveUrl(taskDocumentsRepository.findAllByTaskIdAndDocumentType(task.getTaskId(), FileUploadConstants.SELFIE)));
+            task.setAfterImagerUrl(toRespectiveUrl(taskDocumentsRepository.findAllByTaskIdAndDocumentType(task.getTaskId(), FileUploadConstants.AFTER_SERVICE)));
+            task.setBeforeImageUrl(toRespectiveUrl(taskDocumentsRepository.findAllByTaskIdAndDocumentType(task.getTaskId(), FileUploadConstants.BEFORE_SERVICE)));
         }
 
         return resultDto;

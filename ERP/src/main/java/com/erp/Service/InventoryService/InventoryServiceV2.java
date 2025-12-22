@@ -2,6 +2,7 @@ package com.erp.Service.InventoryService;
 
 import com.erp.Dto.Request.InventoryRequestV2;
 import com.erp.Dto.Request.InventoryUpdateRequestV2;
+import com.erp.Dto.Response.DropDown;
 import com.erp.Dto.Response.InventoryResponseV2;
 import com.erp.Dto.Response.ResultDto;
 
@@ -17,4 +18,6 @@ public interface InventoryServiceV2 {
     ResultDto<InventoryResponseV2> getAll();
 
     ResultDto<InventoryResponseV2> getAllBranchWise();
+
+    ResultDto<DropDown> getDropDown();
 }

@@ -10,4 +10,6 @@ public interface InventoryRepositoryV2 extends JpaRepository<InventoryV2, Long> 
     boolean existsByItemId(long itemId);
 
     List<InventoryV2> findByBranch_BranchId(long branchId);
+
+    List<InventoryV2> findByBranch_BranchIdAndRentableFalse(long branchId);
 }

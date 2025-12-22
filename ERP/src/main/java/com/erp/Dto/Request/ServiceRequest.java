@@ -39,8 +39,6 @@ public class ServiceRequest {
     @NotNull(message = "Service category cannot be null")
     private ServiceCategory serviceCategory;
 
-    List<ServiceDocumentRequestDto> documents;
-
     private long branchId;
 
     private List<Long> inventoryIds;

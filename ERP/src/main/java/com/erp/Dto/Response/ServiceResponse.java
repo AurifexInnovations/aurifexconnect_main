@@ -10,6 +10,7 @@ import org.springframework.data.annotation.LastModifiedDate;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
+import java.util.List;
 
 @Getter
 @Setter
@@ -26,4 +27,5 @@ public class ServiceResponse
     private LocalDateTime createdAt;
     private LocalDateTime lastModifiedAt;
     private long branchId;
+    private List<String> files;
 }

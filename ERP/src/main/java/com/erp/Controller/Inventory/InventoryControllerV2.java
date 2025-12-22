@@ -2,11 +2,13 @@ package com.erp.Controller.Inventory;
 
 import com.erp.Dto.Request.InventoryRequestV2;
 import com.erp.Dto.Request.InventoryUpdateRequestV2;
+import com.erp.Dto.Response.DropDown;
 import com.erp.Dto.Response.InventoryResponse;
 import com.erp.Dto.Response.InventoryResponseV2;
 import com.erp.Dto.Response.ResultDto;
 import com.erp.Model.Inventory;
 import com.erp.Service.InventoryService.InventoryServiceImplV2;
+import com.erp.Service.InventoryService.InventoryServiceV2;
 import com.erp.Utility.ResponseBuilder;
 import com.erp.Utility.ResponseStructure;
 import lombok.AllArgsConstructor;
@@ -22,7 +24,7 @@ import org.springframework.web.bind.annotation.*;
 @RequestMapping("/api")
 public class InventoryControllerV2 {
 
-    private final InventoryServiceImplV2 inventoryServiceImplV2;
+    private final InventoryServiceV2 inventoryServiceImplV2;
 
     @PostMapping("/v2/inventory")
     public ResponseEntity<ResponseStructure<ResultDto<InventoryResponseV2>>> addInventoryItemV2(@RequestBody InventoryRequestV2 inventoryRequestV2){
@@ -52,5 +54,11 @@ public class InventoryControllerV2 {
     public ResponseEntity<ResponseStructure<ResultDto<InventoryResponseV2>>> getAllInventoryV2BranchWise(){
         ResultDto<InventoryResponseV2> responseV2 = inventoryServiceImplV2.getAllBranchWise();
         return ResponseBuilder.success(HttpStatus.OK, "Inventory Fetched Successfully!!", responseV2);
+    }
+
+    @GetMapping("/v2/inventory/dropdown")
+    public ResponseEntity<ResponseStructure<ResultDto<DropDown>>> getAllInventoryV2DropDown(){
+        ResultDto<DropDown> resultDto = inventoryServiceImplV2.getDropDown();
+        return ResponseBuilder.success(HttpStatus.OK, "Drop Down Fetched !!", resultDto);
     }
 }
