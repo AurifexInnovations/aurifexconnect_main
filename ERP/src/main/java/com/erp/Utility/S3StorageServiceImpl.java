@@ -1,6 +1,7 @@
 package com.erp.Utility;
 
 import com.erp.Dto.Response.FileUploadResponse;
+import com.erp.Multitenancy.TenantContext;
 import com.erp.Utility.inerfaces.S3StorageService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -13,8 +14,8 @@ import software.amazon.awssdk.core.sync.ResponseTransformer;
 import software.amazon.awssdk.services.s3.S3Client;
 import software.amazon.awssdk.services.s3.model.*;
 
-import java.util.HashMap;
-import java.util.Map;
+import java.io.IOException;
+import java.util.*;
 
 @Service
 @RequiredArgsConstructor
@@ -26,59 +27,122 @@ public class S3StorageServiceImpl implements S3StorageService {
     @Value("${aws.s3.bucket}")
     private String bucket;
 
+//    @Override
+//    public FileUploadResponse uploadFile(MultipartFile[] file, String tenantName, String subPath, Map<String, String> metadata) {
+//        try {
+//            String tenantPrefix = tenantName.trim();
+//            String subPathPrefix = subPath.trim();
+//            if (tenantPrefix.isEmpty() || subPathPrefix.isEmpty()) {
+//                throw new IllegalArgumentException("tenantName is required");
+//            }
+//
+//            ensureTenantPrefixExists(tenantPrefix);
+//            final String cleanFileName = sanitizeFileName(file.getOriginalFilename());
+//            final String key = tenantPrefix + "/" + subPathPrefix + "/" + System.currentTimeMillis() + "_" + cleanFileName;
+//
+//            Map<String, String> userMetadata = new HashMap<>();
+//            if (metadata != null) userMetadata.putAll(metadata);
+//
+//            PutObjectRequest.Builder porBuilder = PutObjectRequest.builder()
+//                    .bucket(bucket)
+//                    .key(key)
+//                    .contentType(file.getContentType());
+//
+//            if (!userMetadata.isEmpty()) {
+//                porBuilder = porBuilder.metadata(userMetadata);
+//            }
+//
+//            PutObjectRequest putReq = porBuilder.build();
+//
+//            s3Client.putObject(putReq, RequestBody.fromBytes(file.getBytes()));
+//
+//            String s3Url;
+//            try {
+//                s3Url = s3Client.utilities()
+//                        .getUrl(builder -> builder.bucket(bucket).key(key))
+//                        .toExternalForm();
+//            } catch (Exception e) {
+//                // fallback to a constructed URL (may not work for all regions/setups)
+//                s3Url = String.format("https://%s.s3.amazonaws.com/%s", bucket, key);
+//            }
+//
+
+    /// /            TenantFileMetadata saved = TenantFileMetadata.builder()
+    /// /                    .tenantName(tenantName)
+    /// /                    .fileName(cleanFileName)
+    /// /                    .s3Key(key)
+    /// /                    .contentType(file.getContentType())
+    /// /                    .size(file.getSize())
+    /// /                    .uploadedAt(OffsetDateTime.now())
+    /// /                    .build();
+//
+//            return new FileUploadResponse(s3Url, key);
+//
+//        } catch (Exception e) {
+//            log.error("Error uploading file for tenant {}: {}", tenantName, e.getMessage(), e);
+//            throw new RuntimeException("Could not upload file", e);
+//        }
+//    }
+
+
     @Override
-    public FileUploadResponse uploadFile(MultipartFile file, String tenantName, Map<String, String> metadata) {
-        try {
-            String tenantPrefix = tenantName.trim();
-            if (tenantPrefix.isEmpty()) {
-                throw new IllegalArgumentException("tenantName is required");
-            }
+    public List<FileUploadResponse> uploadFile(
+            MultipartFile[] files,
+            String subPath) {
 
-            ensureTenantPrefixExists(tenantPrefix);
-            final String cleanFileName = sanitizeFileName(file.getOriginalFilename());
-            final String key = tenantPrefix + "/" + System.currentTimeMillis() + "_" + cleanFileName;
+        String tenantPrefix = TenantContext.getCurrentTenant();
+        String subPathPrefix = subPath.trim();
 
-            Map<String, String> userMetadata = new HashMap<>();
-            if (metadata != null) userMetadata.putAll(metadata);
+        if (tenantPrefix.isEmpty() || subPathPrefix.isEmpty()) {
+            throw new IllegalArgumentException("tenantName and subPath are required");
+        }
 
-            PutObjectRequest.Builder porBuilder = PutObjectRequest.builder()
+        ensureTenantPrefixExists(tenantPrefix);
+
+        List<FileUploadResponse> responses = new ArrayList<>();
+
+        for (MultipartFile file : files) {
+
+            if (file == null || file.isEmpty()) continue;
+
+            String cleanFileName = sanitizeFileName(file.getOriginalFilename());
+            String key = tenantPrefix + "/" + subPathPrefix + "/"
+                    + System.currentTimeMillis() + "_" + cleanFileName;
+
+            // Optional: add system metadata per file
+            Map<String, String> objectMetadata = new LinkedHashMap<>();
+
+            objectMetadata.put("original-filename", cleanFileName);
+            objectMetadata.put("tenant", tenantPrefix);
+            objectMetadata.put("sub-path", subPathPrefix);
+
+            PutObjectRequest putRequest = PutObjectRequest.builder()
                     .bucket(bucket)
                     .key(key)
-                    .contentType(file.getContentType());
+                    .contentType(file.getContentType())
+                    .metadata(objectMetadata)
+                    .build();
 
-            if (!userMetadata.isEmpty()) {
-                porBuilder = porBuilder.metadata(userMetadata);
-            }
-
-            PutObjectRequest putReq = porBuilder.build();
-
-            s3Client.putObject(putReq, RequestBody.fromBytes(file.getBytes()));
-
-            String s3Url;
             try {
-                s3Url = s3Client.utilities()
-                        .getUrl(builder -> builder.bucket(bucket).key(key))
-                        .toExternalForm();
-            } catch (Exception e) {
-                // fallback to a constructed URL (may not work for all regions/setups)
-                s3Url = String.format("https://%s.s3.amazonaws.com/%s", bucket, key);
+                s3Client.putObject(
+                        putRequest,
+                        RequestBody.fromBytes(file.getBytes())
+                );
+            } catch (IOException e) {
+                log.error("Error uploading file for tenant {}: {}", tenantPrefix, e.getMessage(), e);
+                throw new RuntimeException("Could Not Upload Files : " + e.getMessage());
             }
 
-//            TenantFileMetadata saved = TenantFileMetadata.builder()
-//                    .tenantName(tenantName)
-//                    .fileName(cleanFileName)
-//                    .s3Key(key)
-//                    .contentType(file.getContentType())
-//                    .size(file.getSize())
-//                    .uploadedAt(OffsetDateTime.now())
-//                    .build();
+            String s3Url = s3Client.utilities()
+                    .getUrl(b -> b.bucket(bucket).key(key))
+                    .toExternalForm();
 
-            return new FileUploadResponse(s3Url, key);
-
-        } catch (Exception e) {
-            log.error("Error uploading file for tenant {}: {}", tenantName, e.getMessage(), e);
-            throw new RuntimeException("Could not upload file", e);
+            responses.add(
+                    new FileUploadResponse(s3Url, key, cleanFileName)
+            );
         }
+
+        return responses;
     }
 
 
@@ -133,7 +197,7 @@ public class S3StorageServiceImpl implements S3StorageService {
                 // other error rethrow
                 throw ex;
             }
- //
+            //
 
         }
     }

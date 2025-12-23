@@ -3,17 +3,19 @@ package com.erp.Service.ServiceType;
 import com.erp.Dto.Request.CommanParam;
 import com.erp.Dto.Request.ServiceRequest;
 import com.erp.Dto.Request.ServiceTypeGetRequest;
+import com.erp.Dto.Response.DropDown;
 import com.erp.Dto.Response.ResultDto;
 import com.erp.Dto.Response.ServiceResponse;
 import com.erp.Dto.Response.ServiceTypeResponse;
 import com.erp.Model.Service;
 import com.erp.Dto.Request.FilterRequest;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.util.List;
 
 public interface ServiceType {
 
-    ServiceResponse addService(ServiceRequest serviceRequest);
+    ServiceResponse addService(ServiceRequest serviceRequest, MultipartFile[] files);
 
     ServiceResponse updateById(ServiceRequest serviceRequest);
 
@@ -36,4 +38,6 @@ public interface ServiceType {
     ResultDto<ServiceResponse> getAllServicesByFilter(FilterRequest filterRequest);
 
     ResultDto<ServiceResponse> fetchAllServicesManagerWise();
+
+    ResultDto<DropDown> findServicesBranchWiseDropDown();
 }

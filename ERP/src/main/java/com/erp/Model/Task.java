@@ -10,6 +10,7 @@ import org.springframework.data.annotation.LastModifiedDate;
 
 import java.time.LocalDateTime;
 import java.time.LocalTime;
+import java.util.List;
 
 @Entity
 @Table(name = "task")
@@ -63,6 +64,4 @@ public class Task {
 
     @Column(name = "longitude")
     private Double longitude;
-
-
 }

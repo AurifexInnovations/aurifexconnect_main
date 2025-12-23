@@ -4,6 +4,7 @@ import com.erp.Dto.Request.CommanParam;
 import com.erp.Dto.Request.FilterRequest;
 import com.erp.Dto.Request.ServiceRequest;
 import com.erp.Dto.Request.ServiceTypeGetRequest;
+import com.erp.Dto.Response.DropDown;
 import com.erp.Dto.Response.ResultDto;
 import com.erp.Dto.Response.ServiceResponse;
 import com.erp.Dto.Response.ServiceTypeResponse;
@@ -21,8 +22,10 @@ import jakarta.validation.Valid;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.util.List;
 import java.util.ResourceBundle;
@@ -38,7 +41,7 @@ public class ServicesController
     private final ServiceType serviceTypeService;
 
     // POST /service
-    @PostMapping
+    @PostMapping(consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     @Operation(
             summary = "Add a new service",
             description = "API to add a new service record.",
@@ -48,9 +51,10 @@ public class ServicesController
                             content = @Content(schema = @Schema(implementation = SimpleErrorResponse.class)))
             }
     )
-    public ResponseEntity<ResponseStructure<ServiceResponse>> addService(@Valid @RequestBody ServiceRequest serviceRequest)
+    public ResponseEntity<ResponseStructure<ServiceResponse>> addService(@Valid @RequestPart("service") ServiceRequest serviceRequest,
+                                                                         @RequestPart("files") MultipartFile[] files)
     {
-        ServiceResponse servicesResponse = serviceTypeService.addService(serviceRequest);
+        ServiceResponse servicesResponse = serviceTypeService.addService(serviceRequest, files);
         return ResponseBuilder.success(HttpStatus.CREATED, "Service added successfully!!", servicesResponse);
     }
 
@@ -189,5 +193,11 @@ public class ServicesController
     public ResponseEntity<ResponseStructure<ResultDto<ServiceResponse>>> getAllServicesManagerWise(){
         ResultDto<ServiceResponse> resultDto = serviceTypeService.fetchAllServicesManagerWise();
         return ResponseBuilder.success(HttpStatus.OK, "Services Fetched Successdully", resultDto);
+    }
+
+    @GetMapping("/dropdown")
+    public ResponseEntity<ResponseStructure<ResultDto<DropDown>>> getServiceDropdown(){
+        ResultDto<DropDown> resultDto = serviceTypeService.findServicesBranchWiseDropDown();
+        return ResponseBuilder.success(HttpStatus.OK, "Services Drop Down Fetched !!", resultDto);
     }
 }

@@ -137,4 +137,7 @@ public class User implements GenericUser {
 
     @Column(name = "is_branch_admin")
     private boolean isBranchAdmin;
+
+    @Column(name = "document_url")
+    private String documentUrl;
 }
