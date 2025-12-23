@@ -77,8 +77,7 @@ public class ServicesController
         return ResponseBuilder.success(HttpStatus.OK, "Service updated successfully!!", servicesResponse);
     }
 
-    // POST /service/byid
-    @PostMapping("/byid")
+    @GetMapping("/byid")
     @Operation(
             summary = "Find services by ID or name",
             description = "API to retrieve services by service ID or name.",
@@ -88,10 +87,10 @@ public class ServicesController
                             content = @Content(schema = @Schema(implementation = SimpleErrorResponse.class)))
             }
     )
-    public ResponseEntity<ListResponseStructure<ServiceResponse>> findByIdOrServiceName(@RequestBody CommanParam param)
+    public ResponseEntity<ResponseStructure<ServiceResponse>> findById(@RequestParam Long id)
     {
-        List<ServiceResponse> servicesResponse = serviceTypeService.findByIdOrServiceName(param);
-        return ResponseBuilder.success(HttpStatus.OK, "Services retrieved successfully!!", servicesResponse);
+        ServiceResponse servicesResponse = serviceTypeService.findById(id);
+        return ResponseBuilder.success(HttpStatus.OK, "Service retrieved successfully!!", servicesResponse);
     }
 
     // DELETE /service/delete

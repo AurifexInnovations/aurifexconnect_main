@@ -7,6 +7,7 @@ import com.erp.Dto.Request.ServiceRequest;
 import com.erp.Dto.Request.ServiceTypeGetRequest;
 import com.erp.Dto.Response.*;
 import com.erp.Enum.ServiceCategory;
+import com.erp.Enum.ServiceStatus;
 import com.erp.Exception.Branch_Exception.BranchNotFoundException;
 import com.erp.Exception.Inventory_Exception.InventoryNotFoundException;
 import com.erp.Exception.ResourceNotFoundException;
@@ -110,21 +111,6 @@ public class ServiceTypeImpl implements ServiceType
         repository.save(service);
         return toResponse(service);
     }
-
-
-    @Override
-    public List<ServiceResponse> findByIdOrServiceName(CommanParam param)
-    {
-        List<Service> services = repository.findByServiceIdOrServiceName(param.getId(),param.getName());
-
-        if(services.isEmpty())
-        {
-            throw new ResourceNotFoundException("Services Not Found !! Using ID or Name");
-        }
-
-        return serviceMapper.mapToServiceResponse(services);
-    }
-
 
     @Override
     public ServiceResponse deleteByServiceId(CommanParam param)
@@ -280,7 +266,7 @@ public class ServiceTypeImpl implements ServiceType
                 .orElseThrow(() -> new UserNotFoundException("User Not Found!!"));
 
         List<DropDown> services = new ArrayList<>();
-        for(Service s : repository.findByBranch_BranchId(user.getBranch().getBranchId())){
+        for(Service s : repository.findByBranch_BranchIdAndServiceStatus(user.getBranch().getBranchId(), ServiceStatus.ACTIVE)){
             services.add(new DropDown(s.getServiceId(), s.getServiceName()));
         }
         ResultDto<DropDown> resultDto = new ResultDto<>();
@@ -289,5 +275,13 @@ public class ServiceTypeImpl implements ServiceType
         resultDto.setCount(services.size());
 
         return resultDto;
+    }
+
+    @Override
+    public ServiceResponse findById(Long id) {
+        Service service = repository.findByServiceIdAndServiceStatus(id, ServiceStatus.ACTIVE)
+                .orElseThrow(() -> new ServiceNotFoundException("Service Not Found !!"));
+
+        return toResponse(service);
     }
 }

@@ -19,8 +19,6 @@ public interface ServiceType {
 
     ServiceResponse updateById(ServiceRequest serviceRequest);
 
-    List<ServiceResponse> findByIdOrServiceName(CommanParam param);
-
     ServiceResponse deleteByServiceId(CommanParam param);
 
     ResultDto<ServiceResponse> fetchAllServices();
@@ -40,4 +38,6 @@ public interface ServiceType {
     ResultDto<ServiceResponse> fetchAllServicesManagerWise();
 
     ResultDto<DropDown> findServicesBranchWiseDropDown();
+
+    ServiceResponse findById(Long id);
 }
