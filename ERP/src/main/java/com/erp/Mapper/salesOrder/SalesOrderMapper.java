@@ -10,6 +10,7 @@ public class SalesOrderMapper {
     public static SalesOrder toEntity(SalesOrderRequestDto dto) {
         SalesOrder order = new SalesOrder();
         order.setQuotationId(dto.getQuotationId());
+        order.setDiscountPrice(dto.getDiscountPrice());
         order.setCustomerId(dto.getCustomerId());
         order.setPhoneNumber(dto.getPhoneNumber());
         order.setAlternatePhoneNumber(dto.getAlternatePhoneNumber());
@@ -43,6 +44,10 @@ public class SalesOrderMapper {
         dto.setSalesOrderDate(order.getSalesOrderDate());
         dto.setSoType(order.getSoType());
         dto.setStatus(order.getStatus());
+        dto.setDiscountPrice(order.getDiscountPrice());
+        dto.setTotalAmount(order.getTotalAmount());
+        dto.setTaxAmount(order.getTaxAmount());
+        dto.setGrandTotal(order.getGrandTotal());
         dto.setServiceType(order.getServiceType());
         dto.setCreatedAt(order.getCreatedAt());
         dto.setUpdatedAt(order.getUpdatedAt());

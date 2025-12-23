@@ -4,15 +4,22 @@ package com.erp.Service.Invoice;
 import com.erp.Dto.Request.InvoiceRequestDto;
 import com.erp.Dto.Response.InvoiceResponseDto;
 import com.erp.Dto.Response.ResultDto;
+import com.erp.Enum.InvoiceStatus;
+import com.erp.Enum.SalesOrderType;
+import com.erp.Enum.TaskCategory;
+import com.erp.Enum.TaskStatus;
 import com.erp.Exception.ResourceNotFoundException;
 import com.erp.Mapper.invoice.InvoiceMapper;
 import com.erp.Model.CustomerDetails;
 import com.erp.Model.Invoice;
 
+import com.erp.Model.SalesOrder;
+import com.erp.Model.Task;
 import com.erp.Projection.InvoiceProjection;
 import com.erp.Repository.Invoice.InvoiceMasterRepository;
 import com.erp.Repository.Invoice.InvoiceRepository;
 import com.erp.Repository.costumer.CustomerDetailsRepository;
+import com.erp.Repository.salesOrder.SalesOrderRepository;
 import com.erp.Utility.NumberGenerator.NumberGeneratorUtil;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -21,6 +28,7 @@ import org.springframework.stereotype.Service;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 @Slf4j
@@ -30,6 +38,7 @@ public class InvoiceServiceImplement implements InvoiceOrder {
 
     private final InvoiceMasterRepository invoiceRepository;
     private final CustomerDetailsRepository customerDetailsRepository;
+    private final SalesOrderRepository salesOrderRepository;
 
     @Override
     public InvoiceResponseDto addInvoice(InvoiceRequestDto request) {
@@ -63,7 +72,29 @@ public class InvoiceServiceImplement implements InvoiceOrder {
         Invoice invoice = InvoiceMapper.toEntity(request);
         invoice.setUpdatedAt(LocalDateTime.now());
 
+        SalesOrder salesOrder = salesOrderRepository.findById(request.getSalesOrderId())
+                .orElseThrow(() ->
+                        new RuntimeException("SalesOrder not found with id: " + request.getSalesOrderId()));
+
+        // 2️⃣ Enter IF block ONLY for SERVICE sales order
+        if (InvoiceStatus.CONFIRM.equals(invoice.getStatus())
+                && SalesOrderType.SERVICE.equals(salesOrder.getSoType())) {
+
+            addTask(invoice);
+        }
+
         return invoiceRepository.save(invoice);
+    }
+
+    private void addTask (Invoice invoice){
+
+        Task task = new Task();
+        task.setInvoiceId(invoice.getId());
+        task.setCustomerId(invoice.getCustomerId());
+        task.setCreatedAt(LocalDateTime.now());
+        task.setTaskCategory(TaskCategory.SERVICE);
+        task.setTaskStatus(TaskStatus.PENDING);
+
     }
 
     @Override

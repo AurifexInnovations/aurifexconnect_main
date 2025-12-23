@@ -3,7 +3,9 @@ package com.erp.Model;
 import com.erp.Enum.PaymentMethod;
 import com.erp.Enum.PaymentStatus;
 import jakarta.persistence.*;
+import lombok.AllArgsConstructor;
 import lombok.Data;
+import lombok.NoArgsConstructor;
 import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
 
@@ -14,6 +16,7 @@ import java.time.LocalDateTime;
 @Table(name = "payments")
 @Data
 public class Payment {
+
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)

@@ -9,7 +9,7 @@ import java.util.List;
 
 public interface PaymentService {
 
-    PaymentResponseDto createPayment(PaymentRequestDto requestDto);
+    PaymentResponseDto updatePayment(PaymentRequestDto requestDto);
 
     PaymentResponseDto getPaymentById(Long id);
 

@@ -3,6 +3,7 @@ package com.erp.Service.payment;
 
 import com.erp.Dto.Request.PaymentRequestDto;
 import com.erp.Dto.Response.PaymentResponseDto;
+import com.erp.Enum.PaymentStatus;
 import com.erp.Mapper.payments.PaymentMapper;
 import com.erp.Model.Payment;
 import com.erp.Model.Receipt;
@@ -26,13 +27,23 @@ public class PaymentServiceImpl implements PaymentService {
     private final ReceiptRepository receiptRepository;
 
     @Override
-    public PaymentResponseDto createPayment(PaymentRequestDto requestDto) {
+    public PaymentResponseDto updatePayment(PaymentRequestDto requestDto) {
         log.info("Creating payment for invoiceId={}", requestDto.getInvoiceId());
 
        Payment payment = PaymentMapper.toEntity(requestDto);
 
       Payment savedPayment = paymentRepository.save(payment);
 
+      if (savedPayment.getPaymentStatus().equals(PaymentStatus.PAID)){
+
+          addReceipt(payment);
+      }
+
+        log.info("Payment created successfully with id={}", savedPayment.getId());
+        return PaymentMapper.toDto(savedPayment);
+    }
+
+    private void addReceipt(Payment payment) {
         Receipt receipt = new Receipt();
         receipt.setReceiptNumber(NumberGeneratorUtil.generate("RCT",receiptRepository.count()+1));
         receipt.setPaymentId(payment.getId());
@@ -42,9 +53,6 @@ public class PaymentServiceImpl implements PaymentService {
         receipt.setAmountReceived(payment.getAmountPaid());
         receipt.setPaymentMethod(payment.getPaymentMethod());
         receiptRepository.save(receipt);
-
-        log.info("Payment created successfully with id={}", savedPayment.getId());
-        return PaymentMapper.toDto(savedPayment);
     }
 
     @Override

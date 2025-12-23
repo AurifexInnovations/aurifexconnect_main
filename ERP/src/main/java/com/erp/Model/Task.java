@@ -30,11 +30,12 @@ public class Task {
     @Column(name = "customer_id", nullable = false)
     private Long customerId;
 
+    @Column(name = "invoice_id", nullable = false)
+    private Long InvoiceId;
+
     @Enumerated(EnumType.STRING)
     @Column(name = "task_category")
     private TaskCategory taskCategory;
-
-
 
     @Column(name = "task_details")
     private String taskDetails;

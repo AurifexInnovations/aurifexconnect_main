@@ -29,7 +29,7 @@ public class PaymentController {
 
         log.info("API POST /api/payments called");
 
-        PaymentResponseDto responseDto = paymentService.createPayment(requestDto);
+        PaymentResponseDto responseDto = paymentService.updatePayment(requestDto);
 
         return ResponseBuilder.success(
                 HttpStatus.CREATED,

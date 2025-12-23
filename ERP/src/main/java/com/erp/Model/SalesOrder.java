@@ -28,8 +28,6 @@ public class SalesOrder {
     @Column(name = "customer_id", nullable = false)
     private Long customerId;
 
-
-
     @Column(name = "phone_number", length = 20)
     private String phoneNumber;
 
@@ -82,14 +80,24 @@ public class SalesOrder {
     @Column(name = "sales_order_type", nullable = false, length = 20)
     private SalesOrderType soType;
 
-
-
     @Enumerated(EnumType.STRING)
     @Column(name = "status", nullable = false, length = 30)
     private SalesOrderStatus status;
 
+    @Column(name = "subtotal", precision = 10, scale = 2)
+    private BigDecimal subtotal;
 
+    @Column(name = "tax_amount", precision = 12, scale = 2)
+    private BigDecimal taxAmount = BigDecimal.ZERO;
 
+    @Column(name = "discount_price", precision = 12, scale = 2)
+    private BigDecimal discountPrice = BigDecimal.ZERO;
+
+    @Column(name = "total_amount", precision = 12, scale = 2)
+    private BigDecimal totalAmount = BigDecimal.ZERO;
+
+    @Column(name = "grand_total", precision = 12, scale = 2)
+    private BigDecimal grandTotal;
 
     @Column(columnDefinition = "TEXT")
     private String notes;
