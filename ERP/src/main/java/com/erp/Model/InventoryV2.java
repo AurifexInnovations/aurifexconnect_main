@@ -143,4 +143,12 @@ public class InventoryV2 {
     @Enumerated(EnumType.STRING)
     private RentalProductStatus rentalProductStatus;  // ACTIVE / INACTIVE / DAMAGED / MAINTENANCE / AVAILABLE / RESERVED / RENTED / OUT_ON_RENT
 
+    @OneToMany(
+            mappedBy = "inventoryV2",
+            cascade = CascadeType.ALL,
+            orphanRemoval = true,
+            fetch = FetchType.LAZY
+    )
+    private List<InventoryV2Document> documents;
+
 }

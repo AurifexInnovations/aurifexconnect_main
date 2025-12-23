@@ -402,8 +402,10 @@ public class UserServiceImpl implements UserServices {
 
         response.setRoleNames(roleNames);
 
-        String s3Key = generatePresignedUrl(user.getDocumentUrl());
-        response.setProfileUrl(s3Key);
+        if(user.getDocumentUrl() != null){
+            String s3Key = generatePresignedUrl(user.getDocumentUrl());
+            response.setProfileUrl(s3Key);
+        }
 
         return response;
     }

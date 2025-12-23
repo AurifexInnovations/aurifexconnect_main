@@ -8,6 +8,7 @@ import lombok.Getter;
 import lombok.Setter;
 
 import java.time.LocalDateTime;
+import java.util.List;
 
 @Getter
 @Setter
@@ -58,4 +59,6 @@ public class InventoryResponseV2 {
     private Long insuranceValue;
     private Long rentalProductQuantity;
     private RentalProductStatus rentalProductStatus;
+
+    private List<String> documentsUrls;
 }
