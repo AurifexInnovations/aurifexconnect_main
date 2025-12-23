@@ -23,12 +23,4 @@ public class SaledOrderProductMapper {
     @Column(name = "quantity", precision = 12, scale = 2, nullable = false)
     private BigDecimal quantity;
 
-    @Column(name = "subtotal", precision = 12, scale = 2)
-    private BigDecimal subtotal;
-
-    @Column(name = "tax_amount", precision = 12, scale = 2)
-    private BigDecimal taxAmount;
-
-    @Column(name = "total_amount", precision = 12, scale = 2)
-    private BigDecimal totalAmount;
 }

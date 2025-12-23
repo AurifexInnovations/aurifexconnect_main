@@ -4,8 +4,10 @@ import com.erp.Enum.SalesOrderStatus;
 import com.erp.Enum.SalesOrderType;
 import com.erp.Enum.ServiceCategory;
 
+import jakarta.persistence.Column;
 import lombok.Data;
 
+import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 
@@ -26,6 +28,16 @@ public class SalesOrderResponseDto {
 
     private SalesOrderType soType;
     private SalesOrderStatus status;
+
+    private BigDecimal subtotal;
+
+    private BigDecimal taxAmount;
+
+    private BigDecimal discountPrice ;
+
+    private BigDecimal totalAmount;
+
+    private BigDecimal grandTotal;
     private ServiceCategory serviceType;
 
     private LocalDateTime createdAt;

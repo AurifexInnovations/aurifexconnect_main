@@ -4,6 +4,7 @@ import com.erp.Enum.SalesOrderStatus;
 import com.erp.Enum.SalesOrderType;
 import com.erp.Enum.ServiceCategory;
 
+import jakarta.persistence.Column;
 import lombok.Data;
 
 import java.math.BigDecimal;
@@ -40,6 +41,16 @@ public class SalesOrderRequestDto {
 
     private SalesOrderType soType;
     private SalesOrderStatus status;
+
+//    private BigDecimal subtotal;
+//
+//    private BigDecimal taxAmount = BigDecimal.ZERO;
+//
+    private BigDecimal discountPrice;
+//
+//    private BigDecimal totalAmount = BigDecimal.ZERO;
+//
+//    private BigDecimal grandTotal;
 
     private String notes;
     private ServiceCategory serviceType;
