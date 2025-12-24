@@ -44,12 +44,12 @@ public class InvoiceOrderController {
 
     // ✅ ADD OR UPDATE
     @PostMapping("/update")
-    public ResponseEntity<ResponseStructure<Invoice>> addOrUpdateInvoice(
+    public ResponseEntity<ResponseStructure<InvoiceResponseDto>> addOrUpdateInvoice(
             @RequestBody InvoiceRequestDto request) {
 
         log.info("API /api/invoices/addOrUpdate called");
 
-        Invoice invoice = invoiceService.addOrUpdateInvoice(request);
+        InvoiceResponseDto invoice = invoiceService.addOrUpdateInvoice(request);
 
         return ResponseBuilder.success(
                 HttpStatus.OK,

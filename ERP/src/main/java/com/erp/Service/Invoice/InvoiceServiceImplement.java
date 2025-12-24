@@ -73,33 +73,59 @@ public class InvoiceServiceImplement implements InvoiceOrder {
 
 
     @Override
-    public Invoice addOrUpdateInvoice(InvoiceRequestDto request) {
+    public InvoiceResponseDto addOrUpdateInvoice(InvoiceRequestDto request) {
 
-        log.info("Service addOrUpdateInvoice called");
+        log.info("Service addOrUpdateInvoice called for id={}", request.getId());
 
-        Invoice invoice = InvoiceMapper.toEntity(request);
-        invoice.setUpdatedAt(LocalDateTime.now());
+        // 1️⃣ Fetch existing invoice
+        Invoice invoice = invoiceRepository.findById(request.getId())
+                .orElseThrow(() ->
+                        new ResourceNotFoundException(
+                                "Invoice not found with id: " + request.getId()
+                        )
+                );
 
-        if (request.getBranchId() != null){
-            Branch branch =  branchRepository.findById(request.getBranchId())
-                    .orElseThrow(()-> new ResourceNotFoundException("Branch not Found with this Branch Id : "+request.getBranchId()));
+        // 2️⃣ Update basic fields using mapper (NO extra ifs)
+        InvoiceMapper.updateEntity(invoice, request);
+
+        // 3️⃣ Update Branch only if provided (FK → MUST be validated)
+        if (request.getBranchId() != null) {
+            Branch branch = branchRepository.findById(request.getBranchId())
+                    .orElseThrow(() ->
+                            new ResourceNotFoundException(
+                                    "Branch not found with id: " + request.getBranchId()
+                            )
+                    );
             invoice.setBranch(branch);
-
         }
 
-        SalesOrder salesOrder = salesOrderRepository.findById(request.getSalesOrderId())
-                .orElseThrow(() ->
-                        new RuntimeException("SalesOrder not found with id: " + request.getSalesOrderId()));
+        // 4️⃣ Fetch SalesOrder only when needed for business logic
+        SalesOrder salesOrder = null;
+        if (request.getSalesOrderId() != null) {
+            salesOrder = salesOrderRepository.findById(request.getSalesOrderId())
+                    .orElseThrow(() ->
+                            new ResourceNotFoundException(
+                                    "SalesOrder not found with id: " + request.getSalesOrderId()
+                            )
+                    );
+        }
 
-        // 2️⃣ Enter IF block ONLY for SERVICE sales order
-        if (InvoiceStatus.CONFIRM.equals(invoice.getStatus())
+        // 5️⃣ Business rule (IMPORTANT condition only)
+        if (InvoiceStatus.CONFIRM.equals(request.getStatus())
+                && salesOrder != null
                 && SalesOrderType.SERVICE.equals(salesOrder.getSoType())) {
 
             addTask(invoice);
         }
 
-        return invoiceRepository.save(invoice);
+        // 6️⃣ Audit
+        invoice.setUpdatedAt(LocalDateTime.now());
+
+        // 7️⃣ Save & return response
+        Invoice savedInvoice = invoiceRepository.save(invoice);
+        return toResponseDto(invoiceRepository.save(savedInvoice));
     }
+
 
     private void addTask (Invoice invoice){
 

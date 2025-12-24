@@ -13,7 +13,7 @@ public interface InvoiceOrder {
 
     InvoiceResponseDto addInvoice(InvoiceRequestDto request);
 
-    Invoice addOrUpdateInvoice(InvoiceRequestDto request);
+    InvoiceResponseDto addOrUpdateInvoice(InvoiceRequestDto request);
 
     InvoiceResponseDto getInvoiceById(Long id);
 

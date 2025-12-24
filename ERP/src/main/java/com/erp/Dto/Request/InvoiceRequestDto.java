@@ -18,6 +18,7 @@ import java.time.LocalDate;
 public class InvoiceRequestDto {
 
 
+    private Long id;
     private Long customerId;
 
     private Long salesOrderId;
@@ -27,6 +28,8 @@ public class InvoiceRequestDto {
    // private Long quotationId;
 
    // private LocalDate invoiceDate;
+
+    private String invoiceNumber;
 
     private LocalDate dueDate;
 
