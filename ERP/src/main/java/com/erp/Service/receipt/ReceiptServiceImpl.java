@@ -3,8 +3,11 @@ package com.erp.Service.receipt;
 
 import com.erp.Dto.Request.ReceiptRequestDto;
 import com.erp.Dto.Response.ReceiptResponseDto;
+import com.erp.Exception.ResourceNotFoundException;
 import com.erp.Mapper.receipt.ReceiptMapper;
+import com.erp.Model.Branch;
 import com.erp.Model.Receipt;
+import com.erp.Repository.Branch.BranchRepository;
 import com.erp.Repository.receipt.ReceiptRepository;
 import com.erp.Utility.NumberGenerator.NumberGeneratorUtil;
 import lombok.RequiredArgsConstructor;
@@ -22,6 +25,7 @@ import java.util.stream.Collectors;
 public class ReceiptServiceImpl implements ReceiptService {
 
     private final ReceiptRepository receiptRepository;
+    private final BranchRepository branchRepository;
 
     // ========================
     // CREATE
@@ -34,6 +38,12 @@ public class ReceiptServiceImpl implements ReceiptService {
         validateRequest(requestDto);
 
         Receipt receipt = ReceiptMapper.toEntity(requestDto);
+        if (requestDto.getBranchId() != null){
+            Branch branch =  branchRepository.findById(requestDto.getBranchId())
+                    .orElseThrow(()-> new ResourceNotFoundException("Branch not Found with this Branch Id : "+requestDto.getBranchId()));
+            receipt.setBranch(branch);
+
+        }
         receipt.setReceiptNumber(NumberGeneratorUtil.generate("RCT",receiptRepository.count()+1));
         Receipt savedReceipt = receiptRepository.save(receipt);
 
@@ -62,6 +72,13 @@ public class ReceiptServiceImpl implements ReceiptService {
                     log.error("Receipt not found for update | id={}", id);
                     return new RuntimeException("Receipt not found");
                 });
+
+        if (requestDto.getBranchId() != null){
+            Branch branch =  branchRepository.findById(requestDto.getBranchId())
+                    .orElseThrow(()-> new ResourceNotFoundException("Branch not Found with this Branch Id : "+requestDto.getBranchId()));
+            receipt.setBranch(branch);
+
+        }
 
         receipt.setPaymentId(requestDto.getPaymentId());
         receipt.setInvoiceId(requestDto.getInvoiceId());

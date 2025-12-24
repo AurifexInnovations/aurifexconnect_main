@@ -13,6 +13,7 @@ public class ReceiptResponseDto {
     private Long paymentId;
     private Long invoiceId;
     private Long customerId;
+    private Long branchId;
 
     private String receiptNumber;
     private LocalDateTime receiptDate;

@@ -103,7 +103,7 @@ public class SchemaManagementService {
                         .table("flyway_schema_history")
                         .load();
                 flyway.migrate();
-                logger.info("Flyway migrations completed for schema: {}", schemaName);
+                logger.info("Flyway migrations COMPLETED for schema: {}", schemaName);
             } finally {
                 if (connection != null && !connection.isClosed()) {
                     connection.close();
@@ -153,7 +153,7 @@ public class SchemaManagementService {
                                 .table("flyway_schema_history")
                                 .load();
                         flyway.migrate();
-                        logger.info("Migration completed for schema: {}", schemaName);
+                        logger.info("Migration COMPLETED for schema: {}", schemaName);
                     } finally {
                         if (connection != null && !connection.isClosed()) {
                             connection.close();

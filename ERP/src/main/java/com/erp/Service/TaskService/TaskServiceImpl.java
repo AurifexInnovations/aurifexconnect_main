@@ -195,7 +195,7 @@ public class TaskServiceImpl implements TaskService {
             log.debug("Saving {} service mappings for Task ID: {}", taskServiceMappers.size(), taskId);
             taskServiceMapperRepository.saveAll(taskServiceMappers);
 
-            log.info("Service update completed successfully for Task ID: {}", taskId);
+            log.info("Service update COMPLETED successfully for Task ID: {}", taskId);
         } catch (Exception e) {
             log.error("Error occurred while updating services for Task ID: {}", taskId, e);
             throw e;
@@ -218,7 +218,7 @@ public class TaskServiceImpl implements TaskService {
             log.debug("Saving {} technician mappings for Task ID: {}", taskTechnicianMappers.size(), taskId);
             technicianTaskMapperRepository.saveAll(taskTechnicianMappers);
 
-            log.info("Technician update completed successfully for Task ID: {}", taskId);
+            log.info("Technician update COMPLETED successfully for Task ID: {}", taskId);
         } catch (Exception e) {
             log.error("Error occurred while updating technicians for Task ID: {}", taskId, e);
             throw e;
@@ -241,7 +241,7 @@ public class TaskServiceImpl implements TaskService {
             log.debug("Saving {} material mappings for Task ID: {}", taskMaterialMappers.size(), taskId);
             taskMaterialRepository.saveAll(taskMaterialMappers);
 
-            log.info("Material update completed successfully for Task ID: {}", taskId);
+            log.info("Material update COMPLETED successfully for Task ID: {}", taskId);
         } catch (Exception e) {
             log.error("Error occurred while updating materials for Task ID: {}", taskId, e);
             throw e;

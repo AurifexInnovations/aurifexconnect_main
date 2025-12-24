@@ -27,8 +27,8 @@ public class InvoiceMapper {
     public static void updateEntity(Invoice invoice, InvoiceRequestDto dto) {
         invoice.setCustomerId(dto.getCustomerId());
         invoice.setSalesOrderId(dto.getSalesOrderId());
-        invoice.setQuotationId(dto.getQuotationId());
-        invoice.setInvoiceDate(dto.getInvoiceDate());
+//        invoice.setQuotationId(dto.getQuotationId());
+//        invoice.setInvoiceDate(dto.getInvoiceDate());
         invoice.setDueDate(dto.getDueDate());
         invoice.setServiceCategory(dto.getServiceCategory());
         invoice.setSqft(dto.getSqft());
@@ -51,13 +51,16 @@ public class InvoiceMapper {
         dto.setId(invoice.getId());
         dto.setCustomerId(invoice.getCustomerId());
         dto.setSalesOrderId(invoice.getSalesOrderId());
-        dto.setQuotationId(invoice.getQuotationId());
-        dto.setInvoiceDate(invoice.getInvoiceDate());
+        dto.setBranchId(invoice.getBranch().getBranchId());
+        dto.setInvoiceNumber(invoice.getInvoiceNumber());
+//        dto.setQuotationId(invoice.getQuotationId());
+//        dto.setInvoiceDate(invoice.getInvoiceDate());
         dto.setDueDate(invoice.getDueDate());
         dto.setServiceCategory(invoice.getServiceCategory());
         dto.setSqft(invoice.getSqft());
         dto.setInvoiceIsFor(invoice.getInvoiceIsFor());
         dto.setStatus(invoice.getStatus());
+        dto.setPaymentStatus(invoice.getPaymentStatus());
 
         dto.setSubtotal(invoice.getSubtotal());
         dto.setTaxAmount(invoice.getTaxAmount());

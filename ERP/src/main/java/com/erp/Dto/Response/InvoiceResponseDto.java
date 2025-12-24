@@ -20,10 +20,11 @@ public class InvoiceResponseDto {
     private Long customerId;
     private String customerName;
     private Long salesOrderId;
-    private Long quotationId;
+    private Long branchId;
+  //  private Long quotationId;
 
     private String invoiceNumber;
-    private LocalDate invoiceDate;
+ //   private LocalDate invoiceDate;
     private LocalDate dueDate;
 
     private ServiceCategory serviceCategory;
@@ -40,8 +41,10 @@ public class InvoiceResponseDto {
     private BigDecimal balanceAmount;
 
     private InvoiceStatus status;
+    private String PaymentStatus;
     private String notes;
 
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
+
 }

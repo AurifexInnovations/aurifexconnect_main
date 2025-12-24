@@ -16,6 +16,7 @@ public class SalesOrderRequestDto {
 
     private Long quotationId;
     private Long customerId;
+    private Long branchId;
 
     private String phoneNumber;
     private String alternatePhoneNumber;
@@ -26,7 +27,8 @@ public class SalesOrderRequestDto {
     private String companyName;
     private String email;
 
-    private String address;
+    private String addressLine1;
+    private String addressLine2;
     private String landmark;
     private String city;
     private String state;
@@ -35,22 +37,22 @@ public class SalesOrderRequestDto {
 
     private String locationUrl;
 
-    private String serviceCategory;
+//    private String serviceCategory;
 
     private BigDecimal sqft;
 
     private SalesOrderType soType;
     private SalesOrderStatus status;
 
-//    private BigDecimal subtotal;
-//
-//    private BigDecimal taxAmount = BigDecimal.ZERO;
-//
+    private BigDecimal subtotal;
+
+    private BigDecimal taxAmount;
+
     private BigDecimal discountPrice;
 //
-//    private BigDecimal totalAmount = BigDecimal.ZERO;
-//
-//    private BigDecimal grandTotal;
+    private BigDecimal totalAmount ;
+
+    private BigDecimal grandTotal;
 
     private String notes;
     private ServiceCategory serviceType;

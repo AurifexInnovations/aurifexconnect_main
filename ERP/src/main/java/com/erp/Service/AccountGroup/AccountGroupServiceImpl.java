@@ -198,7 +198,7 @@ public class AccountGroupServiceImpl implements AccountGroupService {
         createStandardGroupIfNotExists("Direct Expenses", "DE", GroupType.EXPENSES, "Costs directly related to revenue generation");
         createStandardGroupIfNotExists("Indirect Expenses", "IE", GroupType.EXPENSES, "Operating expenses not directly related to revenue");
 
-        log.info("Standard chart of accounts initialization completed");
+        log.info("Standard chart of accounts initialization COMPLETED");
     }
 
     private void createStandardGroupIfNotExists(String name, String code, GroupType type, String description) {

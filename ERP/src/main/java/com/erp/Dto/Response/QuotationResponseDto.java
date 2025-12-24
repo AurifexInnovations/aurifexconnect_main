@@ -3,6 +3,7 @@ package com.erp.Dto.Response;
 import com.erp.Dto.Request.QuotationProductRequestDto;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 import java.math.BigDecimal;
@@ -13,12 +14,14 @@ import java.util.List;
 @Getter
 @Setter
 @AllArgsConstructor
+
 public class QuotationResponseDto {
 
     // IDs
     private Long id;
     private Long leadId;
     private Long customerId;
+    private Long branchId;
 
     // Personal / Company
     private String fullName;
@@ -39,10 +42,10 @@ public class QuotationResponseDto {
 
     // Quotation core
     private String quotationNumber;
-    private LocalDate quotationDate;
+  //  private LocalDate quotationDate;
 
     // Category / size
-    private String serviceCategory;   // RESIDENTIAL / COMMERCIAL
+    private String serviceType;   // RESIDENTIAL / COMMERCIAL
     private Double sqrt;
 
     // Line items (same pattern as Customer)
@@ -55,6 +58,7 @@ public class QuotationResponseDto {
     private BigDecimal totalAmount;
     private BigDecimal discountAmount;
     private BigDecimal grandTotal;
+    private String quotationType;
 
     // Status
     private String status;   // DRAFT / SENT / ACCEPTED / REJECTED / EXPIRED / CONVERTED

@@ -10,12 +10,10 @@ import com.erp.Enum.TaskCategory;
 import com.erp.Enum.TaskStatus;
 import com.erp.Exception.ResourceNotFoundException;
 import com.erp.Mapper.invoice.InvoiceMapper;
-import com.erp.Model.CustomerDetails;
-import com.erp.Model.Invoice;
+import com.erp.Model.*;
 
-import com.erp.Model.SalesOrder;
-import com.erp.Model.Task;
 import com.erp.Projection.InvoiceProjection;
+import com.erp.Repository.Branch.BranchRepository;
 import com.erp.Repository.Invoice.InvoiceMasterRepository;
 import com.erp.Repository.Invoice.InvoiceRepository;
 import com.erp.Repository.costumer.CustomerDetailsRepository;
@@ -39,6 +37,7 @@ public class InvoiceServiceImplement implements InvoiceOrder {
     private final InvoiceMasterRepository invoiceRepository;
     private final CustomerDetailsRepository customerDetailsRepository;
     private final SalesOrderRepository salesOrderRepository;
+    private final BranchRepository branchRepository;
 
     @Override
     public InvoiceResponseDto addInvoice(InvoiceRequestDto request) {
@@ -46,6 +45,13 @@ public class InvoiceServiceImplement implements InvoiceOrder {
         log.info("Service addInvoice called");
 
         Invoice invoice = InvoiceMapper.toEntity(request);
+        if (request.getBranchId() != null){
+            Branch branch =  branchRepository.findById(request.getBranchId())
+                    .orElseThrow(()-> new ResourceNotFoundException("Branch not Found with this Branch Id : "+request.getBranchId()));
+            invoice.setBranch(branch);
+
+        }
+        invoice.setServiceCategory(request.getServiceCategory());
         invoice.setInvoiceNumber(NumberGeneratorUtil.generate("INV",invoiceRepository.count()+1));
         invoice.setCreatedAt(LocalDateTime.now());
 
@@ -54,9 +60,11 @@ public class InvoiceServiceImplement implements InvoiceOrder {
 
     private InvoiceResponseDto toResponseDto(Invoice invoice){
 
+
+
         InvoiceResponseDto responseDto = InvoiceMapper.toDto(invoice);
         CustomerDetails customerDetails = customerDetailsRepository.findById(invoice.getCustomerId()).
-                orElseThrow(()-> new ResourceNotFoundException("Customer Not FOund !!"));
+                orElseThrow(()-> new ResourceNotFoundException("Customer Not Found !!"));
         responseDto.setCustomerName(customerDetails.getCustomerName());
 
         return responseDto;
@@ -71,6 +79,13 @@ public class InvoiceServiceImplement implements InvoiceOrder {
 
         Invoice invoice = InvoiceMapper.toEntity(request);
         invoice.setUpdatedAt(LocalDateTime.now());
+
+        if (request.getBranchId() != null){
+            Branch branch =  branchRepository.findById(request.getBranchId())
+                    .orElseThrow(()-> new ResourceNotFoundException("Branch not Found with this Branch Id : "+request.getBranchId()));
+            invoice.setBranch(branch);
+
+        }
 
         SalesOrder salesOrder = salesOrderRepository.findById(request.getSalesOrderId())
                 .orElseThrow(() ->

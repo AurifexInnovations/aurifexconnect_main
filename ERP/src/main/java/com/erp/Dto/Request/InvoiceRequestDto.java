@@ -22,9 +22,11 @@ public class InvoiceRequestDto {
 
     private Long salesOrderId;
 
-    private Long quotationId;
+    private Long branchId;
 
-    private LocalDate invoiceDate;
+   // private Long quotationId;
+
+   // private LocalDate invoiceDate;
 
     private LocalDate dueDate;
 
@@ -35,6 +37,8 @@ public class InvoiceRequestDto {
     private InvoiceType invoiceIsFor;
 
     private InvoiceStatus status;
+
+    private String PaymentStatus;
 
     private String notes;
 
