@@ -6,8 +6,10 @@ import com.erp.Dto.Request.QuotationProductRequestDto;
 import com.erp.Dto.Request.SalesOrderRequestDto;
 import com.erp.Dto.Response.SalesOrderResponseDto;
 import com.erp.Enum.*;
+import com.erp.Exception.ResourceNotFoundException;
 import com.erp.Mapper.salesOrder.SalesOrderMapper;
 import com.erp.Model.*;
+import com.erp.Repository.Branch.BranchRepository;
 import com.erp.Repository.Invoice.InvoiceMasterRepository;
 import com.erp.Repository.payment.PaymentRepository;
 import com.erp.Repository.salesOrder.SaledOrderProductMapperRepository;
@@ -34,6 +36,7 @@ public class SalesOrderServiceImpl implements SalesOrderService {
     private final InvoiceMasterRepository invoiceMasterRepository;
     private final AmountCalculationUtil amountCalculationUtil;
     private final PaymentRepository paymentRepository;
+    private final BranchRepository branchRepository;
 
     @Override
     public SalesOrderResponseDto create(SalesOrderRequestDto dto) {
@@ -42,11 +45,24 @@ public class SalesOrderServiceImpl implements SalesOrderService {
 
         SalesOrder order = SalesOrderMapper.toEntity(dto);
 
+        if (dto.getBranchId() != null){
+            Branch branch =  branchRepository.findById(dto.getBranchId())
+                    .orElseThrow(()-> new ResourceNotFoundException("Branch not Found with this Branch Id : "+dto.getBranchId()));
+            order.setBranch(branch);
+
+        }
+
         log.info("Discount amount: {}", dto.getDiscountPrice());
         BigDecimal discount =
                 dto.getDiscountPrice() != null ? dto.getDiscountPrice() : BigDecimal.ZERO;
 
-        getCalculation(dto, discount, order);
+        order.setSubtotal(dto.getSubtotal());
+        order.setDiscountPrice(discount);
+        order.setTaxAmount(dto.getTaxAmount());
+        order.setTotalAmount(dto.getTotalAmount());
+        order.setGrandTotal(dto.getGrandTotal());
+
+       // getCalculation(dto, discount, order);
 
         SalesOrder savedOrder = salesOrderRepository.save(order);
 
@@ -76,51 +92,51 @@ public class SalesOrderServiceImpl implements SalesOrderService {
         return SalesOrderMapper.toDto(savedOrder);
     }
 
-    private void getCalculation(SalesOrderRequestDto dto, BigDecimal discount, SalesOrder order) {
-        CalculationVar calc;
-
-    /* =========================
-       CALCULATION
-       ========================= */
-        if (dto.getSoType() == SalesOrderType.PRODUCT) {
-
-            List<QuotationProductRequestDto> products =
-                    dto.getSalesOrderRequest().stream()
-                            .map(p -> QuotationProductRequestDto.builder()
-                                    .productId(p.getServiceOrProductId())
-                                    .quantity(p.getQuantity())
-                                    .build())
-                            .toList();
-
-            calc = amountCalculationUtil.getCounting(
-                    products,
-                    discount.doubleValue()
-            );
-
-        } else { // SERVICE
-
-            List<CommanParam> services =
-                    dto.getSalesOrderRequest().stream()
-                            .map(p -> new CommanParam(p.getServiceOrProductId()))
-                            .toList();
-
-            calc = amountCalculationUtil.serviceAmoCal(
-                    services,
-                    dto.getSqft().doubleValue(),
-                    discount.doubleValue(),
-                    ServiceCategory.valueOf(dto.getServiceCategory())
-            );
-        }
-
-    /* =========================
-       APPLY TOTALS TO SALES ORDER
-       ========================= */
-        order.setSubtotal(calc.getSubTotal());
-        order.setTaxAmount(calc.getTaxAmount());
-        order.setDiscountPrice(discount);
-        order.setTotalAmount(calc.getSubTotal()); // before discount (optional)
-        order.setGrandTotal(calc.getGrandTotal());
-    }
+//    private void getCalculation(SalesOrderRequestDto dto, BigDecimal discount, SalesOrder order) {
+//        CalculationVar calc;
+//
+//    /* =========================
+//       CALCULATION
+//       ========================= */
+//        if (dto.getSoType() == SalesOrderType.PRODUCT) {
+//
+//            List<QuotationProductRequestDto> products =
+//                    dto.getSalesOrderRequest().stream()
+//                            .map(p -> QuotationProductRequestDto.builder()
+//                                    .productId(p.getServiceOrProductId())
+//                                    .quantity(p.getQuantity())
+//                                    .build())
+//                            .toList();
+//
+//            calc = amountCalculationUtil.getCounting(
+//                    products,
+//                    discount.doubleValue()
+//            );
+//
+//        } else { // SERVICE
+//
+//            List<CommanParam> services =
+//                    dto.getSalesOrderRequest().stream()
+//                            .map(p -> new CommanParam(p.getServiceOrProductId()))
+//                            .toList();
+//
+//            calc = amountCalculationUtil.serviceAmoCal(
+//                    services,
+//                    dto.getSqft().doubleValue(),
+//                    discount.doubleValue(),
+//                    SalesOrderType.valueOf(dto.getServiceCategory())
+//            );
+//        }
+//
+//    /* =========================
+//       APPLY TOTALS TO SALES ORDER
+//       ========================= */
+//        order.setSubtotal(calc.getSubTotal());
+//        order.setTaxAmount(calc.getTaxAmount());
+//        order.setDiscountPrice(discount);
+//        order.setTotalAmount(calc.getSubTotal()); // before discount (optional)
+//        order.setGrandTotal(calc.getGrandTotal());
+//    }
 
 
 //    private SalesOrderResponseDto getSalesOrderResponseDto(SalesOrderRequestDto dto, SalesOrder savedOrder) {
@@ -178,12 +194,17 @@ public class SalesOrderServiceImpl implements SalesOrderService {
         
         SalesOrder updated = SalesOrderMapper.toEntity(dto);
         updated.setSalesOrderNumber(order.getSalesOrderNumber());
+        order.setSubtotal(dto.getSubtotal());
+        order.setDiscountPrice(dto.getDiscountPrice());
+        order.setTaxAmount(dto.getTaxAmount());
+        order.setTotalAmount(dto.getTotalAmount());
+        order.setGrandTotal(dto.getGrandTotal());
 
-        getCalculation(dto, updated.getDiscountPrice(),updated);
+       // getCalculation(dto, updated.getDiscountPrice(),updated);
 
         SalesOrder savedOrder = salesOrderRepository.save(updated);
 
-        if (updated.getStatus().equals(SalesOrderStatus.confirmed)){
+        if (updated.getStatus().equals(SalesOrderStatus.CONFIRMED)){
             addOrUpdateInvoice(id, updated);
         }
 
@@ -199,6 +220,7 @@ public class SalesOrderServiceImpl implements SalesOrderService {
         payment.setPaymentStatus(PaymentStatus.PENDING);
         payment.setInvoiceId(invoice.getId());
         payment.setCustomerId(invoice.getCustomerId());
+        payment.setBranch(invoice.getBranch());
         payment.setInvoiceAmount(invoice.getGrandTotal());
         if (payment.getId() == null) {
             payment.setCreatedAt(LocalDateTime.now());
@@ -215,8 +237,9 @@ public class SalesOrderServiceImpl implements SalesOrderService {
         boolean isNewInvoice = invoice.getId() == null;
 
         invoice.setCustomerId(updated.getCustomerId());
-        invoice.setQuotationId(updated.getQuotationId());
+       // invoice.setQ(updated.getQuotationId());
         invoice.setSalesOrderId(id);
+        invoice.setBranch(updated.getBranch());
         invoice.setSqft(updated.getSqft());
         if (isNewInvoice) {
             invoice.setInvoiceNumber(
@@ -229,6 +252,8 @@ public class SalesOrderServiceImpl implements SalesOrderService {
         invoice.setTotalAmount(updated.getTotalAmount());
         invoice.setGrandTotal(updated.getGrandTotal());
         invoice.setDiscountAmount(updated.getDiscountPrice());
+        invoice.setServiceCategory(updated.getServiceType());
+        invoice.setPaymentStatus("UNPAID");
         invoice.setStatus(InvoiceStatus.DRAFT);
         invoiceMasterRepository.save(invoice);
         addOrUpdatePayment(invoice);

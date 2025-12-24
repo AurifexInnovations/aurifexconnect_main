@@ -57,12 +57,12 @@ public class CustomerServiceImpl implements CustomerService {
     public void deleteById(Long id) {
         log.info("deleteById called with id={}", id);
         repository.deleteById(id);
-        log.info("deleteById completed for id={}", id);
+        log.info("deleteById COMPLETED for id={}", id);
     }
 
     public void deleteAll() {
         log.info("deleteAll called");
         repository.deleteAll();
-        log.info("deleteAll completed");
+        log.info("deleteAll COMPLETED");
     }
 }

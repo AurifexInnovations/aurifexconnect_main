@@ -32,6 +32,7 @@ public class PaymentMapper {
         dto.setId(payment.getId());
         dto.setInvoiceId(payment.getInvoiceId());
         dto.setCustomerId(payment.getCustomerId());
+        dto.setBranchId(payment.getBranch().getBranchId());
         dto.setInvoiceAmount(payment.getInvoiceAmount());
         dto.setAmountPaid(payment.getAmountPaid());
         dto.setTotalPaidTillNow(payment.getTotalPaidTillNow());

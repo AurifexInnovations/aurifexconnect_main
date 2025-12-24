@@ -29,6 +29,7 @@ public class ReceiptMapper {
         dto.setPaymentId(receipt.getPaymentId());
         dto.setInvoiceId(receipt.getInvoiceId());
         dto.setCustomerId(receipt.getCustomerId());
+        dto.setBranchId(receipt.getBranch().getBranchId());
         dto.setReceiptNumber(receipt.getReceiptNumber());
         dto.setReceiptDate(receipt.getReceiptDate());
         dto.setAmountReceived(receipt.getAmountReceived());

@@ -3,10 +3,16 @@ package com.erp.Service.payment;
 
 import com.erp.Dto.Request.PaymentRequestDto;
 import com.erp.Dto.Response.PaymentResponseDto;
+import com.erp.Enum.InvoiceStatus;
 import com.erp.Enum.PaymentStatus;
+import com.erp.Exception.ResourceNotFoundException;
 import com.erp.Mapper.payments.PaymentMapper;
+import com.erp.Model.Branch;
+import com.erp.Model.Invoice;
 import com.erp.Model.Payment;
 import com.erp.Model.Receipt;
+import com.erp.Repository.Branch.BranchRepository;
+import com.erp.Repository.Invoice.InvoiceMasterRepository;
 import com.erp.Repository.payment.PaymentRepository;
 import com.erp.Repository.receipt.ReceiptRepository;
 import com.erp.Utility.NumberGenerator.NumberGeneratorUtil;
@@ -25,6 +31,8 @@ public class PaymentServiceImpl implements PaymentService {
 
     private final PaymentRepository paymentRepository;
     private final ReceiptRepository receiptRepository;
+    private final InvoiceMasterRepository invoiceRepository;
+    private final BranchRepository branchRepository;
 
     @Override
     public PaymentResponseDto updatePayment(PaymentRequestDto requestDto) {
@@ -32,9 +40,21 @@ public class PaymentServiceImpl implements PaymentService {
 
        Payment payment = PaymentMapper.toEntity(requestDto);
 
+        if (requestDto.getBranchId() != null){
+            Branch branch =  branchRepository.findById(requestDto.getBranchId())
+                    .orElseThrow(()-> new ResourceNotFoundException("Branch not Found with this Branch Id : "+requestDto.getBranchId()));
+            payment.setBranch(branch);
+
+        }
+
       Payment savedPayment = paymentRepository.save(payment);
 
+
       if (savedPayment.getPaymentStatus().equals(PaymentStatus.PAID)){
+          Invoice invoice = invoiceRepository.findById(payment.getInvoiceId())
+                          .orElseThrow(()-> new ResourceNotFoundException("Invoice Not Found With this invoice Id : " + payment.getInvoiceId()));
+
+          invoice.setPaymentStatus("PAID");
 
           addReceipt(payment);
       }
@@ -50,6 +70,7 @@ public class PaymentServiceImpl implements PaymentService {
         receipt.setInvoiceId(payment.getInvoiceId());
         receipt.setCustomerId(payment.getCustomerId());
         receipt.setReceiptDate(LocalDateTime.now());
+        receipt.setBranch(payment.getBranch());
         receipt.setAmountReceived(payment.getAmountPaid());
         receipt.setPaymentMethod(payment.getPaymentMethod());
         receiptRepository.save(receipt);

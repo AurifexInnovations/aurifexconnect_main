@@ -37,8 +37,7 @@ public class Quotation {
 
     @Column(name = "total_amount")
     private Double totalAmount;
-
-    private String status = "draft";
+    private String status = "DRAFT";
     private String notes;
     private String language;
 

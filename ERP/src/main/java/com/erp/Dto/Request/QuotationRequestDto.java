@@ -20,6 +20,7 @@ public class QuotationRequestDto {
     private Long id;
     private Long leadId;
     private Long customerId;
+    private Long branchId;
 
     // Personal / Company
     private String fullName;
@@ -40,10 +41,10 @@ public class QuotationRequestDto {
 
     // Quotation core
     private String quotationNumber;
-    private LocalDate quotationDate;
+   // private LocalDate quotationDate;
 
     // Category / size
-    private String serviceCategory;   // RESIDENTIAL / COMMERCIAL
+    private String serviceType;   // RESIDENTIAL / COMMERCIAL
     private Double sqrt;
 
     // Line items
@@ -58,7 +59,7 @@ public class QuotationRequestDto {
     private BigDecimal grandTotal;
 
     // Lead type (🔥 ADDED)
-    private String leadType;   // PRODUCT / SERVICE
+    private String quotationType;   // PRODUCT / SERVICE
 
     // Status
     private String status;   // DRAFT / SENT / ACCEPTED / REJECTED / EXPIRED / CONVERTED

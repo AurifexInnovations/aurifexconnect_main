@@ -7,7 +7,7 @@ public enum VoucherStatus {
     DRAFT("Draft - Not yet submitted"),
     PENDING_APPROVAL("Pending Approval - Awaiting approval"),
     APPROVED("Approved - Ready for posting"),
-    POSTED("Posted - Transaction completed"),
+    POSTED("Posted - Transaction COMPLETED"),
     REJECTED("Rejected - Requires modification"),
     CANCELLED("Cancelled - Transaction cancelled");
 

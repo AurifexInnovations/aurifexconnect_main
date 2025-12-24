@@ -16,6 +16,7 @@ public class PaymentRequestDto {
 
     private Long invoiceId;
     private Long customerId;
+    private Long branchId;
 
     private BigDecimal invoiceAmount;
     private BigDecimal amountPaid;

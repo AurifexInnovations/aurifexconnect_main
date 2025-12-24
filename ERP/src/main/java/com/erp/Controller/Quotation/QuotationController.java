@@ -116,7 +116,7 @@ public class QuotationController {
 
         Map<String, Object> data = Map.of(
                 "quotationId", "AI-QTN-" + System.currentTimeMillis(),
-                "status", "draft",
+                "status", "DRAFT",
                 "type", "AI Generated",
                 "totalAmount", 27500,
                 "customerId", customerId,
