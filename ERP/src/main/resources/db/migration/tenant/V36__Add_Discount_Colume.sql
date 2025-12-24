@@ -1,22 +1,23 @@
 
-ALTER TABLE sales_orders
-ADD COLUMN discount_price NUMERIC(15, 2),
-ADD COLUMN subtotal NUMERIC(15, 2),
-ADD COLUMN tax_amount NUMERIC(15, 2),
-ADD COLUMN total_amount NUMERIC(15, 2),
-ADD COLUMN grand_total NUMERIC(15, 2);
 
-ALTER TABLE saled_order_product_mapper
-DROP COLUMN subtotal,
-DROP COLUMN tax_amount,
-DROP COLUMN total_amount;
+-- Sales Table Alter Queries
+ALTER TABLE IF EXISTS sales_orders
+    ADD COLUMN IF NOT EXISTS discount_price NUMERIC(15, 2),
+    ADD COLUMN IF NOT EXISTS subtotal NUMERIC(15, 2),
+    ADD COLUMN IF NOT EXISTS tax_amount NUMERIC(15, 2),
+    ADD COLUMN IF NOT EXISTS total_amount NUMERIC(15, 2),
+    ADD COLUMN IF NOT EXISTS grand_total NUMERIC(15, 2);
 
-ALTER TABLE sales_order_service_mapper
-DROP COLUMN subtotal,
-DROP COLUMN tax_amount,
-DROP COLUMN total_amount,
-DROP COLUMN quantity;
+ALTER TABLE IF EXISTS saled_order_product_mapper
+    DROP COLUMN IF EXISTS subtotal,
+    DROP COLUMN IF EXISTS tax_amount,
+    DROP COLUMN IF EXISTS total_amount;
 
-ALTER TABLE task
-ADD COLUMN invoice_id BIGINT NOT NULL;
+ALTER TABLE IF EXISTS sales_order_service_mapper
+    DROP COLUMN IF EXISTS subtotal,
+    DROP COLUMN IF EXISTS tax_amount,
+    DROP COLUMN IF EXISTS total_amount,
+    DROP COLUMN IF EXISTS quantity;
 
+ALTER TABLE IF EXISTS task
+    ADD COLUMN IF NOT EXISTS invoice_id BIGINT;

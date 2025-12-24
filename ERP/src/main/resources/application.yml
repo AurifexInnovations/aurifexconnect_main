@@ -104,4 +104,5 @@ server:
 redis:
   host: ${REDIS_DOMAIN}
   port: ${REDIS_PORT_NUMBER}
+  password: ${REDIS_PASSWORD}
   timeout: ${REDIS_TIMEOUT}
