@@ -3,6 +3,7 @@ package com.erp.Dto.Response;
 
 import com.erp.Enum.ServiceCategory;
 import com.erp.Enum.ServiceStatus;
+import com.erp.Repository.Inventory.InventoryRepositoryV2;
 import lombok.Getter;
 import lombok.Setter;
 import org.springframework.data.annotation.CreatedDate;
@@ -27,5 +28,6 @@ public class ServiceResponse
     private LocalDateTime createdAt;
     private LocalDateTime lastModifiedAt;
     private long branchId;
+    private List<Long> inventoryIds;
     private List<String> files;
 }

@@ -24,6 +24,16 @@ public class S3StorageServiceImpl implements S3StorageService {
 
     private final S3Client s3Client;
 
+    private static final Set<String> ALLOWED_EXTENSIONS = Set.of(
+            "png", "jpg", "jpeg"
+    );
+
+    private static final Set<String> ALLOWED_CONTENT_TYPES = Set.of(
+            "image/png",
+            "image/jpeg"
+    );
+
+
     @Value("${aws.s3.bucket}")
     private String bucket;
 
@@ -104,6 +114,15 @@ public class S3StorageServiceImpl implements S3StorageService {
         for (MultipartFile file : files) {
 
             if (file == null || file.isEmpty()) continue;
+
+            byte[] bytes;
+            try {
+                bytes = file.getBytes();
+            } catch (IOException e) {
+                throw new RuntimeException("Failed to read file", e);
+            }
+
+            validateImage(file, bytes);
 
             String cleanFileName = sanitizeFileName(file.getOriginalFilename());
             String key = tenantPrefix + "/" + subPathPrefix + "/"
@@ -215,4 +234,54 @@ public class S3StorageServiceImpl implements S3StorageService {
         if (name.length() > 100) name = name.substring(0, 100);
         return name;
     }
+
+    private static void validateImage(MultipartFile file, byte[] bytes) {
+
+        if (file == null || file.isEmpty()) {
+            throw new IllegalArgumentException("File is empty");
+        }
+
+        /* ---------- Extension ---------- */
+        String name = file.getOriginalFilename();
+        if (name == null || !name.contains(".")) {
+            throw new IllegalArgumentException("Invalid file name");
+        }
+
+        String ext = name.substring(name.lastIndexOf('.') + 1).toLowerCase();
+        if (!ALLOWED_EXTENSIONS.contains(ext)) {
+            throw new IllegalArgumentException("Only PNG, JPG, JPEG files are allowed");
+        }
+
+        /* ---------- Content-Type ---------- */
+        String contentType = file.getContentType();
+        if (contentType == null || !ALLOWED_CONTENT_TYPES.contains(contentType)) {
+            throw new IllegalArgumentException("Invalid content type");
+        }
+
+        /* ---------- Magic Bytes ---------- */
+        if (bytes.length < 8) {
+            throw new IllegalArgumentException("Invalid image file");
+        }
+
+        boolean isPng =
+                (bytes[0] & 0xFF) == 0x89 &&
+                        bytes[1] == 0x50 &&
+                        bytes[2] == 0x4E &&
+                        bytes[3] == 0x47 &&
+                        bytes[4] == 0x0D &&
+                        bytes[5] == 0x0A &&
+                        bytes[6] == 0x1A &&
+                        bytes[7] == 0x0A;
+
+        boolean isJpeg =
+                (bytes[0] & 0xFF) == 0xFF &&
+                        (bytes[1] & 0xFF) == 0xD8 &&
+                        (bytes[2] & 0xFF) == 0xFF;
+
+        if (!isPng && !isJpeg) {
+            throw new IllegalArgumentException("Invalid image signature");
+        }
+    }
+
+
 }

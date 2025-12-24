@@ -239,6 +239,12 @@ public class ServiceTypeImpl implements ServiceType
                 .toList();
         serviceResponse.setFiles(imageUrls);
 
+        List<Long> inventoryIds = new ArrayList<>();
+        for(InventoryV2 inventoryV2 : service.getInventories()){
+            inventoryIds.add(inventoryV2.getItemId());
+        }
+        serviceResponse.setInventoryIds(inventoryIds);
+
         return serviceResponse;
     }
 
