@@ -221,7 +221,7 @@ public class TaskController {
 
 
 
-    @PostMapping("/task/completed")
+    @PostMapping("/task/COMPLETED")
     @Operation(
             summary = "Submit completion details for a task",
             description = "Submit feedback and materials for the given task ID",
@@ -244,7 +244,7 @@ public class TaskController {
         );
     }
 
-    @PostMapping(value = "/task/completed/images",
+    @PostMapping(value = "/task/COMPLETED/images",
             consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     @Operation(
             summary = "Upload task completion images",

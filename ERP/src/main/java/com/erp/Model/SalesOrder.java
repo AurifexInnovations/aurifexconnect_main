@@ -34,8 +34,8 @@ public class SalesOrder {
     @Column(name = "alternate_phone_number", length = 20)
     private String alternatePhoneNumber;
 
-    @Column(name = "sales_order_date")
-    private LocalDate salesOrderDate;
+//    @Column(name = "sales_order_date")
+//    private LocalDate salesOrderDate;
 
     @Column(name = "customer_name")
     private String customerName;
@@ -47,8 +47,11 @@ public class SalesOrder {
     private String email;
 
 
-    @Column(name = "address", columnDefinition = "TEXT")
-    private String address;
+    @Column(name = "address_line_1", columnDefinition = "TEXT")
+    private String addressLine1;
+
+    @Column(name = "address_line_2", columnDefinition = "TEXT")
+    private String addressLine2;
 
 
     @Column(columnDefinition = "TEXT")
@@ -69,9 +72,8 @@ public class SalesOrder {
     @Column(name = "location_url", columnDefinition = "TEXT")
     private String locationUrl;
 
-
-    @Column(name = "service_category", length = 20)
-    private String serviceCategory;
+//    @Column(name = "service_category", length = 20)
+//    private String serviceCategory;
 
     @Column(name = "sqft", precision = 10, scale = 2)
     private BigDecimal sqft;
@@ -116,7 +118,9 @@ public class SalesOrder {
     @Column(name = "updated_at")
     private LocalDateTime updatedAt;
 
-
+    @ManyToOne
+    @JoinColumn(name = "branch_id")
+    private Branch branch;
 
 
 }

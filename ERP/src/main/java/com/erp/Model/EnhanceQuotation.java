@@ -69,12 +69,12 @@ public class EnhanceQuotation {
     @Column(name = "quotation_number", length = 50, unique = true)
     private String quotationNumber;
 
-    @CreationTimestamp
-    @Column(name = "quotation_date")
-    private LocalDate quotationDate;
+//    @CreationTimestamp
+//    @Column(name = "quotation_date")
+//    private LocalDate quotationDate;
 
-    @Column(name = "service_category", length = 20)
-    private String serviceCategory;
+    @Column(name = "service_type", length = 20)
+    private String serviceType;
 
     @Column(precision = 10, scale = 2)
     private BigDecimal sqft;
@@ -95,8 +95,8 @@ public class EnhanceQuotation {
             insertable = false, updatable = false)
     private BigDecimal grandTotal;
 
-    @Column(name = "lead_type", length = 20, nullable = false)
-    private String leadType;
+    @Column(name = "quotation_type", length = 20, nullable = false)
+    private String quotationType;
 
     @Column(nullable = false, length = 30)
     private String status;
@@ -138,7 +138,8 @@ public class EnhanceQuotation {
     @Column(name = "updated_at")
     private LocalDateTime updatedAt;
 
-
-
+    @ManyToOne
+    @JoinColumn(name = "branch_id")
+    private Branch branch;
 
 }

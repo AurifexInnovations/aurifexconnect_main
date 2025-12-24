@@ -1,9 +1,9 @@
 package com.erp.Enum;
 
 public enum SalesOrderStatus {
-    draft,
-    confirmed,
-    partially_completed,
-    completed,
-    cancelled
+    DRAFT,
+    CONFIRMED,
+    PARTIALLY_COMPLETED,
+    COMPLETED,
+    CANCELLED
 }

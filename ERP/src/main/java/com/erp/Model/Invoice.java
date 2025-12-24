@@ -27,14 +27,14 @@ public class Invoice {
     @Column(name = "sales_order_id")
     private Long salesOrderId;
 
-    @Column(name = "quotation_id")
-    private Long quotationId;
+//    @Column(name = "quotation_id")
+//    private Long quotationId;
 
     @Column(name = "invoice_number", nullable = false, unique = true, length = 50)
     private String invoiceNumber;
 
-    @Column(name = "invoice_date")
-    private LocalDate invoiceDate;
+//    @Column(name = "invoice_date")
+//    private LocalDate invoiceDate;
 
     @Column(name = "due_date")
     private LocalDate dueDate;
@@ -80,6 +80,9 @@ public class Invoice {
     @Column(name = "status", length = 30, nullable = false)
     private InvoiceStatus status;
 
+    @Column(name = "payment_status")
+    private String PaymentStatus = "UNPAID";
+
     @Column(name = "notes", columnDefinition = "TEXT")
     private String notes;
 
@@ -89,4 +92,9 @@ public class Invoice {
     @UpdateTimestamp
     @Column(name = "updated_at")
     private LocalDateTime updatedAt;
+
+    @ManyToOne
+    @JoinColumn(name = "branch_id")
+    private Branch branch;
+
 }
