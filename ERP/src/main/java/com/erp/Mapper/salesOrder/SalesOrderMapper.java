@@ -56,6 +56,7 @@ public class SalesOrderMapper {
 //        dto.setSalesOrderDate(order.getSalesOrderDate());
         dto.setSoType(order.getSoType());
         dto.setStatus(order.getStatus());
+        dto.setSubtotal(order.getSubtotal());
         dto.setDiscountPrice(order.getDiscountPrice());
         dto.setTotalAmount(order.getTotalAmount());
         dto.setTaxAmount(order.getTaxAmount());

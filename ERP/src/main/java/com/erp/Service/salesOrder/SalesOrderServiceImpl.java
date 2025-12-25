@@ -277,6 +277,11 @@ public class SalesOrderServiceImpl implements SalesOrderService {
         invoice.setGrandTotal(updated.getGrandTotal());
         invoice.setDiscountAmount(updated.getDiscountPrice());
         invoice.setServiceCategory(updated.getServiceType());
+        if(updated.getSoType().equals(SalesOrderType.SERVICE)){
+            invoice.setInvoiceIsFor(InvoiceType.SERVICE);
+        }else {
+            invoice.setInvoiceIsFor(InvoiceType.PRODUCT);
+        }
         invoice.setPaymentStatus("UNPAID");
         invoice.setStatus(InvoiceStatus.DRAFT);
         invoiceMasterRepository.save(invoice);
