@@ -98,7 +98,7 @@ public class EnhanceQuotation {
     @Column(name = "quotation_type", length = 20, nullable = false)
     private String quotationType;
 
-    @Column(nullable = false, length = 30)
+    @Column(name = "status",nullable = false, length = 30)
     private String status;
 
     @Column(name = "sent_date")

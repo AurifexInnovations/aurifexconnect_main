@@ -15,6 +15,7 @@ public class SalesOrderMapper {
         order.setPhoneNumber(dto.getPhoneNumber());
         order.setAlternatePhoneNumber(dto.getAlternatePhoneNumber());
       //  order.setSalesOrderDate(dto.getSalesOrderDate());
+        order.setCustomerName(dto.getCustomerName());
         order.setCompanyName(dto.getCompanyName());
         order.setEmail(dto.getEmail());
         order.setAddressLine1(dto.getAddressLine1());
@@ -46,6 +47,7 @@ public class SalesOrderMapper {
         dto.setBranchId(order.getBranch().getBranchId());
         dto.setPhoneNumber(order.getPhoneNumber());
         dto.setAlternatePhoneNumber(order.getAlternatePhoneNumber());
+        dto.setCustomerName(order.getCustomerName());
         dto.setCompanyName(order.getCompanyName());
         dto.setEmail(order.getEmail());
         dto.setAddressLine1(order.getAddressLine1());
