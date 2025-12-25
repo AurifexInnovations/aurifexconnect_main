@@ -563,54 +563,46 @@ public class TaskServiceImpl implements TaskService {
 
 
     @Transactional
-    public OtpResponseDTO submitCompletionDetails(Long taskId,
-                                                  CompleteTaskRequestDTO completeTaskRequestDTO) {
+    public String submitCompletionDetails(Long taskId,
+                                                  List<MaterialDtoResponse> materialDtoResponses) {
 
         log.info("Starting submitCompletionDetails for taskId: {}", taskId);
 
-        if (completeTaskRequestDTO.getTaskMaterialList() == null
-                || completeTaskRequestDTO.getTaskMaterialList().isEmpty()) {
+        if (materialDtoResponses == null
+                || materialDtoResponses.isEmpty()) {
             throw new BadRequestException(
                     "No task materials provided for taskId: " + taskId
             );
         }
 
-        OtpResponseDTO otpResponseDTO =
-                otpService.validateOtp(
-                        completeTaskRequestDTO.getFeedbackList().getMobileNo(),
-                        completeTaskRequestDTO.getFeedbackList().getOtp()
-                );
-
         List<TaskMaterial> existingMaterials = taskMaterialRepository.findByTaskId(taskId);
 
-        saveFeedbackList(completeTaskRequestDTO.getFeedbackList(), taskId);
+        saveTaskMaterials(taskId, materialDtoResponses, existingMaterials);
 
-        saveTaskMaterials(taskId, completeTaskRequestDTO.getTaskMaterialList(), existingMaterials);
-
-        updateInventoryAccordingToTask(completeTaskRequestDTO.getTaskMaterialList());
+        updateInventoryAccordingToTask(materialDtoResponses);
 
         updateTaskScheduleForCompletion(taskId);
         updateTaskStatusToCompleted(taskId);
 
-        return otpResponseDTO;
+        return "Inventory Updated !!";
     }
 
-    private void updateInventoryAccordingToTask(List<TaskMaterialDTO> taskMaterialList) {
-        for (TaskMaterialDTO materialDTO : taskMaterialList) {
+    private void updateInventoryAccordingToTask(List<MaterialDtoResponse> taskMaterialList) {
+        for (MaterialDtoResponse materialDTO : taskMaterialList) {
             long id = materialDTO.getMaterialId();
 
             InventoryV2 inventoryV2 = inventoryRepositoryV2.findById(id)
                     .orElseThrow(() -> new InventoryNotFoundException("Inventory Not Found !!"));
 
-            if (materialDTO.getUnit().equalsIgnoreCase("gram")) {
-                Double val = materialDTO.getQuantity() / 1000;
+            if (materialDTO.getMaterialUnit().equalsIgnoreCase("gram")) {
+                Double val = materialDTO.getMaterialQuantity() / 1000;
                 inventoryV2.setStockQuantity( inventoryV2.getStockQuantity() - val );
-            } else if (materialDTO.getUnit().equalsIgnoreCase("milliliter")) {
-                Double val = materialDTO.getQuantity() / 1000;
+            } else if (materialDTO.getMaterialUnit().equalsIgnoreCase("milliliter")) {
+                Double val = materialDTO.getMaterialQuantity() / 1000;
                 inventoryV2.setStockQuantity( inventoryV2.getStockQuantity() - val );
-            } else if (materialDTO.getUnit().equalsIgnoreCase("can")
-                    || materialDTO.getUnit().equalsIgnoreCase("box")) {
-                Double val = materialDTO.getQuantity();
+            } else if (materialDTO.getMaterialUnit().equalsIgnoreCase("can")
+                    || materialDTO.getMaterialUnit().equalsIgnoreCase("box")) {
+                Double val = materialDTO.getMaterialQuantity();
                 inventoryV2.setStockQuantity( inventoryV2.getStockQuantity() - val );
             }
 
@@ -708,7 +700,7 @@ public class TaskServiceImpl implements TaskService {
     }
 
 
-    private void saveTaskMaterials(Long taskId, List<TaskMaterialDTO> taskMaterialDTOs, List<TaskMaterial> existingMaterials) {
+    private void saveTaskMaterials(Long taskId, List<MaterialDtoResponse> taskMaterialDTOs, List<TaskMaterial> existingMaterials) {
         Map<Long, TaskMaterial> existingMap = new HashMap<>();
         for (TaskMaterial tm : existingMaterials) {
             existingMap.put(tm.getMaterialId(), tm);
@@ -717,9 +709,9 @@ public class TaskServiceImpl implements TaskService {
         }
 
         List<TaskMaterial> materialsToSave = new ArrayList<>();
-        for (TaskMaterialDTO dto : taskMaterialDTOs) {
+        for (MaterialDtoResponse dto : taskMaterialDTOs) {
             log.debug("Processing DTO: materialId={}, unit={}, quantity={}, isUsed={}",
-                    dto.getMaterialId(), dto.getUnit(), dto.getQuantity(), dto.getIsUsed());
+                    dto.getMaterialId(), dto.getMaterialUnit(), dto.getMaterialQuantity(), true);
             TaskMaterial taskMaterial = null;
             if (dto.getMaterialId() != null) {
                 taskMaterial = existingMap.get(dto.getMaterialId());
@@ -727,18 +719,18 @@ public class TaskServiceImpl implements TaskService {
 
             if (taskMaterial != null) {
                 log.info("Updating existing material: materialId={}", dto.getMaterialId());
-                taskMaterial.setUnit(dto.getUnit());
-                taskMaterial.setIsUsed(dto.getIsUsed());
-                taskMaterial.setQuantity(dto.getQuantity());
+                taskMaterial.setUnit(dto.getMaterialUnit());
+                taskMaterial.setIsUsed(true);
+                taskMaterial.setQuantity(dto.getMaterialQuantity());
                 materialsToSave.add(taskMaterial);
             } else {
                 log.info("Adding new material: materialId={}", dto.getMaterialId());
                 TaskMaterial newMaterial = TaskMaterial.builder()
                         .taskId(taskId)
                         .materialId(dto.getMaterialId())
-                        .unit(dto.getUnit())
-                        .isUsed(dto.getIsUsed())
-                        .quantity(dto.getQuantity())
+                        .unit(dto.getMaterialUnit())
+                        .isUsed(true)
+                        .quantity(dto.getMaterialQuantity())
                         .build();
                 materialsToSave.add(newMaterial);
             }
@@ -862,8 +854,18 @@ public class TaskServiceImpl implements TaskService {
         return list;
     }
 
+    @Override
+    public OtpResponseDTO feedbackSubmission(FeedbackRequest feedbackRequest, Long taskId) {
+        OtpResponseDTO otpResponseDTO =
+                otpService.validateOtp(
+                        feedbackRequest.getMobileNo(),
+                        feedbackRequest.getOtp()
+                );
 
+        saveFeedbackList(feedbackRequest, taskId);
 
+        return otpResponseDTO;
+    }
 }
 
 

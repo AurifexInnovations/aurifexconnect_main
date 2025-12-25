@@ -29,4 +29,6 @@ public interface UserServices {
     ResultDto<UserResponse> getUsersBranchWise();
 
     ResultDto<UserResponse> getUsersFilterWise(FilterRequest filterRequest);
+
+    UserResponse updateUser(String firstName, String lastName, long phoneNo, MultipartFile[] files);
 }

@@ -520,4 +520,27 @@ public class UserServiceImpl implements UserServices {
 
         return presignedRequest.url().toString();
     }
+
+    @Override
+    public UserResponse updateUser(String firstName, String lastName, long phoneNo, MultipartFile[] files) {
+        String email = userIdentity.getCurrentUserEmail();
+
+        User user = userRepository.findByEmail(email)
+                .orElseThrow(() -> new UserNotFoundException("User Not Found!!"));
+
+        user.setFirstName(firstName);
+        user.setLastName(lastName);
+        user.setPhoneNo(phoneNo);
+
+        if (files != null && files.length > 0) {
+            List<FileUploadResponse> fileUploadResponses =
+                    s3StorageService.uploadFile(files, "user/profile");
+
+            if (!fileUploadResponses.isEmpty()) {
+                user.setDocumentUrl(fileUploadResponses.get(0).getS3Key());
+            }
+        }
+
+        return toResponse(user);
+    }
 }

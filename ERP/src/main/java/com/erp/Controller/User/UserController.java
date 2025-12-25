@@ -82,12 +82,14 @@ public class UserController {
 
     @PutMapping(value = "/user/profile/update", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public ResponseEntity<ResponseStructure<UserResponse>> updateUser(
-            @RequestPart("user") UserProfileRequest userProfileRequest,
+            @RequestPart String firstName,
+            @RequestPart String lastName,
+            @RequestPart String phoneNo,
             @RequestPart(value = "profile", required = false) MultipartFile[] files) {
         if (files == null) {
             files = new MultipartFile[0]; // ensure non-null array
         }
-        UserResponse response = userServices.updateUser(userProfileRequest, files);
+        UserResponse response = userServices.updateUser(firstName, lastName, Long.parseLong(phoneNo), files);
         return ResponseBuilder.success(HttpStatus.OK, "User Updated Successfully!!", response);
     }
 

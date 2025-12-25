@@ -230,19 +230,43 @@ public class TaskController {
                     @ApiResponse(responseCode = "400", description = "Invalid task ID or request body")
             }
     )
-    public ResponseEntity<ResponseStructure<OtpResponseDTO>> submitCompletionDetails(
+    public ResponseEntity<ResponseStructure<String>> submitCompletionDetails(
             @RequestParam("taskId") Long taskId,
-            @RequestBody CompleteTaskRequestDTO completeTaskRequestDTO) {
+            @RequestBody List<MaterialDtoResponse> materialDtoResponses) {
 
-        OtpResponseDTO otpResponseDTO =
-                taskService.submitCompletionDetails(taskId, completeTaskRequestDTO);
+        String response = taskService.submitCompletionDetails(taskId, materialDtoResponses);
 
         return ResponseBuilder.success(
                 HttpStatus.OK,
                 "Completion details submitted successfully",
+                response
+        );
+    }
+
+
+    @PostMapping("/task/completed/feedback")
+    @Operation(
+            summary = "Submit Feedback Details For Task",
+            description = "Submit feedback for the given task ID",
+            responses = {
+                    @ApiResponse(responseCode = "200", description = "Completion details submitted"),
+                    @ApiResponse(responseCode = "400", description = "Invalid task ID or request body")
+            }
+    )
+    public ResponseEntity<ResponseStructure<OtpResponseDTO>> submitCompletionFeedbackDetails(
+            @RequestParam("taskId") Long taskId,
+            @RequestBody FeedbackRequest feedbackRequest
+    ){
+
+        OtpResponseDTO otpResponseDTO = taskService.feedbackSubmission(feedbackRequest, taskId);
+
+        return ResponseBuilder.success(
+                HttpStatus.OK,
+                "Feedback Submitted Successfully !",
                 otpResponseDTO
         );
     }
+
 
     @PostMapping(value = "/task/completed/images",
             consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
