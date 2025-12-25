@@ -35,34 +35,51 @@ public class PaymentServiceImpl implements PaymentService {
     private final BranchRepository branchRepository;
 
     @Override
-    public PaymentResponseDto updatePayment(PaymentRequestDto requestDto) {
-        log.info("Creating payment for invoiceId={}", requestDto.getInvoiceId());
+    public PaymentResponseDto updatePayment(Long id, PaymentRequestDto requestDto) {
 
-       Payment payment = PaymentMapper.toEntity(requestDto);
+        log.info("Updating payment id={}", id);
 
-        if (requestDto.getBranchId() != null){
-            Branch branch =  branchRepository.findById(requestDto.getBranchId())
-                    .orElseThrow(()-> new ResourceNotFoundException("Branch not Found with this Branch Id : "+requestDto.getBranchId()));
+        //  Fetch existing payment
+        Payment payment = paymentRepository.findById(id)
+                .orElseThrow(() ->
+                        new ResourceNotFoundException(
+                                "Payment not found with id: " + id));
+
+        // 2 Update fields using mapper (NO new object created)
+        PaymentMapper.updateEntity(requestDto, payment);
+
+        // 3️ Update branch if provided
+        if (requestDto.getBranchId() != null) {
+            Branch branch = branchRepository.findById(requestDto.getBranchId())
+                    .orElseThrow(() ->
+                            new ResourceNotFoundException(
+                                    "Branch not Found with id: " + requestDto.getBranchId()));
             payment.setBranch(branch);
-
         }
 
-      Payment savedPayment = paymentRepository.save(payment);
+        // 4️ Save → UPDATE happens
+        Payment savedPayment = paymentRepository.save(payment);
 
+        // 5️ Business logic
+        if (savedPayment.getPaymentStatus() == PaymentStatus.PAID) {
 
-      if (savedPayment.getPaymentStatus().equals(PaymentStatus.PAID)){
-          Invoice invoice = invoiceRepository.findById(payment.getInvoiceId())
-                          .orElseThrow(()-> new ResourceNotFoundException("Invoice Not Found With this invoice Id : " + payment.getInvoiceId()));
+            Invoice invoice = invoiceRepository.findById(savedPayment.getInvoiceId())
+                    .orElseThrow(() ->
+                            new ResourceNotFoundException(
+                                    "Invoice Not Found With id: " + savedPayment.getInvoiceId()));
 
-          invoice.setPaymentStatus("PAID");
-          invoiceRepository.save(invoice);
+            invoice.setPaymentStatus("PAID");
+            invoiceRepository.save(invoice);
 
-          addReceipt(payment);
-      }
+            addReceipt(savedPayment);
+        }
 
-        log.info("Payment created successfully with id={}", savedPayment.getId());
+        log.info("Payment updated successfully with id={}", savedPayment.getId());
+
         return PaymentMapper.toDto(savedPayment);
     }
+
+
 
     private void addReceipt(Payment payment) {
         Receipt receipt = new Receipt();

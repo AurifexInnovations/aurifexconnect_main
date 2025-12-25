@@ -2,12 +2,11 @@ package com.erp.Service.Invoice;
 
 
 import com.erp.Dto.Request.InvoiceRequestDto;
+import com.erp.Dto.Request.TaskRequest;
 import com.erp.Dto.Response.InvoiceResponseDto;
 import com.erp.Dto.Response.ResultDto;
-import com.erp.Enum.InvoiceStatus;
-import com.erp.Enum.SalesOrderType;
-import com.erp.Enum.TaskCategory;
-import com.erp.Enum.TaskStatus;
+import com.erp.Dto.Response.TaskResponse;
+import com.erp.Enum.*;
 import com.erp.Exception.ResourceNotFoundException;
 import com.erp.Mapper.invoice.InvoiceMapper;
 import com.erp.Model.*;
@@ -16,8 +15,10 @@ import com.erp.Projection.InvoiceProjection;
 import com.erp.Repository.Branch.BranchRepository;
 import com.erp.Repository.Invoice.InvoiceMasterRepository;
 import com.erp.Repository.Invoice.InvoiceRepository;
+import com.erp.Repository.Task.TaskRepository;
 import com.erp.Repository.costumer.CustomerDetailsRepository;
 import com.erp.Repository.salesOrder.SalesOrderRepository;
+import com.erp.Service.TaskService.TaskService;
 import com.erp.Utility.NumberGenerator.NumberGeneratorUtil;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -38,6 +39,8 @@ public class InvoiceServiceImplement implements InvoiceOrder {
     private final CustomerDetailsRepository customerDetailsRepository;
     private final SalesOrderRepository salesOrderRepository;
     private final BranchRepository branchRepository;
+    private final TaskRepository taskRepository;
+    private final TaskService taskService;
 
     @Override
     public InvoiceResponseDto addInvoice(InvoiceRequestDto request) {
@@ -77,7 +80,7 @@ public class InvoiceServiceImplement implements InvoiceOrder {
 
         log.info("Service addOrUpdateInvoice called for id={}", request.getId());
 
-        // 1️⃣ Fetch existing invoice
+        // 1️ Fetch existing invoice
         Invoice invoice = invoiceRepository.findById(request.getId())
                 .orElseThrow(() ->
                         new ResourceNotFoundException(
@@ -85,10 +88,10 @@ public class InvoiceServiceImplement implements InvoiceOrder {
                         )
                 );
 
-        // 2️⃣ Update basic fields using mapper (NO extra ifs)
+        // 2️ Update basic fields using mapper (NO extra ifs)
         InvoiceMapper.updateEntity(invoice, request);
 
-        // 3️⃣ Update Branch only if provided (FK → MUST be validated)
+        // 3️ Update Branch only if provided (FK → MUST be validated)
         if (request.getBranchId() != null) {
             Branch branch = branchRepository.findById(request.getBranchId())
                     .orElseThrow(() ->
@@ -99,7 +102,7 @@ public class InvoiceServiceImplement implements InvoiceOrder {
             invoice.setBranch(branch);
         }
 
-        // 4️⃣ Fetch SalesOrder only when needed for business logic
+        // 4️ Fetch SalesOrder only when needed for business logic
         SalesOrder salesOrder = null;
         if (request.getSalesOrderId() != null) {
             salesOrder = salesOrderRepository.findById(request.getSalesOrderId())
@@ -110,33 +113,41 @@ public class InvoiceServiceImplement implements InvoiceOrder {
                     );
         }
 
-        // 5️⃣ Business rule (IMPORTANT condition only)
+        // 5️ Business rule (IMPORTANT condition only)
         if (InvoiceStatus.CONFIRM.equals(request.getStatus())
                 && salesOrder != null
                 && SalesOrderType.SERVICE.equals(salesOrder.getSoType())) {
 
-            addTask(invoice);
+          //  addTask(invoice);
         }
 
-        // 6️⃣ Audit
+        // 6️ Audit
         invoice.setUpdatedAt(LocalDateTime.now());
 
-        // 7️⃣ Save & return response
+        // 7️ Save & return response
         Invoice savedInvoice = invoiceRepository.save(invoice);
         return toResponseDto(invoiceRepository.save(savedInvoice));
     }
 
 
-    private void addTask (Invoice invoice){
-
-        Task task = new Task();
-        task.setInvoiceId(invoice.getId());
-        task.setCustomerId(invoice.getCustomerId());
-        task.setCreatedAt(LocalDateTime.now());
-        task.setTaskCategory(TaskCategory.SERVICE);
-        task.setTaskStatus(TaskStatus.PENDING);
-
-    }
+//    private void addTask (Invoice invoice){
+//
+//        TaskRequest task = new TaskRequest();
+//
+//        task.setTaskName();
+//        task.setInvoiceId(invoice.getId());
+//        task.setCustomerId(invoice.getCustomerId());
+//        task.setCreatedAt(LocalDateTime.now());
+//        if(invoice.getInvoiceIsFor().equals(InvoiceType.SERVICE)){
+//            task.setTaskCategory(TaskCategory.SERVICE);
+//        }else{
+//            task.
+//        }
+//        task.setTaskCategory(TaskCategory.SERVICE);
+//        task.setTaskStatus(TaskStatus.PENDING);
+//        task.setCustomerId(invoice.getCustomerId());
+//        task.set
+//    }
 
     @Override
     public InvoiceResponseDto getInvoiceById(Long id) {

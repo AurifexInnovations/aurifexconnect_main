@@ -23,17 +23,17 @@ public class PaymentController {
 
     private final PaymentService paymentService;
 
-    @PostMapping
-    public ResponseEntity<ResponseStructure<PaymentResponseDto>> addPayment(
-            @RequestBody PaymentRequestDto requestDto) {
+    @PutMapping("/{id}")
+    public ResponseEntity<ResponseStructure<PaymentResponseDto>> updatePayment(
+           @PathVariable Long id, @RequestBody PaymentRequestDto requestDto) {
 
-        log.info("API POST /api/payments called");
+        log.info("API PUT /api/payments called");
 
-        PaymentResponseDto responseDto = paymentService.updatePayment(requestDto);
+        PaymentResponseDto responseDto = paymentService.updatePayment(id,requestDto);
 
         return ResponseBuilder.success(
-                HttpStatus.CREATED,
-                "Payment created successfully",
+                HttpStatus.OK,
+                "Payment Updated successfully",
                 responseDto
         );
     }

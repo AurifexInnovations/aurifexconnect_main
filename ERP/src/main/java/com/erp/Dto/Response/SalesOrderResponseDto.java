@@ -29,8 +29,6 @@ public class SalesOrderResponseDto {
     private String addressLine1;
     private String addressLine2;
 
-    private LocalDate salesOrderDate;
-
     private SalesOrderType soType;
     private SalesOrderStatus status;
 

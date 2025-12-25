@@ -27,6 +27,25 @@ public class PaymentMapper {
         return payment;
     }
 
+    public static void updateEntity(PaymentRequestDto dto, Payment payment) {
+
+        // DO NOT TOUCH ID
+        payment.setInvoiceId(dto.getInvoiceId());
+        payment.setCustomerId(dto.getCustomerId());
+
+        payment.setInvoiceAmount(dto.getInvoiceAmount());
+        payment.setAmountPaid(dto.getAmountPaid());
+        payment.setTotalPaidTillNow(dto.getTotalPaidTillNow());
+        payment.setBalanceAmount(dto.getBalanceAmount());
+
+        payment.setPaymentStatus(dto.getPaymentStatus());
+        payment.setPaymentMethod(dto.getPaymentMethod());
+        payment.setTransactionReference(dto.getTransactionReference());
+        payment.setPaymentDate(dto.getPaymentDate());
+        payment.setNotes(dto.getNotes());
+    }
+
+
     public static PaymentResponseDto toDto(Payment payment) {
         PaymentResponseDto dto = new PaymentResponseDto();
         dto.setId(payment.getId());
