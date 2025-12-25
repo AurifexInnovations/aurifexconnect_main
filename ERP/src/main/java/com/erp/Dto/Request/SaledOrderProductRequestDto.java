@@ -12,11 +12,11 @@ public class SaledOrderProductRequestDto  {
 
     private Long quantity;
 
-    private BigDecimal subtotal;
-
-    private BigDecimal taxAmount;
-
-    private BigDecimal totalAmount;
+//    private BigDecimal subtotal;
+//
+//    private BigDecimal taxAmount;
+//
+//    private BigDecimal totalAmount;
 
 
 

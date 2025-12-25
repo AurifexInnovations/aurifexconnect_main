@@ -12,6 +12,7 @@ public class SalesOrderMapper {
         order.setQuotationId(dto.getQuotationId());
         order.setDiscountPrice(dto.getDiscountPrice());
         order.setCustomerId(dto.getCustomerId());
+        order.setBranch(order.getBranch());
         order.setPhoneNumber(dto.getPhoneNumber());
         order.setAlternatePhoneNumber(dto.getAlternatePhoneNumber());
       //  order.setSalesOrderDate(dto.getSalesOrderDate());

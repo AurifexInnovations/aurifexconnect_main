@@ -21,8 +21,6 @@ public class SalesOrderRequestDto {
     private String phoneNumber;
     private String alternatePhoneNumber;
 
-    private LocalDate salesOrderDate;
-
     private String customerName;
     private String companyName;
     private String email;

@@ -188,28 +188,52 @@ public class SalesOrderServiceImpl implements SalesOrderService {
 
     @Override
     public SalesOrderResponseDto update(Long id, SalesOrderRequestDto dto) {
+
         log.info("Updating Sales Order {}", id);
+
         SalesOrder order = salesOrderRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Sales order not found"));
-        
-        SalesOrder updated = SalesOrderMapper.toEntity(dto);
-        updated.setSalesOrderNumber(order.getSalesOrderNumber());
+
+        // ✅ Update fields on EXISTING entity
+        order.setQuotationId(dto.getQuotationId());
+        order.setCustomerId(dto.getCustomerId());
+
+        if (dto.getBranchId() != null) {
+            Branch branch = branchRepository.findById(dto.getBranchId())
+                    .orElseThrow(() ->
+                            new ResourceNotFoundException(
+                                    "Branch not found with id: " + dto.getBranchId()));
+            order.setBranch(branch);
+        }
+
+        order.setPhoneNumber(dto.getPhoneNumber());
+        order.setAlternatePhoneNumber(dto.getAlternatePhoneNumber());
+        order.setCustomerName(dto.getCustomerName());
+        order.setCompanyName(dto.getCompanyName());
+        order.setEmail(dto.getEmail());
+
+        order.setSoType(dto.getSoType());
+        order.setStatus(dto.getStatus());
+
         order.setSubtotal(dto.getSubtotal());
         order.setDiscountPrice(dto.getDiscountPrice());
         order.setTaxAmount(dto.getTaxAmount());
         order.setTotalAmount(dto.getTotalAmount());
         order.setGrandTotal(dto.getGrandTotal());
 
-       // getCalculation(dto, updated.getDiscountPrice(),updated);
+        order.setServiceType(dto.getServiceType());
+        order.setNotes(dto.getNotes());
 
-        SalesOrder savedOrder = salesOrderRepository.save(updated);
+        SalesOrder savedOrder = salesOrderRepository.save(order);
 
-        if (updated.getStatus().equals(SalesOrderStatus.CONFIRMED)){
-            addOrUpdateInvoice(id, updated);
+        // ✅ Invoice logic AFTER successful update
+        if (savedOrder.getStatus() == SalesOrderStatus.CONFIRMED) {
+            addOrUpdateInvoice(id, savedOrder);
         }
 
-        return SalesOrderMapper.toDto(salesOrderRepository.save(savedOrder));
+        return SalesOrderMapper.toDto(savedOrder);
     }
+
 
     private void addOrUpdatePayment(Invoice invoice){
 

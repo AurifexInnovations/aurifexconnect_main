@@ -55,6 +55,7 @@ public class PaymentServiceImpl implements PaymentService {
                           .orElseThrow(()-> new ResourceNotFoundException("Invoice Not Found With this invoice Id : " + payment.getInvoiceId()));
 
           invoice.setPaymentStatus("PAID");
+          invoiceRepository.save(invoice);
 
           addReceipt(payment);
       }
