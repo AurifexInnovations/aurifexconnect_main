@@ -7,6 +7,7 @@ import lombok.Setter;
 @Setter
 public class MaterialDtoResponse {
     private Long materialId;
+    private boolean isUsed;
     private String materialName;
     private Double materialQuantity;
     private String materialUnit;

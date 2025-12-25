@@ -31,7 +31,7 @@ public interface TaskService {
 
      void updateTaskStatusToCompleted(Long taskId);
 
-    OtpResponseDTO submitCompletionDetails(Long taskId, CompleteTaskRequestDTO completeTaskRequestDTO);
+    String submitCompletionDetails(Long taskId, List<MaterialDtoResponse> materialDtoResponses);
 
     void uploadCompletionImages(Long taskId, MultipartFile[] beforeImages, MultipartFile[] afterImages);
 
@@ -51,4 +51,5 @@ public interface TaskService {
 
     ResultDto<TechnicianResponseDTO> searchTasks();
 
+    OtpResponseDTO feedbackSubmission(FeedbackRequest feedbackRequest, Long taskId);
 }
