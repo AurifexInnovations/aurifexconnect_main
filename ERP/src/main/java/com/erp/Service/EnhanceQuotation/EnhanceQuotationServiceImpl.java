@@ -160,8 +160,8 @@ public class EnhanceQuotationServiceImpl implements EnhanceQuotationService {
                 NumberGeneratorUtil.generate("QT", enhanceQuotationRepository.count() + 1)
         );
        // quotation.setQuotationDate(LocalDate.now());
-        quotation.setStatus(dto.getStatus() != null ? dto.getStatus() : "DRAFT");
-        quotation.setQuotationType(hasProducts ? "PRODUCT" : "SERVICE");
+       quotation.setQuotationType(dto.getQuotationType());
+       quotation.setStatus(dto.getStatus());
 
         quotation.setSentDate(LocalDateTime.now());
         quotation.setSentVia(dto.getSentVia());
@@ -298,8 +298,9 @@ public class EnhanceQuotationServiceImpl implements EnhanceQuotationService {
                 quotation.getGrandTotal(),
 
                 // Status
-                quotation.getStatus(),
                 quotation.getQuotationType(),
+                quotation.getStatus(),
+
 
                 // Sent info
                 quotation.getSentDate(),
