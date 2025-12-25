@@ -711,7 +711,7 @@ public class TaskServiceImpl implements TaskService {
         List<TaskMaterial> materialsToSave = new ArrayList<>();
         for (MaterialDtoResponse dto : taskMaterialDTOs) {
             log.debug("Processing DTO: materialId={}, unit={}, quantity={}, isUsed={}",
-                    dto.getMaterialId(), dto.getMaterialUnit(), dto.getMaterialQuantity(), dto.isUsed());
+                    dto.getMaterialId(), dto.getMaterialUnit(), dto.getMaterialQuantity(), true);
             TaskMaterial taskMaterial = null;
             if (dto.getMaterialId() != null) {
                 taskMaterial = existingMap.get(dto.getMaterialId());
@@ -720,7 +720,7 @@ public class TaskServiceImpl implements TaskService {
             if (taskMaterial != null) {
                 log.info("Updating existing material: materialId={}", dto.getMaterialId());
                 taskMaterial.setUnit(dto.getMaterialUnit());
-                taskMaterial.setIsUsed(dto.isUsed());
+                taskMaterial.setIsUsed(true);
                 taskMaterial.setQuantity(dto.getMaterialQuantity());
                 materialsToSave.add(taskMaterial);
             } else {
@@ -729,7 +729,7 @@ public class TaskServiceImpl implements TaskService {
                         .taskId(taskId)
                         .materialId(dto.getMaterialId())
                         .unit(dto.getMaterialUnit())
-                        .isUsed(dto.isUsed())
+                        .isUsed(true)
                         .quantity(dto.getMaterialQuantity())
                         .build();
                 materialsToSave.add(newMaterial);
