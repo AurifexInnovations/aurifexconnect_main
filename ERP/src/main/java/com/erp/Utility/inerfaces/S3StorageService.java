@@ -2,6 +2,7 @@ package com.erp.Utility.inerfaces;
 
 import com.erp.Dto.Response.FileUploadResponse;
 import com.erp.Model.File;
+import com.erp.Model.FileInfoDto;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.util.List;
@@ -13,4 +14,7 @@ public interface S3StorageService {
 
     byte[] downloadFile(String tenant, String key);
 
+    public List<FileUploadResponse> uploadFile(
+            List<FileInfoDto> files,
+            String subPath);
 }

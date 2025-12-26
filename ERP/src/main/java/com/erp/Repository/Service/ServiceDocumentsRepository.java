@@ -10,4 +10,8 @@ import java.util.List;
 public interface ServiceDocumentsRepository  extends JpaRepository<ServiceDocuments, Long> {
     @Query("SELECT s.documentUrl FROM ServiceDocuments s WHERE s.service.serviceId = :serviceId")
     List<String> findAllUrlsByServiceId(@Param("serviceId") Long serviceId);
+
+    boolean existsByService_ServiceId(Long serviceId);
+
+    void deleteByService_ServiceId(Long serviceId);
 }

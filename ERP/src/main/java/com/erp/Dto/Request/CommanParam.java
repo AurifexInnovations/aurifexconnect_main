@@ -14,8 +14,4 @@ public class CommanParam {
     private String name;
     private String location;
     private BranchStatus branchStatus;
-
-    public CommanParam(Long id) {
-        this.id = id;
-    }
 }

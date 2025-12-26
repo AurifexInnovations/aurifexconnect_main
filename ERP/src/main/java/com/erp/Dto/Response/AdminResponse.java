@@ -27,4 +27,6 @@ public class AdminResponse {
     private long createdByRootUserId;
 
     private long lastUpdatedByRootUserId;
+
+    private String documentUrl;
 }

@@ -41,7 +41,7 @@ public class ServicesController
     private final ServiceType serviceTypeService;
 
     // POST /service
-    @PostMapping(consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    @PostMapping
     @Operation(
             summary = "Add a new service",
             description = "API to add a new service record.",
@@ -51,10 +51,9 @@ public class ServicesController
                             content = @Content(schema = @Schema(implementation = SimpleErrorResponse.class)))
             }
     )
-    public ResponseEntity<ResponseStructure<ServiceResponse>> addService(@Valid @RequestPart("service") ServiceRequest serviceRequest,
-                                                                         @RequestPart("files") MultipartFile[] files)
+    public ResponseEntity<ResponseStructure<ServiceResponse>> addService(@Valid @RequestBody ServiceRequest serviceRequest)
     {
-        ServiceResponse servicesResponse = serviceTypeService.addService(serviceRequest, files);
+        ServiceResponse servicesResponse = serviceTypeService.addService(serviceRequest, serviceRequest.getFiles());
         return ResponseBuilder.success(HttpStatus.CREATED, "Service added successfully!!", servicesResponse);
     }
 
@@ -106,7 +105,7 @@ public class ServicesController
     )
     public ResponseEntity<ResponseStructure<ServiceResponse>> deleteByServiceId(@RequestBody CommanParam param)
     {
-        ServiceResponse response = serviceTypeService.deleteByServiceId(param);
+        ServiceResponse response = serviceTypeService.deleteByServiceId(param.getId());
         return ResponseBuilder.success(HttpStatus.OK, "Service deleted successfully!!", response);
     }
 

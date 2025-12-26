@@ -7,6 +7,7 @@ import com.erp.Dto.Response.DropDown;
 import com.erp.Dto.Response.ResultDto;
 import com.erp.Dto.Response.ServiceResponse;
 import com.erp.Dto.Response.ServiceTypeResponse;
+import com.erp.Model.FileInfoDto;
 import com.erp.Model.Service;
 import com.erp.Dto.Request.FilterRequest;
 import org.springframework.web.multipart.MultipartFile;
@@ -15,11 +16,11 @@ import java.util.List;
 
 public interface ServiceType {
 
-    ServiceResponse addService(ServiceRequest serviceRequest, MultipartFile[] files);
+    ServiceResponse addService(ServiceRequest serviceRequest, List<FileInfoDto> files);
 
     ServiceResponse updateById(ServiceRequest serviceRequest);
 
-    ServiceResponse deleteByServiceId(CommanParam param);
+    ServiceResponse deleteByServiceId(Long id);
 
     ResultDto<ServiceResponse> fetchAllServices();
 

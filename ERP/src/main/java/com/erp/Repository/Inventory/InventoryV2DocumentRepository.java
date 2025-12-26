@@ -21,4 +21,6 @@ public interface InventoryV2DocumentRepository
     List<String> findDocumentUrlsByItemId(Long itemId);
 
     void deleteByInventoryV2_ItemId(Long itemId);
+
+    boolean existsByInventoryV2_ItemId(Long itemId);
 }

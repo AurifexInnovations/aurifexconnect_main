@@ -4,6 +4,7 @@ import com.erp.Dto.Request.AdminRequest;
 import com.erp.Dto.Request.CommanParam;
 import com.erp.Dto.Response.AdminResponse;
 import com.erp.Dto.Response.AdminUpdateRequest;
+import com.erp.Model.FileInfoDto;
 
 import java.util.List;
 
@@ -13,7 +14,7 @@ public interface AdminService {
 
     List<AdminResponse> getListOfAdmins();
 
-    AdminResponse updateAdminById(AdminUpdateRequest adminUpdateRequest);
+    AdminResponse updateAdminById(AdminUpdateRequest adminUpdateRequest, List<FileInfoDto> files);
 
     AdminResponse deleteAdminById(CommanParam commanParam);
 

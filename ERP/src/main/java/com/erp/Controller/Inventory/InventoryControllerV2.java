@@ -28,17 +28,13 @@ public class InventoryControllerV2 {
 
     private final InventoryServiceV2 inventoryServiceImplV2;
 
-    @PostMapping(
-            value = "/v2/inventory",
-            consumes = MediaType.MULTIPART_FORM_DATA_VALUE
-    )
+    @PostMapping("/v2/inventory")
     public ResponseEntity<ResponseStructure<ResultDto<InventoryResponseV2>>>
     addInventoryItemV2(
-            @RequestPart("inventory") String inventory,
-            @RequestPart(value = "files", required = false) MultipartFile[] files
-    ) throws JsonProcessingException {
+           @RequestBody InventoryRequestV2 inventory
+    ){
         ResultDto<InventoryResponseV2> responseV2 =
-                inventoryServiceImplV2.addInventory(inventory, files);
+                inventoryServiceImplV2.addInventory(inventory, inventory.getFiles());
 
         return ResponseBuilder.success(
                 HttpStatus.OK,
