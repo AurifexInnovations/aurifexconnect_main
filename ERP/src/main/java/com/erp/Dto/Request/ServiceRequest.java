@@ -4,6 +4,7 @@ import com.erp.Dto.Constraints.ServiceDescriptionFormat;
 import com.erp.Dto.Constraints.ServiceNameFormat;
 import com.erp.Enum.ServiceCategory;
 import com.erp.Enum.ServiceStatus;
+import com.erp.Model.FileInfoDto;
 import jakarta.persistence.Column;
 import jakarta.validation.constraints.*;
 import lombok.Getter;
@@ -42,4 +43,6 @@ public class ServiceRequest {
     private long branchId;
 
     private List<Long> inventoryIds;
+
+    private List<FileInfoDto> files;
 }

@@ -4,29 +4,43 @@ import com.erp.Dto.Request.AdminRequest;
 import com.erp.Dto.Request.CommanParam;
 import com.erp.Dto.Response.AdminResponse;
 import com.erp.Dto.Response.AdminUpdateRequest;
+import com.erp.Dto.Response.FileUploadResponse;
 import com.erp.Exception.Admin.AdminAlreadyExistsException;
 import com.erp.Exception.Admin.AdminNotFoundException;
 import com.erp.Mapper.Admin.AdminMapper;
 import com.erp.Meta.MetaAdminRepository;
 import com.erp.Model.Admin;
+import com.erp.Model.FileInfoDto;
+import com.erp.Model.GenericUser;
 import com.erp.Model.RootUser;
 import com.erp.Multitenancy.TenantContextHolder;
 import com.erp.Repository.Admin.AdminUserRepository;
 import com.erp.Repository.Rootuser.RootUserRepository;
 import com.erp.Security.util.UserIdentity;
 import com.erp.Service.Schema.SchemaManagementService;
+import com.erp.Utility.inerfaces.S3StorageService;
 import lombok.AllArgsConstructor;
+import lombok.RequiredArgsConstructor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+import software.amazon.awssdk.services.s3.model.GetObjectRequest;
+import software.amazon.awssdk.services.s3.presigner.S3Presigner;
+import software.amazon.awssdk.services.s3.presigner.model.PresignedGetObjectRequest;
 
+import java.time.Duration;
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
 @Service
-@AllArgsConstructor
+@RequiredArgsConstructor
 public class AdminServiceImpl implements AdminService {
+
+    @Value("${aws.s3.bucket}")
+    private String bucket;
 
     private final UserIdentity userIdentity;
     private final AdminUserRepository adminRepository;
@@ -35,6 +49,8 @@ public class AdminServiceImpl implements AdminService {
     private final SchemaManagementService schemaManagementService;
     private final MetaAdminRepository metaAdminRepository;
     private final AdminPersistenceService adminPersistenceService;
+    private final S3StorageService s3StorageService;
+    private final S3Presigner s3Presigner;
 
     private final Logger logger = LoggerFactory.getLogger(AdminServiceImpl.class);
 
@@ -63,26 +79,41 @@ public class AdminServiceImpl implements AdminService {
         logger.info("Tenant schema {} created successfully", schemaName);
 
         Admin admin = adminPersistenceService.saveAdminInSchema(adminRequest, schemaName);
-        return adminMapper.mapToAdminResponse(admin);
+        return toResponse(admin);
     }
 
 
     @Override
     public List<AdminResponse> getListOfAdmins() {
         List<Admin> admins = adminRepository.findByIsActiveTrue();
-        return adminMapper.mapToListOfAdminResponse(admins);
+        List<AdminResponse> list = new ArrayList<>();
+        for(Admin admin : admins){
+            list.add(toResponse(admin));
+        }
+        return list;
     }
 
     @Override
-    public AdminResponse updateAdminById(AdminUpdateRequest adminRequest) {
-        Admin admin = adminRepository.findByEmail(userIdentity.getCurrentUserEmail())
-                .orElseThrow(() -> new AdminNotFoundException("Invalid ID: " + adminRequest.getId() + " ,admin not found !"));
+    public AdminResponse updateAdminById(AdminUpdateRequest adminRequest, List<FileInfoDto> files) {
+        GenericUser genericUser = userIdentity.getCurrentUser();
+
+        Admin admin = adminRepository.findByEmail(genericUser.getEmail())
+                        .orElseThrow(() -> new AdminNotFoundException("Admin Not Found !!"));
 
         admin.setName(adminRequest.getName());
         admin.setContactNo(adminRequest.getContactNo());
 
+        if (files != null && files.size() > 0) {
+            List<FileUploadResponse> fileUploadResponses =
+                    s3StorageService.uploadFile(files, "admin/profile");
+
+            if (!fileUploadResponses.isEmpty()) {
+                admin.setDocumentUrl(fileUploadResponses.get(0).getS3Key());
+            }
+        }
+
         Admin saved = adminRepository.save(admin);
-        return adminMapper.mapToAdminResponse(saved);
+        return toResponse(saved);
     }
 
     @Override
@@ -95,7 +126,7 @@ public class AdminServiceImpl implements AdminService {
                 .orElseThrow(() -> new AdminNotFoundException("Admin not found with this id: " + commanParam.getId()));
         admin.setActive(false);
         adminRepository.save(admin);
-        return adminMapper.mapToAdminResponse(admin);
+        return toResponse(admin);
     }
 
     @Override
@@ -105,6 +136,27 @@ public class AdminServiceImpl implements AdminService {
         Admin admin = adminRepository.findByEmail(email)
                 .orElseThrow(() -> new AdminNotFoundException("Admin Not Found!!"));
 
-        return adminMapper.mapToAdminResponse(admin);
+        return toResponse(admin);
+    }
+
+    private String generatePresignedUrl(String s3Key) {
+
+        GetObjectRequest getObjectRequest = GetObjectRequest.builder()
+                .bucket(bucket)
+                .key(s3Key)
+                .build();
+
+        PresignedGetObjectRequest presignedRequest =
+                s3Presigner.presignGetObject(p -> p
+                        .getObjectRequest(getObjectRequest)
+                        .signatureDuration(Duration.ofMinutes(10)));
+
+        return presignedRequest.url().toString();
+    }
+
+    private AdminResponse toResponse(Admin admin){
+        AdminResponse adminResponse = adminMapper.mapToAdminResponse(admin);
+        adminResponse.setDocumentUrl(generatePresignedUrl(admin.getDocumentUrl()));
+        return adminResponse;
     }
 }

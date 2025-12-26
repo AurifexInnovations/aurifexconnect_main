@@ -1,6 +1,7 @@
 package com.erp.Utility;
 
 import com.erp.Dto.Response.FileUploadResponse;
+import com.erp.Model.FileInfoDto;
 import com.erp.Multitenancy.TenantContext;
 import com.erp.Utility.inerfaces.S3StorageService;
 import lombok.RequiredArgsConstructor;
@@ -37,63 +38,6 @@ public class S3StorageServiceImpl implements S3StorageService {
     @Value("${aws.s3.bucket}")
     private String bucket;
 
-//    @Override
-//    public FileUploadResponse uploadFile(MultipartFile[] file, String tenantName, String subPath, Map<String, String> metadata) {
-//        try {
-//            String tenantPrefix = tenantName.trim();
-//            String subPathPrefix = subPath.trim();
-//            if (tenantPrefix.isEmpty() || subPathPrefix.isEmpty()) {
-//                throw new IllegalArgumentException("tenantName is required");
-//            }
-//
-//            ensureTenantPrefixExists(tenantPrefix);
-//            final String cleanFileName = sanitizeFileName(file.getOriginalFilename());
-//            final String key = tenantPrefix + "/" + subPathPrefix + "/" + System.currentTimeMillis() + "_" + cleanFileName;
-//
-//            Map<String, String> userMetadata = new HashMap<>();
-//            if (metadata != null) userMetadata.putAll(metadata);
-//
-//            PutObjectRequest.Builder porBuilder = PutObjectRequest.builder()
-//                    .bucket(bucket)
-//                    .key(key)
-//                    .contentType(file.getContentType());
-//
-//            if (!userMetadata.isEmpty()) {
-//                porBuilder = porBuilder.metadata(userMetadata);
-//            }
-//
-//            PutObjectRequest putReq = porBuilder.build();
-//
-//            s3Client.putObject(putReq, RequestBody.fromBytes(file.getBytes()));
-//
-//            String s3Url;
-//            try {
-//                s3Url = s3Client.utilities()
-//                        .getUrl(builder -> builder.bucket(bucket).key(key))
-//                        .toExternalForm();
-//            } catch (Exception e) {
-//                // fallback to a constructed URL (may not work for all regions/setups)
-//                s3Url = String.format("https://%s.s3.amazonaws.com/%s", bucket, key);
-//            }
-//
-
-    /// /            TenantFileMetadata saved = TenantFileMetadata.builder()
-    /// /                    .tenantName(tenantName)
-    /// /                    .fileName(cleanFileName)
-    /// /                    .s3Key(key)
-    /// /                    .contentType(file.getContentType())
-    /// /                    .size(file.getSize())
-    /// /                    .uploadedAt(OffsetDateTime.now())
-    /// /                    .build();
-//
-//            return new FileUploadResponse(s3Url, key);
-//
-//        } catch (Exception e) {
-//            log.error("Error uploading file for tenant {}: {}", tenantName, e.getMessage(), e);
-//            throw new RuntimeException("Could not upload file", e);
-//        }
-//    }
-
 
     @Override
     public List<FileUploadResponse> uploadFile(
@@ -126,7 +70,8 @@ public class S3StorageServiceImpl implements S3StorageService {
 
             String cleanFileName = sanitizeFileName(file.getOriginalFilename());
             String key = tenantPrefix + "/" + subPathPrefix + "/"
-                    + System.currentTimeMillis() + "_" + cleanFileName;
+                    + UUID.randomUUID()
+                    + "_" + cleanFileName;
 
             // Optional: add system metadata per file
             Map<String, String> objectMetadata = new LinkedHashMap<>();
@@ -142,15 +87,10 @@ public class S3StorageServiceImpl implements S3StorageService {
                     .metadata(objectMetadata)
                     .build();
 
-            try {
-                s3Client.putObject(
-                        putRequest,
-                        RequestBody.fromBytes(file.getBytes())
-                );
-            } catch (IOException e) {
-                log.error("Error uploading file for tenant {}: {}", tenantPrefix, e.getMessage(), e);
-                throw new RuntimeException("Could Not Upload Files : " + e.getMessage());
-            }
+            s3Client.putObject(
+                    putRequest,
+                    RequestBody.fromBytes(bytes)
+            );
 
             String s3Url = s3Client.utilities()
                     .getUrl(b -> b.bucket(bucket).key(key))
@@ -163,6 +103,69 @@ public class S3StorageServiceImpl implements S3StorageService {
 
         return responses;
     }
+
+
+    @Override
+    public List<FileUploadResponse> uploadFile(
+            List<FileInfoDto> files,
+            String subPath) {
+
+        String tenantPrefix = TenantContext.getCurrentTenant();
+        String subPathPrefix = subPath.trim();
+
+        if (tenantPrefix.isEmpty() || subPathPrefix.isEmpty()) {
+            throw new IllegalArgumentException("tenantName and subPath are required");
+        }
+
+        ensureTenantPrefixExists(tenantPrefix);
+
+        List<FileUploadResponse> responses = new ArrayList<>();
+
+        for (FileInfoDto file : files) {
+
+            if (file == null || file.getFileData() == null) continue;
+
+            byte[] bytes = convertBase64ToBytes(file.getFileData());
+
+            validateImage(
+                    file.getFileName(),
+                    file.getFileType(),
+                    bytes
+            );
+
+
+            String cleanFileName = sanitizeFileName(file.getFileName());
+            String key = tenantPrefix + "/" + subPathPrefix + "/"
+                    + UUID.randomUUID()
+                    + "_" + cleanFileName;
+
+            Map<String, String> objectMetadata = new LinkedHashMap<>();
+            objectMetadata.put("original-filename", cleanFileName);
+            objectMetadata.put("tenant", tenantPrefix);
+            objectMetadata.put("sub-path", subPathPrefix);
+
+            PutObjectRequest putRequest = PutObjectRequest.builder()
+                    .bucket(bucket)
+                    .key(key)
+                    .contentType(file.getFileType())
+                    .metadata(objectMetadata)
+                    .build();
+
+            s3Client.putObject(
+                    putRequest,
+                    RequestBody.fromBytes(bytes)
+            );
+
+            String s3Url = s3Client.utilities()
+                    .getUrl(b -> b.bucket(bucket).key(key))
+                    .toExternalForm();
+
+            responses.add(new FileUploadResponse(s3Url, key, cleanFileName));
+        }
+
+        return responses;
+    }
+
 
 
     @Override
@@ -263,6 +266,10 @@ public class S3StorageServiceImpl implements S3StorageService {
             throw new IllegalArgumentException("Invalid image file");
         }
 
+        if (bytes.length > 10 * 1024 * 1024) {
+            throw new IllegalArgumentException("File size exceeds 10 MB");
+        }
+
         boolean isPng =
                 (bytes[0] & 0xFF) == 0x89 &&
                         bytes[1] == 0x50 &&
@@ -283,5 +290,72 @@ public class S3StorageServiceImpl implements S3StorageService {
         }
     }
 
+    private static void validateImage(String fileName, String contentType, byte[] bytes) {
+
+        if (bytes == null || bytes.length == 0) {
+            throw new IllegalArgumentException("File is empty");
+        }
+
+        /* ---------- Extension ---------- */
+        if (fileName == null || !fileName.contains(".")) {
+            throw new IllegalArgumentException("Invalid file name");
+        }
+
+        String ext = fileName.substring(fileName.lastIndexOf('.') + 1).toLowerCase();
+        if (!ALLOWED_EXTENSIONS.contains(ext)) {
+            throw new IllegalArgumentException("Only PNG, JPG, JPEG files are allowed");
+        }
+
+        /* ---------- Content-Type ---------- */
+        if (contentType == null || !ALLOWED_CONTENT_TYPES.contains(contentType)) {
+            throw new IllegalArgumentException("Invalid content type");
+        }
+
+        /* ---------- Magic Bytes ---------- */
+        if (bytes.length < 8) {
+            throw new IllegalArgumentException("Invalid image file");
+        }
+
+        if (bytes.length > 10 * 1024 * 1024) {
+            throw new IllegalArgumentException("File size exceeds 10 MB");
+        }
+
+        boolean isPng =
+                (bytes[0] & 0xFF) == 0x89 &&
+                        bytes[1] == 0x50 &&
+                        bytes[2] == 0x4E &&
+                        bytes[3] == 0x47 &&
+                        bytes[4] == 0x0D &&
+                        bytes[5] == 0x0A &&
+                        bytes[6] == 0x1A &&
+                        bytes[7] == 0x0A;
+
+        boolean isJpeg =
+                (bytes[0] & 0xFF) == 0xFF &&
+                        (bytes[1] & 0xFF) == 0xD8 &&
+                        (bytes[2] & 0xFF) == 0xFF;
+
+        if (!isPng && !isJpeg) {
+            throw new IllegalArgumentException("Invalid image signature");
+        }
+    }
+
+    private static byte[] convertBase64ToBytes(String base64Data) {
+
+        if (base64Data == null || base64Data.isBlank()) {
+            throw new IllegalArgumentException("Base64 data is empty");
+        }
+
+        // Handle data URI format: data:image/png;base64,xxxx
+        if (base64Data.contains(",")) {
+            base64Data = base64Data.substring(base64Data.indexOf(',') + 1);
+        }
+
+        try {
+            return Base64.getDecoder().decode(base64Data);
+        } catch (IllegalArgumentException e) {
+            throw new IllegalArgumentException("Invalid Base64 encoding", e);
+        }
+    }
 
 }

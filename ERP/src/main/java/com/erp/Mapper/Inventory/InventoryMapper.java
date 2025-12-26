@@ -55,4 +55,5 @@ public interface InventoryMapper {
     void convertToEntityToUpdated(InventoryV2 source, @MappingTarget InventoryV2 target);
 
     InventoryV2 toInventoryV2(InventoryUpdateRequestV2 inventoryRequestV2);
+
 }

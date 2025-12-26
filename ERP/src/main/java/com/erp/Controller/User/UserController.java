@@ -18,6 +18,7 @@ import org.springframework.stereotype.Repository;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
+import java.util.ArrayList;
 import java.util.List;
 
 @RestController
@@ -38,19 +39,19 @@ public class UserController {
 
     @PreAuthorize("hasAnyRole('ROLE_ADMIN')")
     @GetMapping("/users")
-    public ResponseEntity<ListResponseStructure<UserResponse>> getListOfUsers(){
+    public ResponseEntity<ListResponseStructure<UserResponse>> getListOfUsers() {
 
         List<UserResponse> userResponses = userServices.getListOfUsers();
-        return ResponseBuilder.success(HttpStatus.OK,"List of users !!", userResponses);
+        return ResponseBuilder.success(HttpStatus.OK, "List of users !!", userResponses);
 
     }
 
     @PreAuthorize("hasAnyRole('ROLE_ADMIN')")
     @PostMapping("/users/search")
-    public ResponseEntity<ListResponseStructure<UserResponse>> findByIdOrName(@RequestBody CommanParam commanParamIdOrName){
+    public ResponseEntity<ListResponseStructure<UserResponse>> findByIdOrName(@RequestBody CommanParam commanParamIdOrName) {
 
         List<UserResponse> userResponses = userServices.findByIdOrName(commanParamIdOrName);
-        return ResponseBuilder.success(HttpStatus.OK,"User found !!", userResponses);
+        return ResponseBuilder.success(HttpStatus.OK, "User found !!", userResponses);
 
     }
 
@@ -60,53 +61,49 @@ public class UserController {
             (@RequestBody UserUpdateRequest userUpdateRequest) throws Exception {
 
         UserResponse userResponse = userServices.updateUserById(userUpdateRequest);
-        return ResponseBuilder.success(HttpStatus.OK,"User Updated Successfully !!", userResponse);
+        return ResponseBuilder.success(HttpStatus.OK, "User Updated Successfully !!", userResponse);
 
     }
 
     @PreAuthorize("hasAnyRole('ROLE_ADMIN')")
     @DeleteMapping("/users")
-    public ResponseEntity<ResponseStructure<UserResponse>> deleteUserById(@RequestBody CommanParam commanParamId){
+    public ResponseEntity<ResponseStructure<UserResponse>> deleteUserById(@RequestBody CommanParam commanParamId) {
 
         UserResponse userResponse = userServices.deleteUserById(commanParamId);
-        return ResponseBuilder.success(HttpStatus.OK,"User delete Successfully !!", userResponse);
+        return ResponseBuilder.success(HttpStatus.OK, "User delete Successfully !!", userResponse);
 
     }
 
     @GetMapping("/users/byEmail")
-    public ResponseEntity<ResponseStructure<UserResponse>> findByEmail()
-    {
+    public ResponseEntity<ResponseStructure<UserResponse>> findByEmail() {
         UserResponse userResponse = userServices.getByEmail();
         return ResponseBuilder.success(HttpStatus.OK, "User Fetched Successfully!!", userResponse);
     }
 
-    @PutMapping(value = "/user/profile/update", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    @PutMapping("/user/profile/update")
     public ResponseEntity<ResponseStructure<UserResponse>> updateUser(
-            @RequestPart String firstName,
-            @RequestPart String lastName,
-            @RequestPart String phoneNo,
-            @RequestPart(value = "profile", required = false) MultipartFile[] files) {
-        if (files == null) {
-            files = new MultipartFile[0]; // ensure non-null array
+            @RequestBody UserProfileRequest userProfileRequest) {
+        if (userProfileRequest.getFiles() == null) {
+            userProfileRequest.setFiles(new ArrayList<>()); // ensure non-null array
         }
-        UserResponse response = userServices.updateUser(firstName, lastName, Long.parseLong(phoneNo), files);
+        UserResponse response = userServices.updateUser(userProfileRequest, userProfileRequest.getFiles());
         return ResponseBuilder.success(HttpStatus.OK, "User Updated Successfully!!", response);
     }
 
     @GetMapping("/user/dropdown")
-    public ResponseEntity<ResponseStructure<ResultDto<DropDown>>> getUserDropDown(@RequestParam String id){
+    public ResponseEntity<ResponseStructure<ResultDto<DropDown>>> getUserDropDown(@RequestParam String id) {
         ResultDto<DropDown> dropdown = userServices.getUserDropDownList(id);
         return ResponseBuilder.success(HttpStatus.OK, "Manager Drop Down List", dropdown);
     }
 
     @GetMapping("/user/branchWise")
-    public ResponseEntity<ResponseStructure<ResultDto<UserResponse>>> getUsersBranchWise(){
+    public ResponseEntity<ResponseStructure<ResultDto<UserResponse>>> getUsersBranchWise() {
         ResultDto<UserResponse> resultDto = userServices.getUsersBranchWise();
         return ResponseBuilder.success(HttpStatus.OK, "Fetched Users Successfully", resultDto);
     }
 
     @PostMapping("/user/filter")
-    public ResponseEntity<ResponseStructure<ResultDto<UserResponse>>> getUserFilterWise(@RequestBody FilterRequest filterRequest){
+    public ResponseEntity<ResponseStructure<ResultDto<UserResponse>>> getUserFilterWise(@RequestBody FilterRequest filterRequest) {
         ResultDto<UserResponse> resultDto = userServices.getUsersFilterWise(filterRequest);
         return ResponseBuilder.success(HttpStatus.OK, "Filter Wise Fetched Users Successfully", resultDto);
     }

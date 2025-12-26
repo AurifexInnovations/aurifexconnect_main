@@ -62,6 +62,9 @@ public class Admin  implements GenericUser{
     @OneToMany(mappedBy = "admin")
     private List<InvoiceGenerator> invoiceGenerator;
 
+    @Column(name = "document_url")
+    private String documentUrl;
+
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
         return List.of(new SimpleGrantedAuthority("ROLE_ADMIN"));

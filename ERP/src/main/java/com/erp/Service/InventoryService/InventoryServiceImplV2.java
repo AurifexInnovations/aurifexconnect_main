@@ -59,10 +59,8 @@ public class InventoryServiceImplV2 implements InventoryServiceV2 {
 
     @Override
     @Transactional
-    public ResultDto<InventoryResponseV2> addInventory(String inventoryRequest, MultipartFile[] files) throws JsonProcessingException {
+    public ResultDto<InventoryResponseV2> addInventory(InventoryRequestV2 request, List<FileInfoDto> files){
         List<InventoryResponseV2> responseV2List = new ArrayList<>();
-
-        InventoryRequestV2 request = objectMapper.readValue(inventoryRequest, InventoryRequestV2.class);
 
         Branch branch = branchRepository.findById(request.getBranchId())
                 .orElseThrow(() -> new BranchNotFoundException("Branch Not Found!!"));
@@ -166,9 +164,11 @@ public class InventoryServiceImplV2 implements InventoryServiceV2 {
         return resultDto;
     }
 
-    private void inventoryFileUploading(MultipartFile[] files, InventoryV2 saved){
+    @Transactional
+    private void inventoryFileUploading(List<FileInfoDto> files, InventoryV2 saved){
 
-        if (files == null || files.length == 0) return;
+        if (files == null || files.size() == 0) return;
+
         List<FileUploadResponse> list = s3StorageService.uploadFile(files, "inventory");
         List<InventoryV2Document> documents = new ArrayList<>();
 
@@ -179,6 +179,7 @@ public class InventoryServiceImplV2 implements InventoryServiceV2 {
             document.setInventoryV2(saved);
             documents.add(document);
         }
+
         inventoryV2DocumentRepository.saveAll(documents);
     }
 
@@ -198,13 +199,19 @@ public class InventoryServiceImplV2 implements InventoryServiceV2 {
         InventoryResponseV2 inventoryResponseV2 = inventoryMapper.ToInventoryResponseV2(inventoryV2);
         inventoryResponseV2.setTaxId(inventoryV2.getTax().getId());
         inventoryResponseV2.setBranchId(inventoryV2.getBranch().getBranchId());
+        List<String> s3Keys = toRespectiveUrls(inventoryV2);
+        inventoryResponseV2.setDocumentsUrls(s3Keys);
 
         inventoryRepositoryV2.delete(inventoryV2);
+        if(inventoryV2DocumentRepository.existsByInventoryV2_ItemId(itemId)){
+            inventoryV2DocumentRepository.deleteByInventoryV2_ItemId(itemId);
+        }
 
         return inventoryResponseV2;
     }
 
     @Override
+    @Transactional
     public InventoryResponseV2 updateInventory(InventoryUpdateRequestV2 request) {
         InventoryV2 updated = inventoryRepositoryV2.findById(request.getItemId())
                 .orElseThrow(() -> new InventoryNotFoundException("Inventory Not Found !!"));
@@ -215,9 +222,8 @@ public class InventoryServiceImplV2 implements InventoryServiceV2 {
         Tax tax = taxRepository.findById(request.getTaxId())
                 .orElseThrow(() -> new TaxNotFoundException("Tax Not Found"));
 
-        InventoryV2 newInventory = inventoryMapper.toInventoryV2(request);
-        inventoryMapper.convertToEntityToUpdated(newInventory, updated);
-
+        // Update only non-collection fields
+        updateInventoryFields(request, updated);
         updated.setBranch(branch);
         updated.setTax(tax);
 
@@ -226,8 +232,70 @@ public class InventoryServiceImplV2 implements InventoryServiceV2 {
         InventoryResponseV2 responseV2 = inventoryMapper.ToInventoryResponseV2(updated);
         responseV2.setBranchId(updated.getBranch().getBranchId());
         responseV2.setTaxId(updated.getTax().getId());
+        List<String> s3Keys = toRespectiveUrls(updated);
+        responseV2.setDocumentsUrls(s3Keys);
+
         return responseV2;
     }
+
+    private void updateInventoryFields(InventoryUpdateRequestV2 r, InventoryV2 e) {
+
+        e.setItemName(r.getItemName());
+        e.setItemDescription(r.getItemDescription());
+        e.setLowStockThreshold(r.getLowStockThreshold());
+        e.setBrandName(r.getBrandName());
+        e.setProductCategories(r.getProductCategories());
+        e.setHsnCode(r.getHsnCode());
+        e.setSkuCode(r.getSkuCode());
+        e.setEan(r.getEan());
+        e.setReturnable(r.isReturnable());
+        e.setProductStatus(r.getProductStatus());
+        e.setActive(r.isActive());
+
+        e.setRentable(r.isRentable());
+
+        if (r.isRentable()) {
+
+            e.setDefaultRentalRate(r.getDefaultRentalRate());
+            e.setRentalRateFrequency(r.getRentalRateFrequency());
+            e.setDefaultDepositAmount(r.getDefaultDepositAmount());
+            e.setInsuranceValue(r.getInsuranceValue());
+            e.setRentalProductQuantity(r.getRentalProductQuantity());
+            e.setRentalProductStatus(r.getRentalProductStatus());
+
+            e.setStockQuantity(null);
+            e.setSellingPriceType(null);
+            e.setSellingPrice(null);
+            e.setPurchasePriceType(null);
+            e.setPurchasePrice(null);
+            e.setUnitType(null);
+            e.setUnitTypeValue(null);
+            e.setMeasurementType(null);
+            e.setMeasurement(null);
+            e.setExpiryDate(null);
+
+        } else {
+
+            e.setStockQuantity((double) r.getStockQuantity());
+            e.setSellingPriceType(r.getSellingPriceType());
+            e.setSellingPrice(r.getSellingPrice());
+            e.setPurchasePriceType(r.getPurchasePriceType());
+            e.setPurchasePrice(r.getPurchasePrice());
+            e.setUnitType(r.getUnitType());
+            e.setUnitTypeValue(r.getUnitTypeValue());
+            e.setMeasurementType(r.getMeasurementType());
+            e.setMeasurement(r.getMeasurement());
+            e.setExpiryDate(r.getExpiryDate());
+
+            e.setDefaultRentalRate(null);
+            e.setRentalRateFrequency(null);
+            e.setDefaultDepositAmount(null);
+            e.setInsuranceValue(null);
+            e.setRentalProductQuantity(null);
+            e.setRentalProductStatus(null);
+        }
+    }
+
 
     @Override
     public ResultDto<InventoryResponseV2> getAll() {
@@ -239,6 +307,9 @@ public class InventoryServiceImplV2 implements InventoryServiceV2 {
             inventoryResponseV2.setBranchId(response.getBranch().getBranchId());
             inventoryResponseV2.setTaxId(response.getTax().getId());
             inventoryResponseV2s.add(inventoryResponseV2);
+
+            List<String> s3Keys = toRespectiveUrls(response);
+            inventoryResponseV2.setDocumentsUrls(s3Keys);
         }
 
         ResultDto<InventoryResponseV2> resultDto = new ResultDto<>();
@@ -259,6 +330,10 @@ public class InventoryServiceImplV2 implements InventoryServiceV2 {
             InventoryResponseV2 inventoryResponseV2 = inventoryMapper.ToInventoryResponseV2(s);
             inventoryResponseV2.setBranchId(s.getBranch().getBranchId());
             inventoryResponseV2.setTaxId(s.getTax().getId());
+
+            List<String> s3Keys = toRespectiveUrls(s);
+            inventoryResponseV2.setDocumentsUrls(s3Keys);
+
             responseV2s.add(inventoryResponseV2);
         }
         ResultDto<InventoryResponseV2> resultDto = new ResultDto<>();
@@ -346,6 +421,9 @@ public class InventoryServiceImplV2 implements InventoryServiceV2 {
         inventoryResponseV2.setDocumentsUrls(urls);
         inventoryResponseV2.setBranchId(inventoryV2.getBranch().getBranchId());
         inventoryResponseV2.setTaxId(inventoryV2.getTax().getId());
+
+        List<String> s3Keys = toRespectiveUrls(inventoryV2);
+        inventoryResponseV2.setDocumentsUrls(s3Keys);
 
         return inventoryResponseV2;
     }

@@ -62,14 +62,19 @@ public class ServiceTypeImpl implements ServiceType
 
     @Override
     @Transactional
-    public ServiceResponse addService(ServiceRequest serviceRequest, MultipartFile[] files)
+    public ServiceResponse addService(ServiceRequest serviceRequest, List<FileInfoDto> files)
     {
         Service service = serviceMapper.mapToService(serviceRequest);
         Branch branch = branchRepository.findById(serviceRequest.getBranchId())
                         .orElseThrow(() -> new BranchNotFoundException("Branch Not Found"));
         service.setBranch(branch);
 
-        List<FileUploadResponse> fileUploadResponses = s3StorageService.uploadFile(files, "service");
+        List<FileUploadResponse> fileUploadResponses = List.of();
+
+        if (files != null && !files.isEmpty()) {
+            fileUploadResponses = s3StorageService.uploadFile(files, "service");
+        }
+
         List<ServiceDocuments> serviceDocuments = new ArrayList<>();
 
         if (serviceRequest.getInventoryIds() != null && !serviceRequest.getInventoryIds().isEmpty()) {
@@ -99,6 +104,7 @@ public class ServiceTypeImpl implements ServiceType
 
 
     @Override
+    @Transactional
     public ServiceResponse updateById(ServiceRequest serviceRequest)
     {
         Service service = repository.findById(serviceRequest.getServiceId())
@@ -108,18 +114,39 @@ public class ServiceTypeImpl implements ServiceType
         Branch branch = branchRepository.findById(serviceRequest.getBranchId())
                 .orElseThrow(() -> new BranchNotFoundException("Branch Not Found"));
         service.setBranch(branch);
+
+        if (serviceRequest.getInventoryIds() != null) {
+
+            service.getInventories().clear();
+
+            List<InventoryV2> inventories =
+                    inventoryRepository.findAllById(serviceRequest.getInventoryIds());
+
+            if (inventories.size() != serviceRequest.getInventoryIds().size()) {
+                throw new InventoryNotFoundException("Some inventory IDs are invalid");
+            }
+
+            service.getInventories().addAll(inventories);
+        }
+
         repository.save(service);
         return toResponse(service);
     }
 
     @Override
-    public ServiceResponse deleteByServiceId(CommanParam param)
+    @Transactional
+    public ServiceResponse deleteByServiceId(Long id)
     {
-        Service service = repository.findById(param.getId())
+        Service service = repository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Service Not Found, Invalid ID !!"));
 
-        repository.deleteById(param.getId());
-        return toResponse(service);
+        ServiceResponse response = toResponse(service);
+
+        if(serviceDocumentsRepository.existsByService_ServiceId(id)){
+            serviceDocumentsRepository.deleteByService_ServiceId(id);
+        }
+        repository.delete(service);
+        return response;
     }
 
 
@@ -239,10 +266,13 @@ public class ServiceTypeImpl implements ServiceType
                 .toList();
         serviceResponse.setFiles(imageUrls);
 
-        List<Long> inventoryIds = new ArrayList<>();
-        for(InventoryV2 inventoryV2 : service.getInventories()){
-            inventoryIds.add(inventoryV2.getItemId());
-        }
+        List<Long> inventoryIds = service.getInventories() == null
+                ? List.of()
+                : service.getInventories()
+                .stream()
+                .map(InventoryV2::getItemId)
+                .toList();
+
         serviceResponse.setInventoryIds(inventoryIds);
 
         return serviceResponse;

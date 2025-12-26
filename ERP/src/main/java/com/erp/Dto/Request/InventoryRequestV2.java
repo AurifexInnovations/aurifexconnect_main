@@ -2,6 +2,8 @@ package com.erp.Dto.Request;
 
 import com.erp.Dto.VarientDto;
 import com.erp.Enum.*;
+import com.erp.Model.File;
+import com.erp.Model.FileInfoDto;
 import com.erp.Model.Tax;
 import jakarta.validation.constraints.DecimalMin;
 import jakarta.validation.constraints.NotBlank;
@@ -9,6 +11,7 @@ import jakarta.validation.constraints.Pattern;
 import lombok.Getter;
 import lombok.Setter;
 
+import java.util.Base64;
 import java.util.List;
 
 @Getter
@@ -61,4 +64,12 @@ public class InventoryRequestV2 {
     private Long insuranceValue;
     private Long rentalProductQuantity;
     private RentalProductStatus rentalProductStatus;
+
+    private List<FileInfoDto> files;
 }
+
+
+
+// Create FileInfoDto With fileName, fileType, fileData
+// Use This in request DTO
+// Convert Image to Base64 to Actual File type
