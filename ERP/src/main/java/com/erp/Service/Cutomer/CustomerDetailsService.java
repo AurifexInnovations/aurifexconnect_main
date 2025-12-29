@@ -2,10 +2,8 @@ package com.erp.Service.Cutomer;
 
 import com.erp.Dto.Request.CustomerDetailsRequestDto;
 import com.erp.Dto.Request.FilterRequest;
-import com.erp.Dto.Response.CustomerResponse;
-import com.erp.Dto.Response.CustomerResponseDtos;
-import com.erp.Dto.Response.DropDown;
-import com.erp.Dto.Response.ResultDto;
+import com.erp.Dto.Response.*;
+import com.erp.Model.CustomerDetails;
 
 
 public interface CustomerDetailsService {
@@ -24,4 +22,6 @@ public interface CustomerDetailsService {
     ResultDto<CustomerResponse> getByBranchWise();
 
     ResultDto<DropDown> getDropdown();
+
+    ResultDto<TechnicianResponseDTO> findCustomerWithTask(FilterRequest filterRequest);
 }

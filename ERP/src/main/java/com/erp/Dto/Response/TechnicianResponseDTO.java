@@ -7,6 +7,7 @@ import lombok.Getter;
 import lombok.Setter;
 
 import java.time.LocalDate;
+import java.time.LocalTime;
 import java.util.List;
 
 @Getter
@@ -30,6 +31,7 @@ public class TechnicianResponseDTO {
 
     private String location;
     private LocalDate assignedDate;
+    private String assignedTime;
     private String googleLocationLink;
     private String taskName;
     private Long serviceId;

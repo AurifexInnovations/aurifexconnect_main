@@ -12,6 +12,8 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Repository;
 
 import java.time.LocalDate;
+import java.time.LocalTime;
+import java.time.format.DateTimeFormatter;
 import java.util.*;
 
 @Repository
@@ -39,6 +41,7 @@ public class TaskTechnicianCustomRepository {
                 u.last_modified_at AS updatedAt,
                 ts.service_location AS location,
                 ts.assigned_date AS assignedDate,
+                ts.assigned_time AS assignedTime,
                 ts.google_location_link AS googleLocationLink,
                 t.task_name AS taskName,
 
@@ -130,7 +133,7 @@ public class TaskTechnicianCustomRepository {
 
         for (Object[] row : rows) {
 
-            Long taskId = getLong(row[20]);
+            Long taskId = getLong(row[21]);
 
             TechnicianResponseDTO r = taskMap.get(taskId);
             if (r == null) {
@@ -147,28 +150,29 @@ public class TaskTechnicianCustomRepository {
                 r.setUpdatedAt(getLocalDate(row[8]));
                 r.setLocation(getString(row[9]));
                 r.setAssignedDate(getLocalDate(row[10]));
-                r.setGoogleLocationLink(getString(row[11]));
-                r.setTaskName(getString(row[12]));
-                r.setCustomerName(getString(row[13]));
-                r.setCustomerAddress(getString(row[14]));
-                r.setServiceName(getString(row[15]));
-                r.setServiceId(getLong(row[16]));
-                r.setLatitude(getDouble(row[17]));
-                r.setLongitude(getDouble(row[18]));
-                r.setCustomerPhone(getString(row[19]));
+                r.setAssignedTime(getLocalTime(row[11]));
+                r.setGoogleLocationLink(getString(row[12]));
+                r.setTaskName(getString(row[13]));
+                r.setCustomerName(getString(row[14]));
+                r.setCustomerAddress(getString(row[15]));
+                r.setServiceName(getString(row[16]));
+                r.setServiceId(getLong(row[17]));
+                r.setLatitude(getDouble(row[18]));
+                r.setLongitude(getDouble(row[19]));
+                r.setCustomerPhone(getString(row[20]));
                 r.setTaskId(taskId);
 
                 r.setMaterials(new ArrayList<>());
                 taskMap.put(taskId, r);
             }
 
-            Long materialId = getLong(row[21]);
+            Long materialId = getLong(row[22]);
             if (materialId != null && materialId > 0) {
                 MaterialDtoResponse material = new MaterialDtoResponse();
                 material.setMaterialId(materialId);
-                material.setMaterialName(getString(row[22]));
-                material.setMaterialQuantity(getDouble(row[23]));
-                material.setMaterialUnit(getString(row[24]));
+                material.setMaterialName(getString(row[23]));
+                material.setMaterialQuantity(getDouble(row[24]));
+                material.setMaterialUnit(getString(row[25]));
                 r.getMaterials().add(material);
             }
         }
@@ -185,6 +189,14 @@ public class TaskTechnicianCustomRepository {
             sql.append(" AND u.id = :technicianId ");
             countSql.append(" AND u.id = :technicianId ");
         }
+        if(filters.containsKey("customerId")){
+            sql.append(" AND c.id = :customerId");
+            countSql.append(" AND c.id = :customerId");
+        }
+        if(filters.containsKey("date")){
+            sql.append(" AND ts.assigned_date = :date");
+            countSql.append(" AND ts.assigned_date = :date");
+        }
     }
 
     private boolean notEmpty(String v) {
@@ -196,6 +208,18 @@ public class TaskTechnicianCustomRepository {
             Long technicianId = Long.valueOf(filters.get("technicianId"));
             dataQuery.setParameter("technicianId", technicianId);
             countQuery.setParameter("technicianId", technicianId);
+        }
+
+        if (filters.containsKey("customerId")) {
+            Long customerId = Long.valueOf(filters.get("customerId"));
+            dataQuery.setParameter("customerId", customerId);
+            countQuery.setParameter("customerId", customerId);
+        }
+
+        if(filters.containsKey("date")){
+            LocalDate date = LocalDate.parse(filters.get("date"));
+            dataQuery.setParameter("date", date);
+            countQuery.setParameter("date", date);
         }
     }
 
@@ -213,6 +237,27 @@ public class TaskTechnicianCustomRepository {
         if (o instanceof java.sql.Timestamp ts) return ts.toLocalDateTime().toLocalDate();
         return null;
     }
+
+    private String getLocalTime(Object o) {
+        if (o == null) return null;
+
+        LocalTime time;
+        if (o instanceof java.sql.Time t) {
+            time = t.toLocalTime();
+        } else if (o instanceof java.sql.Timestamp ts) {
+            time = ts.toLocalDateTime().toLocalTime();
+        } else if (o instanceof LocalTime lt) {
+            time = lt;
+        } else {
+            return null;
+        }
+
+        DateTimeFormatter formatter =
+                DateTimeFormatter.ofPattern("hh:mm a", Locale.ENGLISH);
+
+        return time.format(formatter);
+    }
+
     public ResultDto<TechnicianResponseDTO> searchTasks() {
         log.info("Into [TaskTechnicianCustomRepository] [searchTasks]");
 
