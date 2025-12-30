@@ -305,4 +305,9 @@ public class TaskController {
         log.info("[TaskTechnicianController] /search called");
         return taskService.searchTasks();
     }
+
+    @PostMapping("/task/daily/track")
+    public ResponseEntity<ResponseStructure<ResultDto<TechnicianResponseDTO>>> technicianDailyTrack(@RequestBody FilterRequest filterRequest){
+        return ResponseBuilder.success(HttpStatus.OK, "Technician Daily Track !!", taskService.searchTasks(filterRequest));
+    }
 }

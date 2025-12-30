@@ -156,7 +156,9 @@ public class AdminServiceImpl implements AdminService {
 
     private AdminResponse toResponse(Admin admin){
         AdminResponse adminResponse = adminMapper.mapToAdminResponse(admin);
-        adminResponse.setDocumentUrl(generatePresignedUrl(admin.getDocumentUrl()));
+        if(admin.getDocumentUrl() != null){
+            adminResponse.setDocumentUrl(generatePresignedUrl(admin.getDocumentUrl()));
+        }
         return adminResponse;
     }
 }

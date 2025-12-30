@@ -1,15 +1,18 @@
 package com.erp.Service.Cutomer;
 
 import com.erp.CustomRepository.CustomerDetailsCustomRepository;
+import com.erp.CustomRepository.TaskTechnicianCustomRepository;
 import com.erp.Dto.Request.CustomerDetailsRequestDto;
 import com.erp.Dto.Request.CustomerMapperRequestDto;
 import com.erp.Dto.Request.FilterRequest;
+
 import com.erp.Dto.Request.LeadServiceMapperDto;
 import com.erp.Dto.Response.CustomerResponse;
 import com.erp.Dto.Response.CustomerResponseDtos;
 import com.erp.Dto.Response.DropDown;
 import com.erp.Dto.Response.ResultDto;
 import com.erp.Events.Invoice.EnhanceQuotation.QuotationAcceptedEvent;
+import com.erp.Dto.Response.*;
 import com.erp.Exception.Branch_Exception.BranchNotFoundException;
 import com.erp.Exception.ResourceFoundException;
 import com.erp.Exception.ResourceNotFoundException;
@@ -57,10 +60,13 @@ public class CustomerDetailsServiceImpl implements com.erp.Service.Cutomer.Custo
     private final UserRepository userRepository;
     private final UserIdentity userIdentity;
     private final BranchRepository branchRepository;
+
     private final LeadProductMapperRepository leadProductMapperRepository;
     private final LeadServiceMapperRepository leadServiceMapperRepository;
     private final EnhanceQuotationRepository enhanceQuotationRepository;
 
+
+    private final TaskTechnicianCustomRepository taskTechnicianCustomRepository;
 
     @Override
     @Transactional
@@ -410,5 +416,11 @@ public class CustomerDetailsServiceImpl implements com.erp.Service.Cutomer.Custo
         resultDto.setCount(list.size());
         resultDto.setResults(list);
         return  resultDto;
+    }
+
+    @Override
+    public ResultDto<TechnicianResponseDTO> findCustomerWithTask(FilterRequest filterRequest) {
+        ResultDto<TechnicianResponseDTO> result = taskTechnicianCustomRepository.searchTasks(filterRequest);
+        return result;
     }
 }
