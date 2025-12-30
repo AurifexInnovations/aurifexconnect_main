@@ -4,10 +4,12 @@ import com.erp.CustomRepository.CustomerDetailsCustomRepository;
 import com.erp.Dto.Request.CustomerDetailsRequestDto;
 import com.erp.Dto.Request.CustomerMapperRequestDto;
 import com.erp.Dto.Request.FilterRequest;
+import com.erp.Dto.Request.LeadServiceMapperDto;
 import com.erp.Dto.Response.CustomerResponse;
 import com.erp.Dto.Response.CustomerResponseDtos;
 import com.erp.Dto.Response.DropDown;
 import com.erp.Dto.Response.ResultDto;
+import com.erp.Events.Invoice.EnhanceQuotation.QuotationAcceptedEvent;
 import com.erp.Exception.Branch_Exception.BranchNotFoundException;
 import com.erp.Exception.ResourceFoundException;
 import com.erp.Exception.ResourceNotFoundException;
@@ -15,6 +17,8 @@ import com.erp.Exception.User.UserNotFoundException;
 import com.erp.Mapper.CustomerMapper;
 import com.erp.Model.*;
 import com.erp.Repository.Branch.BranchRepository;
+import com.erp.Repository.EnhanceQuotation.EnhanceQuotationRepository;
+import com.erp.Repository.Lead.LeadProductMapperRepository;
 import com.erp.Repository.Lead.LeadRepositorys;
 import com.erp.Repository.User.UserRepository;
 import com.erp.Repository.costumer.CustomerDetailsMapperRepository;
@@ -22,14 +26,18 @@ import com.erp.Repository.costumer.CustomerDetailsRepository;
 
 import com.erp.Repository.crm.CustomerServiceMapperRepository;
 import com.erp.Repository.crm.LeadRepository;
+import com.erp.Repository.crm.LeadServiceMapperRepository;
 import com.erp.Security.util.UserIdentity;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.event.EventListener;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.math.BigDecimal;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
@@ -49,6 +57,10 @@ public class CustomerDetailsServiceImpl implements com.erp.Service.Cutomer.Custo
     private final UserRepository userRepository;
     private final UserIdentity userIdentity;
     private final BranchRepository branchRepository;
+    private final LeadProductMapperRepository leadProductMapperRepository;
+    private final LeadServiceMapperRepository leadServiceMapperRepository;
+    private final EnhanceQuotationRepository enhanceQuotationRepository;
+
 
     @Override
     @Transactional
@@ -91,6 +103,114 @@ public class CustomerDetailsServiceImpl implements com.erp.Service.Cutomer.Custo
                 .build();
     }
 
+    @EventListener
+    @Transactional
+        public void handleQuotationAccepted(QuotationAcceptedEvent event){
+
+        EnhanceQuotation quotation = event.getQuotation();
+        Long leadId = quotation.getLeadId();
+
+            Leads lead = leadRepositorys.findById(leadId)
+                    .orElseThrow(() -> new ResourceNotFoundException("Lead not found: " + leadId));
+
+            Leads leadsMail = leadRepositorys.findByEmail(lead.getEmail())
+                    .orElseThrow(() -> new ResourceNotFoundException("Lead not found: " + lead.getEmail()));
+
+            if(leadsMail.getLeadStatus().equalsIgnoreCase("CONVERTED")){
+                throw new ResourceFoundException("Customer Already Exists for this Email");
+            }else {
+                CustomerDetails customerDetails = convertLeadToCustomer(lead,quotation);
+                customerRepo.save(customerDetails);
+
+                lead.setLeadStatus("CONVERTED");
+                lead.setConvertedCustomer(customerDetails);
+                leadRepositorys.save(lead);
+
+                quotation.setCustomerId(customerDetails.getId());
+                enhanceQuotationRepository.save(quotation);
+
+            }
+
+        }
+
+        private CustomerDetails convertLeadToCustomer(Leads leads,EnhanceQuotation quotation){
+
+        CustomerDetails customerDetails = new CustomerDetails();
+        customerDetails.setCustomerName(leads.getLeadName());
+        customerDetails.setCompanyName(leads.getCompanyName());
+        // add all lead quotation to converted customer
+        customerDetails.setTotalQuotation(leads.getTotalQuotation());
+        customerDetails.setServiceCategory(String.valueOf(leads.getServiceCategory()));
+        customerDetails.setCustomerStatus("ACTIVE");
+        customerDetails.setCustomerType(leads.getTypeOfLead());
+        customerDetails.setPhone(leads.getPhone());
+        customerDetails.setEmail(leads.getEmail());
+        customerDetails.setAlternatePhone(quotation.getAlternatePhone());
+        customerDetails.setCountry(quotation.getCountry());
+        customerDetails.setBranch(quotation.getBranch());
+        customerDetails.setCreatedAt(LocalDateTime.now());
+        customerDetails.setJoinedDate(LocalDate.now());
+        customerDetails.setLandmark(quotation.getLandmark());
+        customerDetails.setLocationUrl(quotation.getLocationUrl());
+        customerDetails.setPincode(quotation.getPincode());
+        customerDetails.setState(quotation.getState());
+        customerDetails.setUpdatedAt(quotation.getUpdatedAt());
+       // customerDetails.setTags();
+        customerDetails.setCity(quotation.getCity());
+        customerDetails.setAddressLine1(quotation.getAddressLine1());
+        customerDetails.setAddressLine2(quotation.getAddressLine2());
+
+
+        if("SERVICE".equalsIgnoreCase(quotation.getQuotationType())){
+            BigDecimal quotationSqft = quotation.getSqft();
+            customerDetails.setSqrt(quotationSqft.doubleValue());
+        }
+           CustomerDetails saveCustomer = customerRepo.save(customerDetails);
+
+            String leadType = leads.getTypeOfLead();
+            if ("PRODUCT".equalsIgnoreCase(leadType)) {
+                handleProductMapping(leads.getId(), saveCustomer.getId() /* inject repos if needed */);
+            } else if ("SERVICE".equalsIgnoreCase(leadType)) {
+                handleServiceMapping(leads.getId(), saveCustomer.getId() /* inject repos if needed */);
+            }
+
+      return customerRepo.save(saveCustomer);
+
+        }
+
+    private void handleProductMapping(Long leadId, Long customerId) {
+        // Fetch lead products directly via repo
+        List<LeadProductMapper> leadProducts = leadProductMapperRepository.findByLeadId(leadId);
+        if (leadProducts != null && !leadProducts.isEmpty()) {
+            List<CustomerDetailsMapper> customerProducts = new ArrayList<>();
+            for (LeadProductMapper leadProduct : leadProducts) {
+                CustomerDetailsMapper mapper = new CustomerDetailsMapper();
+                mapper.setCustomerId(customerId);
+                mapper.setProductId(leadProduct.getProductId());
+                mapper.setQuantity(leadProduct.getQuantity());  // Map quantity
+                customerProducts.add(mapper);
+            }
+            mapperRepo.saveAll(customerProducts);
+            log.debug("Migrated {} products for customer {}", customerProducts.size(), customerId);
+        }
+    }
+
+    // Extracted: Handle Service Mapping (Direct Repo)
+    private void handleServiceMapping(Long leadId, Long customerId) {
+        // Fetch lead services directly via repo
+        List<LeadServiceMapper> leadServices = leadServiceMapperRepository.findByLeadId(leadId);
+        if (leadServices != null && !leadServices.isEmpty()) {
+            List<CustomerServiceMapper> customerServices = new ArrayList<>();
+            for (LeadServiceMapper leadService : leadServices) {
+                CustomerServiceMapper mapper = new CustomerServiceMapper();
+                mapper.setCustomerId(customerId);
+                mapper.setServiceId(leadService.getServiceId());
+                customerServices.add(mapper);
+            }
+            customerServiceMapperRepository.saveAll(customerServices);
+            log.debug("Migrated {} services for customer {}", customerServices.size(), customerId);
+        }
+    }
 
     @Override
     public ResultDto<CustomerResponse> getFilteredCustomers(FilterRequest filterRequest) {

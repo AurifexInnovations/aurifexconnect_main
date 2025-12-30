@@ -23,7 +23,7 @@ public class TaskRequest {
 
     private Long taskId;
     private String taskName;
-    private Long customerId;
+   // private Long customerId;
     private TaskCategory taskCategory;
     private TaskStatus taskStatus = TaskStatus.PENDING;
     private String taskDetails;

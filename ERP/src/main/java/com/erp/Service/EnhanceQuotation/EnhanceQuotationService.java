@@ -14,4 +14,6 @@ public interface EnhanceQuotationService {
 
 
     List<QuotationResponseDto> quotationGetAll();
+
+    String updateStatus(CommanParam param);
 }

@@ -38,16 +38,16 @@ public class TaskController {
     private final TaskService taskService;
 
 
-    @PostMapping("task")
-    @Operation(description = "Create a New Task Entry",
+    @PutMapping("task")
+    @Operation(description = "Update a Task Entry",
             responses = {
                     @ApiResponse(responseCode = "201", description = "Task Created Successfully"),
             })
     public ResponseEntity<ResponseStructure<TaskResponse>> addTax(@Valid @RequestBody TaskRequest taskRequest) {
         log.info("[TaskController]  [addTax]  into adding task  {}",taskRequest);
-        TaskResponse response = taskService.addTask(taskRequest);
+        TaskResponse response = taskService.updateTask(taskRequest);
         log.info("[TaskController]  [addTax]  exit from  adding task  {}",response);
-        return ResponseBuilder.success(HttpStatus.CREATED, "Task Created", response);
+        return ResponseBuilder.success(HttpStatus.OK, "Task Updated", response);
 
     }
 

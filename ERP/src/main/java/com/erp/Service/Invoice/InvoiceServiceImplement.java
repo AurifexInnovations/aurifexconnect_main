@@ -7,6 +7,7 @@ import com.erp.Dto.Response.InvoiceResponseDto;
 import com.erp.Dto.Response.ResultDto;
 import com.erp.Dto.Response.TaskResponse;
 import com.erp.Enum.*;
+import com.erp.Events.Invoice.InvoiceConfirmedEvent;
 import com.erp.Exception.ResourceNotFoundException;
 import com.erp.Mapper.invoice.InvoiceMapper;
 import com.erp.Model.*;
@@ -18,10 +19,14 @@ import com.erp.Repository.Invoice.InvoiceRepository;
 import com.erp.Repository.Task.TaskRepository;
 import com.erp.Repository.costumer.CustomerDetailsRepository;
 import com.erp.Repository.salesOrder.SalesOrderRepository;
+import com.erp.Security.util.UserIdentity;
 import com.erp.Service.TaskService.TaskService;
+import com.erp.Service.TaskService.TaskServiceImpl;
 import com.erp.Utility.NumberGenerator.NumberGeneratorUtil;
+import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
@@ -39,8 +44,10 @@ public class InvoiceServiceImplement implements InvoiceOrder {
     private final CustomerDetailsRepository customerDetailsRepository;
     private final SalesOrderRepository salesOrderRepository;
     private final BranchRepository branchRepository;
+    private final UserIdentity userIdentity;
     private final TaskRepository taskRepository;
-    private final TaskService taskService;
+    private final TaskServiceImpl taskService;
+    private final ApplicationEventPublisher eventPublisher;
 
     @Override
     public InvoiceResponseDto addInvoice(InvoiceRequestDto request) {
@@ -74,7 +81,7 @@ public class InvoiceServiceImplement implements InvoiceOrder {
     }
 
 
-
+    @Transactional
     @Override
     public InvoiceResponseDto addOrUpdateInvoice(InvoiceRequestDto request) {
 
@@ -87,6 +94,7 @@ public class InvoiceServiceImplement implements InvoiceOrder {
                                 "Invoice not found with id: " + request.getId()
                         )
                 );
+        InvoiceStatus oldStatus = invoice.getStatus();
 
         // 2️ Update basic fields using mapper (NO extra ifs)
         InvoiceMapper.updateEntity(invoice, request);
@@ -113,41 +121,23 @@ public class InvoiceServiceImplement implements InvoiceOrder {
                     );
         }
 
-        // 5️ Business rule (IMPORTANT condition only)
-        if (InvoiceStatus.CONFIRM.equals(request.getStatus())
-                && salesOrder != null
-                && SalesOrderType.SERVICE.equals(salesOrder.getSoType())) {
-
-          //  addTask(invoice);
-        }
-
-        // 6️ Audit
+        // 5 Audit
         invoice.setUpdatedAt(LocalDateTime.now());
 
-        // 7️ Save & return response
+        // 6. Save invoice
         Invoice savedInvoice = invoiceRepository.save(invoice);
-        return toResponseDto(invoiceRepository.save(savedInvoice));
+
+        // 7. Business rule: Publish event only on transition to CONFIRM
+        if (!InvoiceStatus.CONFIRM.equals(oldStatus)  // Not already CONFIRM
+                && InvoiceStatus.CONFIRM.equals(savedInvoice.getStatus())
+                && salesOrder != null
+                && SalesOrderType.SERVICE.equals(salesOrder.getSoType())) {
+            eventPublisher.publishEvent(new InvoiceConfirmedEvent(this, savedInvoice));
+        }
+
+        // 8. Return response
+        return toResponseDto(savedInvoice);
     }
-
-
-//    private void addTask (Invoice invoice){
-//
-//        TaskRequest task = new TaskRequest();
-//
-//        task.setTaskName();
-//        task.setInvoiceId(invoice.getId());
-//        task.setCustomerId(invoice.getCustomerId());
-//        task.setCreatedAt(LocalDateTime.now());
-//        if(invoice.getInvoiceIsFor().equals(InvoiceType.SERVICE)){
-//            task.setTaskCategory(TaskCategory.SERVICE);
-//        }else{
-//            task.
-//        }
-//        task.setTaskCategory(TaskCategory.SERVICE);
-//        task.setTaskStatus(TaskStatus.PENDING);
-//        task.setCustomerId(invoice.getCustomerId());
-//        task.set
-//    }
 
     @Override
     public InvoiceResponseDto getInvoiceById(Long id) {

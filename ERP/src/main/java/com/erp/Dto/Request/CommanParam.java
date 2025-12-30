@@ -14,4 +14,5 @@ public class CommanParam {
     private String name;
     private String location;
     private BranchStatus branchStatus;
+    private String status;
 }
