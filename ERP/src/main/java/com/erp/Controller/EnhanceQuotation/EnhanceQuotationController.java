@@ -29,6 +29,12 @@ public class EnhanceQuotationController {
         return ResponseBuilder.success(HttpStatus.CREATED,"Quotation Created !!",responseDto);
     }
 
+    @PatchMapping("/update-status")
+    public ResponseEntity<ResponseStructure<String>> updateStatus(@RequestBody CommanParam param){
+
+        return ResponseBuilder.success(HttpStatus.OK,"Status Updated !", enhanceQuotationService.updateStatus(param));
+    }
+
     @GetMapping("/getById")
     public ResponseEntity<ResponseStructure<QuotationResponseDto>> quotationGetById(@RequestBody CommanParam param){
         return ResponseBuilder.success(HttpStatus.FOUND,"Quotation Found By Id !!",enhanceQuotationService.quotationGetById(param));

@@ -7,6 +7,7 @@ import com.erp.Dto.Request.*;
 import com.erp.Dto.Response.*;
 import com.erp.Dto.Response.TechnicianResponse;
 import com.erp.Enum.TaskStatus;
+import com.erp.Events.Invoice.InvoiceConfirmedEvent;
 import com.erp.Exception.BadRequestException;
 import com.erp.Exception.DBReltedException;
 import com.erp.Exception.GlobalMessageExceptionHandler;
@@ -42,6 +43,7 @@ import org.apache.regexp.RE;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Lazy;
+import org.springframework.context.event.EventListener;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
@@ -62,6 +64,7 @@ import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.time.format.DateTimeParseException;
 import java.util.*;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 
 @Service
@@ -97,10 +100,34 @@ public class TaskServiceImpl implements TaskService {
 
     private final OtpService otpService;
 
+
+
+    @EventListener
+    public void handleInvoiceConfirmed(InvoiceConfirmedEvent event) {
+        Invoice invoice = event.getInvoice();
+        GenericUser currentUser = userIdentity.getCurrentUser();
+
+        // Create basic task with common fields
+        Task task = new Task();
+        task.setTaskName("New Task");
+        task.setInvoiceId(invoice.getId());
+        task.setCustomerId(invoice.getCustomerId());
+        task.setCreatedAt(LocalDateTime.now());
+        task.setTaskStatus(TaskStatus.PENDING);
+        task.setCreatedBy(currentUser.getId());
+
+        // Save basic task
+        taskRepository.save(task);
+    }
+
     @Override
     @Transactional
-    public TaskResponse addTask(TaskRequest taskRequest) {
+    public TaskResponse updateTask(TaskRequest taskRequest) {
         log.info("Into [TaskServiceImpl]  [addTask] Into add task ");
+
+        if (taskRequest == null) {
+            throw new GlobalMessageExceptionHandler("Task request cannot be empty", HttpStatus.BAD_REQUEST);
+        }
 
         Task task;
 
@@ -120,7 +147,6 @@ public class TaskServiceImpl implements TaskService {
                 taskMapper.mapToTaxEntity(taskRequest, task);
                 task.setUpdatedBy(currentUser.getId());
                 task.setUpdatedAt(LocalDateTime.now());
-
 
             } else {
                 task = taskMapper.mapToTask(taskRequest);
@@ -163,14 +189,16 @@ public class TaskServiceImpl implements TaskService {
 
         log.info("Into add  TaskSchedule...");
 
-        Optional<TaskSchedule> optionalTaskSchedule =
-                taskScheduleRepository.findById(taskRequest.getTaskId());
+        TaskSchedule optionalTaskSchedule =
+                taskScheduleRepository.findByTaskId(taskRequest.getTaskId());
 
-        TaskSchedule taskSchedule = optionalTaskSchedule.orElseGet(TaskSchedule::new);
+        if (optionalTaskSchedule == null) {
+            optionalTaskSchedule = new TaskSchedule();
+        }
 
-        taskSchedule = taskDetailsMapper.mapToTaskSchedule(taskRequest, taskSchedule);
-        taskSchedule.setTaskStartTime(LocalTime.now());
-        taskScheduleRepository.save(taskSchedule);
+        optionalTaskSchedule = taskDetailsMapper.mapToTaskSchedule(taskRequest, optionalTaskSchedule);
+        optionalTaskSchedule.setTaskStartTime(LocalTime.now());
+        taskScheduleRepository.save(optionalTaskSchedule);
 
         log.info("TaskSchedule processed successfully");
 
@@ -184,16 +212,40 @@ public class TaskServiceImpl implements TaskService {
         log.info("Initiating service update for Task ID: {}", taskId);
         try {
 
-            log.debug("Deleting existing service mappings for Task ID: {}", taskId);
-            taskServiceMapperRepository.deleteByTaskId(taskId);
+//            log.debug("Deleting existing service mappings for Task ID: {}", taskId);
+//            taskServiceMapperRepository.deleteByTaskId(taskId);
 
 
             log.debug("Mapping new services for Task ID: {}", taskId);
-            List<TaskServiceMapper> taskServiceMappers = taskDetailsMapper.mapServicesToTask(taskRequest);
+            List<TaskServiceMapper> existing  = taskServiceMapperRepository.findByTaskId(taskId);
 
+            Map<Long, TaskServiceMapper> existingMap =
+                    existing.stream()
+                            .collect(Collectors.toMap(
+                                    m -> m.getServiceId(),
+                                    Function.identity()
+                            ));
 
-            log.debug("Saving {} service mappings for Task ID: {}", taskServiceMappers.size(), taskId);
-            taskServiceMapperRepository.saveAll(taskServiceMappers);
+            List<TaskServiceMapper> finalList = new ArrayList<>();
+
+            for (Long serviceId : taskRequest.getServiceId()) {
+
+                TaskServiceMapper mapper = existingMap.remove(serviceId);
+
+                if (mapper == null) {
+                    mapper = new TaskServiceMapper();
+                    mapper.setTaskId(taskId);
+                    mapper.setServiceId(serviceId);
+                }
+
+                finalList.add(mapper);
+            }
+
+            // delete only removed services
+            taskServiceMapperRepository.deleteAll(existingMap.values());
+
+            log.debug("Saving {} service mappings for Task ID: {}", finalList .size(), taskId);
+            taskServiceMapperRepository.saveAll(finalList );
 
             log.info("Service update COMPLETED successfully for Task ID: {}", taskId);
         } catch (Exception e) {
@@ -209,14 +261,38 @@ public class TaskServiceImpl implements TaskService {
         log.info("Initiating technician update for Task ID: {}", taskId);
 
         try {
-            log.debug("Deleting existing technician mappings for Task ID: {}", taskId);
-            technicianTaskMapperRepository.deleteByTaskId(taskId);
+//            log.debug("Deleting existing technician mappings for Task ID: {}", taskId);
+//            technicianTaskMapperRepository.deleteByTaskId(taskId);
 
             log.debug("Mapping new technicians for Task ID: {}", taskId);
-            List<TechnicianTaskMapper> taskTechnicianMappers = taskDetailsMapper.mapTechniciansToTask(taskRequest);
+            List<TechnicianTaskMapper> existing  = technicianTaskMapperRepository.findByTaskId(taskId);
 
-            log.debug("Saving {} technician mappings for Task ID: {}", taskTechnicianMappers.size(), taskId);
-            technicianTaskMapperRepository.saveAll(taskTechnicianMappers);
+            Map<Long, TechnicianTaskMapper> existingMap =
+                    existing.stream()
+                            .collect(Collectors.toMap(
+                                    m -> m.getTechnicianId(),
+                                    Function.identity()
+                            ));
+
+            List<TechnicianTaskMapper> finalList = new ArrayList<>();
+
+            for (Long technicianId : taskRequest.getTechnicianId()) {
+
+                TechnicianTaskMapper mapper = existingMap.remove(technicianId);
+
+                if (mapper == null) {
+                    mapper = new TechnicianTaskMapper();
+                    mapper.setTaskId(taskId);
+                    mapper.setTechnicianId(technicianId);
+                }
+
+                finalList.add(mapper);
+            }
+
+            technicianTaskMapperRepository.deleteAll(existingMap.values());
+
+            log.debug("Saving {} technician mappings for Task ID: {}", finalList .size(), taskId);
+            technicianTaskMapperRepository.saveAll(finalList );
 
             log.info("Technician update COMPLETED successfully for Task ID: {}", taskId);
         } catch (Exception e) {
@@ -232,14 +308,43 @@ public class TaskServiceImpl implements TaskService {
         log.info("Initiating material update for Task ID: {}", taskId);
 
         try {
-            log.debug("Deleting existing material mappings for Task ID: {}", taskId);
-            taskMaterialRepository.deleteByTaskId(taskId);
+//            log.debug("Deleting existing material mappings for Task ID: {}", taskId);
+//            taskMaterialRepository.deleteByTaskId(taskId);
 
             log.debug("Mapping new materials for Task ID: {}", taskId);
-            List<TaskMaterial> taskMaterialMappers = taskDetailsMapper.mapMaterialsToTask(taskRequest);
+            List<TaskMaterial> existing  = taskMaterialRepository.findByTaskId(taskId);
 
-            log.debug("Saving {} material mappings for Task ID: {}", taskMaterialMappers.size(), taskId);
-            taskMaterialRepository.saveAll(taskMaterialMappers);
+            Map<Long, TaskMaterial> existingMap =
+                    existing.stream()
+                            .collect(Collectors.toMap(
+                                    m -> m.getMaterialId(),
+                                    Function.identity()
+                            ));
+
+            List<TaskMaterial> finalList = new ArrayList<>();
+
+            for (MaterialDto dto : taskRequest.getMaterialDto()) {
+
+                TaskMaterial material = existingMap.remove(dto.getMaterialId());
+
+                if (material == null) {
+                    material = new TaskMaterial();
+                    material.setTaskId(taskId);
+                    material.setMaterialId(dto.getMaterialId());
+                }
+
+                material.setQuantity(dto.getQuantity());
+                material.setUnit(dto.getUnit());
+                material.setIsUsed(dto.getIsUsed());
+
+                finalList.add(material);
+            }
+
+
+            taskMaterialRepository.deleteAll(existingMap.values());
+
+            log.debug("Saving {} material mappings for Task ID: {}", finalList.size(), taskId);
+            taskMaterialRepository.saveAll(finalList);
 
             log.info("Material update COMPLETED successfully for Task ID: {}", taskId);
         } catch (Exception e) {

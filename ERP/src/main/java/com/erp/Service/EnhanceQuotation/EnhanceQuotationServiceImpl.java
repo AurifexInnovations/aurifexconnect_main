@@ -3,6 +3,7 @@ package com.erp.Service.EnhanceQuotation;
 import com.erp.Dto.Request.*;
 import com.erp.Dto.Response.QuotationResponseDto;
 import com.erp.Enum.ServiceCategory;
+import com.erp.Events.Invoice.EnhanceQuotation.QuotationAcceptedEvent;
 import com.erp.Exception.BadRequestException;
 import com.erp.Exception.ResourceNotFoundException;
 import com.erp.Model.*;
@@ -14,7 +15,10 @@ import com.erp.Repository.QuotationServiceMapper.QuotationServiceMapperRepositor
 import com.erp.Repository.costumer.CustomerDetailsRepository;
 import com.erp.Utility.AmountCalculationUtil;
 import com.erp.Utility.NumberGenerator.NumberGeneratorUtil;
+import jakarta.transaction.Transactional;
 import lombok.AllArgsConstructor;
+import org.springframework.context.ApplicationEvent;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
@@ -36,6 +40,7 @@ public class EnhanceQuotationServiceImpl implements EnhanceQuotationService {
     private final LeadRepositorys leadRepository;
     private final CustomerDetailsRepository customerDetailsRepository;
     private final BranchRepository branchRepository;
+    private final ApplicationEventPublisher eventPublisher;
 
 
     public QuotationResponseDto addQuotation(QuotationRequestDto dto) {
@@ -340,6 +345,25 @@ public class EnhanceQuotationServiceImpl implements EnhanceQuotationService {
         return quotations.stream()
                 .map(this::toResponseDto)
                 .toList();
+    }
+
+    @Transactional
+    @Override
+    public String updateStatus(CommanParam param) {
+
+        EnhanceQuotation quotation = enhanceQuotationRepository.findById(param.getId())
+                .orElseThrow(()-> new ResourceNotFoundException("Quotation not found with this Id:"+param.getId()));
+        String oldStatus = quotation.getStatus();
+        quotation.setStatus(param.getStatus());
+        enhanceQuotationRepository.save(quotation);
+
+        if (!param.getStatus().equals(oldStatus)
+                && quotation.getStatus().equals(quotation.getStatus())
+                && quotation.getLeadId() != null) {  // Assuming you have leadId field
+            eventPublisher.publishEvent(new QuotationAcceptedEvent(this, quotation));
+        }
+
+        return "Status Updated Successfully to :" + param.getStatus() + " for Quotation Id:"+param.getId() ;
     }
 
 

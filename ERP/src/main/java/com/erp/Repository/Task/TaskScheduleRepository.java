@@ -9,6 +9,7 @@ import org.springframework.data.repository.query.Param;
 
 import java.time.LocalDate;
 import java.util.List;
+import java.util.Optional;
 
 public interface TaskScheduleRepository extends JpaRepository<TaskSchedule,Long> {
 
@@ -156,4 +157,9 @@ public interface TaskScheduleRepository extends JpaRepository<TaskSchedule,Long>
     ORDER BY tt.technician_id, i.item_name
     """, nativeQuery = true)
     List<TechnicianMaterialProjection> findTechnicianMaterialUsage();
+
+
+   // Optional<TaskSchedule> findByTaskId(Long taskId);
+
+
 }

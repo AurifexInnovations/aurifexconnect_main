@@ -32,7 +32,7 @@ public class Task {
     private Long customerId;
 
     @Column(name = "invoice_id", nullable = false)
-    private Long InvoiceId;
+    private Long invoiceId;
 
     @Enumerated(EnumType.STRING)
     @Column(name = "task_category")
