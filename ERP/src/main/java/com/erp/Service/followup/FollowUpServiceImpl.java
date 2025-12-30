@@ -64,11 +64,23 @@ public class FollowUpServiceImpl implements com.erp.Service.followup.FollowUpSer
         Branch branch = branchRepository.findById(request.getBranchId())
                 .orElseThrow(() -> new BranchNotFoundException("Branch Not Found !!"));
 
+
         FollowUpDetails followUpDetails = mapper.toEntityDto(request);
         followUpDetails.setBranch(branch);
 
         FollowUpDetails saved = followUpRepository.save(followUpDetails);
-        return toResponseDto(saved);
+        return toResponseDtoWithLeadName(saved);
+    }
+
+    private FollowUpResponseDto toResponseDtoWithLeadName(FollowUpDetails followUpDetails){
+
+        Leads leads = leadRepositorys.findById(followUpDetails.getId())
+                .orElseThrow(() -> new ResourceNotFoundException("Lead Not Found !!"));
+
+        FollowUpResponseDto responseDto = mapper.toResponseDto(followUpDetails);
+        responseDto.setLeadName(leads.getLeadName());
+        return responseDto;
+
     }
 
 
@@ -93,7 +105,7 @@ public class FollowUpServiceImpl implements com.erp.Service.followup.FollowUpSer
         FollowUpDetails followUpDetails = followUpRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Follow Up Not Found !!"));
 
-        return toResponseDto(followUpDetails);
+        return toResponseDtoWithLeadName(followUpDetails);
     }
 
 
@@ -104,7 +116,7 @@ public class FollowUpServiceImpl implements com.erp.Service.followup.FollowUpSer
 
         followUpRepository.delete(followUpDetails);
 
-        return toResponseDto(followUpDetails);
+        return toResponseDtoWithLeadName(followUpDetails);
     }
 
 
@@ -112,15 +124,17 @@ public class FollowUpServiceImpl implements com.erp.Service.followup.FollowUpSer
     public FollowUpResponseDto updateById(FollowUpRequestDto request) {
         FollowUpDetails followUpDetails = mapper.toEntityDto(request);
 
-        if(request.getStatus().equalsIgnoreCase("LOST") && request.getLeadId() != null)
+        if(request.getStatus().equalsIgnoreCase("LOST") || request.getStatus().equalsIgnoreCase("CONVERTED") && request.getLeadId() != null)
         {
             Leads leads = leadRepositorys.findById(request.getId())
                     .orElseThrow(() -> new ResourceNotFoundException("Lead Not Found !!"));
 
-            leads.setLeadStatus("LOST");
+            leads.setLeadStatus(request.getStatus());
+            log.info("lead status Updated {}:"+leads.getLeadStatus());
             leads.setLostReason(request.getLostReason());
 
             leadRepositorys.save(leads);
+            log.info("lead status Updated {}:"+leads.getLeadStatus());
         }
 
         Branch branch = branchRepository.findById(request.getBranchId())

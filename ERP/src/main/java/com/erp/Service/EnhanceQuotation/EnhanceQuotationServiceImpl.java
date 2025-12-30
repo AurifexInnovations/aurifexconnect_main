@@ -101,7 +101,7 @@ public class EnhanceQuotationServiceImpl implements EnhanceQuotationService {
         }else {
             CustomerDetails customerDetails = customerDetailsRepository.findById(dto.getCustomerId())
                     .orElseThrow(()-> new ResourceNotFoundException("Customer Not Found With this Id : "+ dto.getCustomerId()));
-            customerDetails.setTotalQuotation(customerDetailsRepository.count()+1);
+            customerDetails.setTotalQuotation(customerDetails.getTotalQuotation() + 1);
             customerDetailsRepository.save(customerDetails);
         }
 

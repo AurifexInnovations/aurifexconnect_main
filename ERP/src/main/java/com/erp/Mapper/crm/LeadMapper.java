@@ -1,7 +1,7 @@
 package com.erp.Mapper.crm;
 
 import com.erp.Dto.Request.*;
-import com.erp.Dto.Request.LeadResponse;
+import com.erp.Dto.Response.LeadResponse;
 import com.erp.Dto.Response.CustomerResponseDto;
 import com.erp.Dto.Response.LeadResponseDto;
 import com.erp.Model.Customer;

@@ -2,7 +2,7 @@ package com.erp.Controller.LeadController;
 
 import com.erp.Dto.Request.LeadProductRequestDto;
 import com.erp.Dto.Request.LeadRequest;
-import com.erp.Dto.Request.LeadResponse;
+import com.erp.Dto.Response.LeadResponse;
 import com.erp.Dto.Response.DropDown;
 import com.erp.Dto.Response.ResultDto;
 import com.erp.Model.Leads;

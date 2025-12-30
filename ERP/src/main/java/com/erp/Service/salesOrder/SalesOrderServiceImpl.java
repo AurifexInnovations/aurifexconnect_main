@@ -11,6 +11,7 @@ import com.erp.Mapper.salesOrder.SalesOrderMapper;
 import com.erp.Model.*;
 import com.erp.Repository.Branch.BranchRepository;
 import com.erp.Repository.Invoice.InvoiceMasterRepository;
+import com.erp.Repository.costumer.CustomerDetailsRepository;
 import com.erp.Repository.payment.PaymentRepository;
 import com.erp.Repository.salesOrder.SaledOrderProductMapperRepository;
 import com.erp.Repository.salesOrder.SalesOrderRepository;
@@ -37,6 +38,8 @@ public class SalesOrderServiceImpl implements SalesOrderService {
     private final AmountCalculationUtil amountCalculationUtil;
     private final PaymentRepository paymentRepository;
     private final BranchRepository branchRepository;
+    private final CustomerDetailsRepository customerDetailsRepository;
+
 
     @Override
     public SalesOrderResponseDto create(SalesOrderRequestDto dto) {
@@ -61,6 +64,11 @@ public class SalesOrderServiceImpl implements SalesOrderService {
         order.setTaxAmount(dto.getTaxAmount());
         order.setTotalAmount(dto.getTotalAmount());
         order.setGrandTotal(dto.getGrandTotal());
+
+        CustomerDetails customerDetails = customerDetailsRepository.findById(dto.getCustomerId())
+                .orElseThrow(()-> new ResourceNotFoundException("Customer Not Found With this Id : "+ dto.getCustomerId()));
+        customerDetails.setTotalQuotation(customerDetails.getTotalSalesOrder() + 1);
+        customerDetailsRepository.save(customerDetails);
 
        // getCalculation(dto, discount, order);
 
@@ -282,6 +290,10 @@ public class SalesOrderServiceImpl implements SalesOrderService {
         }else {
             invoice.setInvoiceIsFor(InvoiceType.PRODUCT);
         }
+        CustomerDetails customerDetails = customerDetailsRepository.findById(updated.getCustomerId())
+                .orElseThrow(()-> new ResourceNotFoundException("Customer Not Found With this Id : "+ updated.getCustomerId()));
+        customerDetails.setTotalQuotation(customerDetails.getTotalInvoices() + 1);
+        customerDetailsRepository.save(customerDetails);
         invoice.setPaymentStatus("UNPAID");
         invoice.setStatus(InvoiceStatus.DRAFT);
         invoiceMasterRepository.save(invoice);

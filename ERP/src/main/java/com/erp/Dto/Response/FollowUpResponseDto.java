@@ -16,6 +16,7 @@ public class FollowUpResponseDto {
     private Long id;
     private Long leadId;
     private Long quotationId;
+    private String leadName;
 
     private String followUpType;
     private String status;
