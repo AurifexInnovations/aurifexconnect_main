@@ -101,6 +101,9 @@ public class SalesOrder {
     @Column(name = "grand_total", precision = 12, scale = 2)
     private BigDecimal grandTotal;
 
+    @Column(name = "is_amc")
+    private Boolean isAmc = false;
+
     @Column(columnDefinition = "TEXT")
     private String notes;
 

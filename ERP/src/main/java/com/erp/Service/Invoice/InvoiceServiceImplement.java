@@ -2,25 +2,21 @@ package com.erp.Service.Invoice;
 
 
 import com.erp.Dto.Request.InvoiceRequestDto;
-import com.erp.Dto.Request.TaskRequest;
 import com.erp.Dto.Response.InvoiceResponseDto;
 import com.erp.Dto.Response.ResultDto;
-import com.erp.Dto.Response.TaskResponse;
 import com.erp.Enum.*;
 import com.erp.Events.Invoice.InvoiceConfirmedEvent;
 import com.erp.Exception.ResourceNotFoundException;
 import com.erp.Mapper.invoice.InvoiceMapper;
 import com.erp.Model.*;
 
-import com.erp.Projection.InvoiceProjection;
 import com.erp.Repository.Branch.BranchRepository;
 import com.erp.Repository.Invoice.InvoiceMasterRepository;
-import com.erp.Repository.Invoice.InvoiceRepository;
 import com.erp.Repository.Task.TaskRepository;
 import com.erp.Repository.costumer.CustomerDetailsRepository;
+import com.erp.Repository.payment.PaymentRepository;
 import com.erp.Repository.salesOrder.SalesOrderRepository;
 import com.erp.Security.util.UserIdentity;
-import com.erp.Service.TaskService.TaskService;
 import com.erp.Service.TaskService.TaskServiceImpl;
 import com.erp.Utility.NumberGenerator.NumberGeneratorUtil;
 import jakarta.transaction.Transactional;
@@ -32,8 +28,6 @@ import org.springframework.stereotype.Service;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Optional;
-import java.util.stream.Collectors;
 
 @Slf4j
 @Service
@@ -48,6 +42,7 @@ public class InvoiceServiceImplement implements InvoiceOrder {
     private final TaskRepository taskRepository;
     private final TaskServiceImpl taskService;
     private final ApplicationEventPublisher eventPublisher;
+    private final PaymentRepository paymentRepository;
 
     @Override
     public InvoiceResponseDto addInvoice(InvoiceRequestDto request) {
@@ -133,10 +128,31 @@ public class InvoiceServiceImplement implements InvoiceOrder {
                 && salesOrder != null
                 && SalesOrderType.SERVICE.equals(salesOrder.getSoType())) {
             eventPublisher.publishEvent(new InvoiceConfirmedEvent(this, savedInvoice));
+
+        // create payment based on invoice conformation
+
+            addOrUpdatePayment(savedInvoice);
         }
 
         // 8. Return response
         return toResponseDto(savedInvoice);
+    }
+
+    private void addOrUpdatePayment(Invoice invoice){
+
+        Payment payment = paymentRepository
+                .findFirstByInvoiceId(invoice.getId())
+                .orElseGet(Payment::new);
+
+        payment.setPaymentStatus(PaymentStatus.PENDING);
+        payment.setInvoiceId(invoice.getId());
+        payment.setCustomerId(invoice.getCustomerId());
+        payment.setBranch(invoice.getBranch());
+        payment.setInvoiceAmount(invoice.getGrandTotal());
+        if (payment.getId() == null) {
+            payment.setCreatedAt(LocalDateTime.now());
+        }
+        paymentRepository.save(payment);
     }
 
     @Override
@@ -174,5 +190,49 @@ public class InvoiceServiceImplement implements InvoiceOrder {
                 .orElseThrow(() -> new ResourceNotFoundException("Invoice not found"));
 
         invoiceRepository.delete(invoice);
+    }
+
+    @Override
+    public void createFromAmc(Amc amc) {
+
+        Invoice invoice = new Invoice();
+        invoice.setInvoiceIsFor(InvoiceType.SERVICE);
+        invoice.setInvoiceNumber(NumberGeneratorUtil.generate("INV",invoiceRepository.count()+1));
+        invoice.setBranch(amc.getBranch());
+        invoice.setServiceCategory(ServiceCategory.valueOf(amc.getAmcCategory()));
+        invoice.setCreatedAt(LocalDateTime.now());
+        invoice.setStatus(InvoiceStatus.DRAFT);
+        invoice.setCustomerId(amc.getCustomerDetails().getId());
+        invoice.setSalesOrderId(amc.getSalesOrder().getSalesOrderNumber());
+        invoice.setPaymentStatus("UNPAID");
+        invoice.setDiscountAmount(amc.getDiscountAmount());
+        invoice.setGrandTotal(amc.getPerCycleAmount());
+        invoice.setSubtotal(amc.getSalesOrder().getSubtotal());
+        invoice.setSqft(amc.getSalesOrder().getSqft());
+        invoice.setTotalAmount(amc.getSalesOrder().getTotalAmount());
+        invoice.setUpdatedAt(LocalDateTime.now());
+
+        //update customer InvoiceTotal
+        CustomerDetails customerDetails = customerDetailsRepository.findById(invoice.getCustomerId())
+                .orElseThrow(()-> new ResourceNotFoundException("Customer Not Found With this Id : "+ invoice.getCustomerId()));
+        customerDetails.setTotalInvoices(customerDetails.getTotalInvoices() + 1);
+        customerDetailsRepository.save(customerDetails);
+
+        invoiceRepository.save(invoice);
+    }
+
+    @Override
+    public ResultDto<InvoiceResponseDto> getAllByBranchId(Long branchId) {
+
+
+        List<InvoiceResponseDto> responseDtos = new ArrayList<>();
+        for ( Invoice  invoice: invoiceRepository.findAllByBranchBranchId(branchId)){
+            responseDtos.add(toResponseDto(invoice));
+        }
+        ResultDto<InvoiceResponseDto> responseDtoResultDto = new ResultDto<>();
+        responseDtoResultDto.setCount(responseDtos.size());
+        responseDtoResultDto.setResults(responseDtos);
+
+        return responseDtoResultDto;
     }
 }

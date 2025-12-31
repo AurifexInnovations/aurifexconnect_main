@@ -3,6 +3,7 @@ package com.erp.Service.salesOrder;
 
 
 import com.erp.Dto.Request.SalesOrderRequestDto;
+import com.erp.Dto.Response.ResultDto;
 import com.erp.Dto.Response.SalesOrderResponseDto;
 
 import java.util.List;
@@ -18,4 +19,6 @@ public interface SalesOrderService {
     List<SalesOrderResponseDto> getAll();
 
     void delete(Long id);
+
+    ResultDto<SalesOrderResponseDto> getAllByBranchId(Long branchId);
 }

@@ -2,6 +2,8 @@ package com.erp.Service.TaskService;
 
 import com.erp.Dto.Request.*;
 import com.erp.Dto.Response.*;
+import com.erp.Model.Amc;
+import com.erp.Model.Invoice;
 import com.erp.Model.Task;
 import com.erp.Model.TechnicianTaskMapper;
 import com.erp.Projection.GetAllTaskResponse;
@@ -52,4 +54,6 @@ public interface TaskService {
     ResultDto<TechnicianResponseDTO> searchTasks();
 
     OtpResponseDTO feedbackSubmission(FeedbackRequest feedbackRequest, Long taskId);
+
+
 }

@@ -3,6 +3,7 @@ package com.erp.Service.receipt;
 
 import com.erp.Dto.Request.ReceiptRequestDto;
 import com.erp.Dto.Response.ReceiptResponseDto;
+import com.erp.Dto.Response.ResultDto;
 import com.erp.Exception.ResourceNotFoundException;
 import com.erp.Mapper.receipt.ReceiptMapper;
 import com.erp.Model.Branch;
@@ -13,9 +14,9 @@ import com.erp.Utility.NumberGenerator.NumberGeneratorUtil;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
-import org.springframework.util.StringUtils;
 
 import java.math.BigDecimal;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -157,6 +158,21 @@ public class ReceiptServiceImpl implements ReceiptService {
         receiptRepository.deleteById(id);
 
         log.info("Receipt deleted successfully | id={}", id);
+    }
+
+    @Override
+    public ResultDto<ReceiptResponseDto> getAllByBranchId(Long branchId) {
+
+
+        List<ReceiptResponseDto> responseDtos = new ArrayList<>();
+        for (Receipt receipt : receiptRepository.findAllByBranchBranchId(branchId)){
+            responseDtos.add(ReceiptMapper.toDto(receipt));
+        }
+        ResultDto<ReceiptResponseDto> responseDtoResultDto = new ResultDto<>();
+        responseDtoResultDto.setCount(responseDtos.size());
+        responseDtoResultDto.setResults(responseDtos);
+
+        return responseDtoResultDto;
     }
 
     // ========================

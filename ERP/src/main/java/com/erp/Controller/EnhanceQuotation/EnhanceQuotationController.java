@@ -3,6 +3,7 @@ package com.erp.Controller.EnhanceQuotation;
 import com.erp.Dto.Request.CommanParam;
 import com.erp.Dto.Request.QuotationRequestDto;
 import com.erp.Dto.Response.QuotationResponseDto;
+import com.erp.Dto.Response.ResultDto;
 import com.erp.Service.EnhanceQuotation.EnhanceQuotationService;
 import com.erp.Utility.ListResponseStructure;
 import com.erp.Utility.ResponseBuilder;
@@ -44,5 +45,11 @@ public class EnhanceQuotationController {
     public ResponseEntity<ListResponseStructure<QuotationResponseDto>> quotationGetAll(){
         List<QuotationResponseDto> quotationResponseDtos = enhanceQuotationService.quotationGetAll();
        return ResponseBuilder.success(HttpStatus.FOUND,"All Quotation Found !!",quotationResponseDtos);
+    }
+
+    @GetMapping("/getAll/branch")
+    public ResponseEntity<ResponseStructure<ResultDto<QuotationResponseDto>>> getAllByBranchId(@RequestParam Long branchId){
+        ResultDto<QuotationResponseDto> resultDto = enhanceQuotationService.getAllByBranchId(branchId);
+        return ResponseBuilder.success(HttpStatus.FOUND,"All Qutation found based on Branch",resultDto);
     }
 }

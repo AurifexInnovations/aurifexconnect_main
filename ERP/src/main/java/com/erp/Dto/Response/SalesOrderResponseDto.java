@@ -41,6 +41,7 @@ public class SalesOrderResponseDto {
     private BigDecimal totalAmount;
 
     private BigDecimal grandTotal;
+    private Boolean isAmc;
     private ServiceCategory serviceType;
 
     private LocalDateTime createdAt;

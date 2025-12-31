@@ -18,4 +18,5 @@ public interface PaymentRepository extends JpaRepository<Payment, Long> {
     Optional<Payment> findFirstByInvoiceId(Long invoiceId);
 
 
+    List<Payment> findAllByBranchBranchId(Long branchId);
 }

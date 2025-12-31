@@ -1,6 +1,8 @@
 package com.erp.Controller.salesOrder;
 
 import com.erp.Dto.Request.SalesOrderRequestDto;
+import com.erp.Dto.Response.QuotationResponseDto;
+import com.erp.Dto.Response.ResultDto;
 import com.erp.Dto.Response.SalesOrderResponseDto;
 import com.erp.Service.salesOrder.SalesOrderService;
 import com.erp.Utility.ListResponseStructure;
@@ -59,6 +61,12 @@ public class SalesOrderController {
                 "Sales orders list",
                 salesOrderService.getAll()
         );
+    }
+
+    @GetMapping("/getAll/branch")
+    public ResponseEntity<ResponseStructure<ResultDto<SalesOrderResponseDto>>> getAllByBranchId(@RequestParam Long branchId){
+        ResultDto<SalesOrderResponseDto> resultDto = salesOrderService.getAllByBranchId(branchId);
+        return ResponseBuilder.success(HttpStatus.FOUND,"All Qutation found based on Branch",resultDto);
     }
 
     @DeleteMapping("/{id}")

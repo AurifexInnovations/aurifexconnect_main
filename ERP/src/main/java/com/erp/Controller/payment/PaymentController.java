@@ -2,6 +2,7 @@ package com.erp.Controller.payment;
 
 import com.erp.Dto.Request.PaymentRequestDto;
 import com.erp.Dto.Response.PaymentResponseDto;
+import com.erp.Dto.Response.ResultDto;
 import com.erp.Service.payment.PaymentService;
 import com.erp.Utility.ListResponseStructure;
 import com.erp.Utility.ResponseBuilder;
@@ -80,7 +81,13 @@ public class PaymentController {
                 "Payments fetched by invoice",
                 list
         );
+    }@GetMapping("/getAll/branch")
+    public ResponseEntity<ResponseStructure<ResultDto<PaymentResponseDto>>> getAllByBranchId(@RequestParam Long branchId){
+        ResultDto<PaymentResponseDto> resultDto = paymentService.getAllByBranchId(branchId);
+        return ResponseBuilder.success(HttpStatus.FOUND,"All Qutation found based on Branch",resultDto);
     }
+
+
 
     @DeleteMapping("/{id}")
     public ResponseEntity<ResponseStructure<String>> deletePayment(

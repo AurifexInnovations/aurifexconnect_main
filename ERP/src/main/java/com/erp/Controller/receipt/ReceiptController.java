@@ -2,6 +2,7 @@ package com.erp.Controller.receipt;
 
 import com.erp.Dto.Request.ReceiptRequestDto;
 import com.erp.Dto.Response.ReceiptResponseDto;
+import com.erp.Dto.Response.ResultDto;
 import com.erp.Service.receipt.ReceiptService;
 
 import com.erp.Utility.ListResponseStructure;
@@ -110,6 +111,14 @@ public class ReceiptController {
                 response
         );
     }
+
+    @GetMapping("/getAll/branch")
+    public ResponseEntity<ResponseStructure<ResultDto<ReceiptResponseDto>>> getAllByBranchId(@RequestParam Long branchId){
+        ResultDto<ReceiptResponseDto> resultDto = receiptService.getAllByBranchId(branchId);
+        return ResponseBuilder.success(HttpStatus.FOUND,"All Qutation found based on Branch",resultDto);
+    }
+
+
 
     // ========================
     // DELETE

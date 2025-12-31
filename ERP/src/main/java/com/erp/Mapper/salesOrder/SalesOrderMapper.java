@@ -36,6 +36,7 @@ public class SalesOrderMapper {
         order.setTotalAmount(dto.getTotalAmount());
         order.setGrandTotal(dto.getGrandTotal());
         order.setNotes(dto.getNotes());
+        order.setIsAmc(dto.getIsAmc());
         order.setServiceType(dto.getServiceType());
         return order;
     }
@@ -64,6 +65,7 @@ public class SalesOrderMapper {
         dto.setServiceType(order.getServiceType());
         dto.setCreatedAt(order.getCreatedAt());
         dto.setUpdatedAt(order.getUpdatedAt());
+        dto.setIsAmc(order.getIsAmc());
         return dto;
     }
 }

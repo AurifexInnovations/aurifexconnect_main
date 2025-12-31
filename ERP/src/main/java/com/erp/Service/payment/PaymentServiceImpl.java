@@ -3,14 +3,12 @@ package com.erp.Service.payment;
 
 import com.erp.Dto.Request.PaymentRequestDto;
 import com.erp.Dto.Response.PaymentResponseDto;
-import com.erp.Enum.InvoiceStatus;
+import com.erp.Dto.Response.ResultDto;
 import com.erp.Enum.PaymentStatus;
 import com.erp.Exception.ResourceNotFoundException;
 import com.erp.Mapper.payments.PaymentMapper;
-import com.erp.Model.Branch;
-import com.erp.Model.Invoice;
-import com.erp.Model.Payment;
-import com.erp.Model.Receipt;
+import com.erp.Model.*;
+import com.erp.Repository.Amc.AmcRepository;
 import com.erp.Repository.Branch.BranchRepository;
 import com.erp.Repository.Invoice.InvoiceMasterRepository;
 import com.erp.Repository.payment.PaymentRepository;
@@ -20,7 +18,9 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
+import java.math.BigDecimal;
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -33,6 +33,7 @@ public class PaymentServiceImpl implements PaymentService {
     private final ReceiptRepository receiptRepository;
     private final InvoiceMasterRepository invoiceRepository;
     private final BranchRepository branchRepository;
+    private final AmcRepository amcRepository;
 
     @Override
     public PaymentResponseDto updatePayment(Long id, PaymentRequestDto requestDto) {
@@ -71,6 +72,10 @@ public class PaymentServiceImpl implements PaymentService {
             invoice.setPaymentStatus("PAID");
             invoiceRepository.save(invoice);
 
+        // Amc Amount update based on Payment done
+            updateAmcAmounts(invoice);
+
+        // add Receipt base on Payment Done
             addReceipt(savedPayment);
         }
 
@@ -79,6 +84,21 @@ public class PaymentServiceImpl implements PaymentService {
         return PaymentMapper.toDto(savedPayment);
     }
 
+    private void updateAmcAmounts(Invoice invoice) {
+        Amc amc = amcRepository.findBySalesOrderSalesOrderNumber(invoice.getSalesOrderId())
+                        .orElseThrow(()-> new ResourceNotFoundException("Amc not found with this SalesOrder id:"+ invoice.getSalesOrderId()));
+
+        BigDecimal perCycleAmount = amc.getPerCycleAmount();
+        amc.setTotalCompleteAmount(
+                amc.getTotalCompleteAmount().add(perCycleAmount)
+        );
+
+        amc.setTotalRemainAmount(
+                amc.getTotalRemainAmount().subtract(perCycleAmount)
+        );
+
+        amcRepository.save(amc);
+    }
 
 
     private void addReceipt(Payment payment) {
@@ -128,5 +148,20 @@ public class PaymentServiceImpl implements PaymentService {
     public void deletePayment(Long id) {
         log.info("Deleting payment with id={}", id);
         paymentRepository.deleteById(id);
+    }
+
+    @Override
+    public ResultDto<PaymentResponseDto> getAllByBranchId(Long branchId) {
+
+
+        List<PaymentResponseDto> responseDtos = new ArrayList<>();
+        for (Payment payment : paymentRepository.findAllByBranchBranchId(branchId)){
+            responseDtos.add(PaymentMapper.toDto(payment));
+        }
+        ResultDto<PaymentResponseDto> responseDtoResultDto = new ResultDto<>();
+        responseDtoResultDto.setCount(responseDtos.size());
+        responseDtoResultDto.setResults(responseDtos);
+
+        return responseDtoResultDto;
     }
 }

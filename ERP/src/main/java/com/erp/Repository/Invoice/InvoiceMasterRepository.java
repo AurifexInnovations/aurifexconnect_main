@@ -55,4 +55,5 @@ public interface InvoiceMasterRepository extends JpaRepository<Invoice,Long> {
 
     Optional<Invoice> findBySalesOrderId(Long salesOrderId);
 
+    List<Invoice> findAllByBranchBranchId(Long branchId);
 }

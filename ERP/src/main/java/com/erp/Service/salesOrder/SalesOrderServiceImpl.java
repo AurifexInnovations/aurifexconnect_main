@@ -1,9 +1,7 @@
 package com.erp.Service.salesOrder;
 
-import com.erp.Dto.Request.CalculationVar;
-import com.erp.Dto.Request.CommanParam;
-import com.erp.Dto.Request.QuotationProductRequestDto;
 import com.erp.Dto.Request.SalesOrderRequestDto;
+import com.erp.Dto.Response.ResultDto;
 import com.erp.Dto.Response.SalesOrderResponseDto;
 import com.erp.Enum.*;
 import com.erp.Exception.ResourceNotFoundException;
@@ -16,6 +14,7 @@ import com.erp.Repository.payment.PaymentRepository;
 import com.erp.Repository.salesOrder.SaledOrderProductMapperRepository;
 import com.erp.Repository.salesOrder.SalesOrderRepository;
 import com.erp.Repository.salesOrder.SalesOrderServiceMapperRepository;
+import com.erp.Service.Amc.AmcService;
 import com.erp.Utility.AmountCalculationUtil;
 import com.erp.Utility.NumberGenerator.NumberGeneratorUtil;
 import lombok.RequiredArgsConstructor;
@@ -23,7 +22,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
-import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.List;
 
 @Service
@@ -39,6 +38,7 @@ public class SalesOrderServiceImpl implements SalesOrderService {
     private final PaymentRepository paymentRepository;
     private final BranchRepository branchRepository;
     private final CustomerDetailsRepository customerDetailsRepository;
+    private final AmcService amcService;
 
 
     @Override
@@ -65,14 +65,22 @@ public class SalesOrderServiceImpl implements SalesOrderService {
         order.setTotalAmount(dto.getTotalAmount());
         order.setGrandTotal(dto.getGrandTotal());
 
+        //update SO total in customer
         CustomerDetails customerDetails = customerDetailsRepository.findById(dto.getCustomerId())
                 .orElseThrow(()-> new ResourceNotFoundException("Customer Not Found With this Id : "+ dto.getCustomerId()));
-        customerDetails.setTotalQuotation(customerDetails.getTotalSalesOrder() + 1);
+        customerDetails.setTotalSalesOrder(customerDetails.getTotalSalesOrder() + 1);
         customerDetailsRepository.save(customerDetails);
 
        // getCalculation(dto, discount, order);
 
         SalesOrder savedOrder = salesOrderRepository.save(order);
+
+     // creating AMC based on is_amc True
+
+        if (Boolean.TRUE.equals(dto.getIsAmc())) {
+            amcService.createFromSalesOrder(savedOrder, dto);
+        }
+
 
     /* =========================
        SAVE LINE ITEMS (NO AMOUNTS)
@@ -166,7 +174,7 @@ public class SalesOrderServiceImpl implements SalesOrderService {
 //        } else {
 //
 //            List<SalesOrderServiceMapper> items =
-//                    serviceRepo.findBySalesOrderId(savedOrder.getSalesOrderNumber());
+//                    serviceRepo.findBySalesOrdersSalesOrderNumber(savedOrder.getSalesOrderNumber());
 //
 //            for (SalesOrderServiceMapper item : items) {
 //                subTotal = subTotal.add(item.getSubtotal());
@@ -235,30 +243,13 @@ public class SalesOrderServiceImpl implements SalesOrderService {
         SalesOrder savedOrder = salesOrderRepository.save(order);
 
         // ✅ Invoice logic AFTER successful update
-        if (savedOrder.getStatus() == SalesOrderStatus.CONFIRMED) {
+        if (savedOrder.getStatus() == SalesOrderStatus.CONFIRMED && Boolean.FALSE.equals(savedOrder.getIsAmc()) ) {
             addOrUpdateInvoice(id, savedOrder);
         }
 
         return SalesOrderMapper.toDto(savedOrder);
     }
 
-
-    private void addOrUpdatePayment(Invoice invoice){
-
-        Payment payment = paymentRepository
-                .findFirstByInvoiceId(invoice.getId())
-                .orElseGet(Payment::new);
-
-        payment.setPaymentStatus(PaymentStatus.PENDING);
-        payment.setInvoiceId(invoice.getId());
-        payment.setCustomerId(invoice.getCustomerId());
-        payment.setBranch(invoice.getBranch());
-        payment.setInvoiceAmount(invoice.getGrandTotal());
-        if (payment.getId() == null) {
-            payment.setCreatedAt(LocalDateTime.now());
-        }
-        paymentRepository.save(payment);
-    }
 
     private void addOrUpdateInvoice(Long id, SalesOrder updated) {
 
@@ -290,14 +281,16 @@ public class SalesOrderServiceImpl implements SalesOrderService {
         }else {
             invoice.setInvoiceIsFor(InvoiceType.PRODUCT);
         }
+
+        //update customer InvoiceTotal
         CustomerDetails customerDetails = customerDetailsRepository.findById(updated.getCustomerId())
                 .orElseThrow(()-> new ResourceNotFoundException("Customer Not Found With this Id : "+ updated.getCustomerId()));
-        customerDetails.setTotalQuotation(customerDetails.getTotalInvoices() + 1);
+        customerDetails.setTotalInvoices(customerDetails.getTotalInvoices() + 1);
         customerDetailsRepository.save(customerDetails);
+
         invoice.setPaymentStatus("UNPAID");
         invoice.setStatus(InvoiceStatus.DRAFT);
         invoiceMasterRepository.save(invoice);
-        addOrUpdatePayment(invoice);
 
     }
 
@@ -320,5 +313,19 @@ public class SalesOrderServiceImpl implements SalesOrderService {
     public void delete(Long id) {
         log.info("Deleting Sales Order {}", id);
         salesOrderRepository.deleteById(id);
+    }
+
+    @Override
+    public ResultDto<SalesOrderResponseDto> getAllByBranchId(Long branchId) {
+
+        List<SalesOrderResponseDto> salesOrderResponseDtos = new ArrayList<>();
+        for (SalesOrder salesOrder : salesOrderRepository.findAllByBranchBranchId(branchId)){
+            salesOrderResponseDtos.add(SalesOrderMapper.toDto(salesOrder));
+        }
+        ResultDto<SalesOrderResponseDto> responseDtoResultDto = new ResultDto<>();
+        responseDtoResultDto.setCount(salesOrderResponseDtos.size());
+        responseDtoResultDto.setResults(salesOrderResponseDtos);
+
+        return responseDtoResultDto;
     }
 }

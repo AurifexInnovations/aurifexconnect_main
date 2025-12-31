@@ -2,6 +2,7 @@ package com.erp.Service.EnhanceQuotation;
 
 import com.erp.Dto.Request.*;
 import com.erp.Dto.Response.QuotationResponseDto;
+import com.erp.Dto.Response.ResultDto;
 import com.erp.Enum.ServiceCategory;
 import com.erp.Events.Invoice.EnhanceQuotation.QuotationAcceptedEvent;
 import com.erp.Exception.BadRequestException;
@@ -364,6 +365,23 @@ public class EnhanceQuotationServiceImpl implements EnhanceQuotationService {
         }
 
         return "Status Updated Successfully to :" + param.getStatus() + " for Quotation Id:"+param.getId() ;
+    }
+
+    @Override
+    public ResultDto<QuotationResponseDto> getAllByBranchId(Long branchId) {
+
+        Branch branch = branchRepository.findById(branchId)
+                .orElseThrow(()->new ResourceNotFoundException("Branch not found for this branch id:"+branchId));
+
+        List<QuotationResponseDto> quotations = new ArrayList<>();
+        for (EnhanceQuotation quotation : enhanceQuotationRepository.findAllByBranchBranchId(branchId)){
+            quotations.add(toResponseDto(quotation));
+        }
+        ResultDto<QuotationResponseDto> responseDtoResultDto = new ResultDto<>();
+        responseDtoResultDto.setCount(quotations.size());
+        responseDtoResultDto.setResults(quotations);
+
+        return responseDtoResultDto;
     }
 
 

@@ -56,4 +56,11 @@ public class SalesOrderRequestDto {
     private ServiceCategory serviceType;
 
     private List<SaledOrderProductRequestDto> salesOrderRequest;
+
+    private Boolean isAmc;
+    private String recurringType;
+    private Long recurringInterval;
+    private LocalDate startDate;
+    private LocalDate endDate;
+
 }

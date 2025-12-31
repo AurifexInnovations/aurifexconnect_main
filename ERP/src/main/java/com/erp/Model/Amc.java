@@ -4,6 +4,8 @@ import jakarta.persistence.*;
 import lombok.CustomLog;
 import lombok.Getter;
 import lombok.Setter;
+import org.hibernate.annotations.CreationTimestamp;
+import org.hibernate.annotations.UpdateTimestamp;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
@@ -17,6 +19,7 @@ public class Amc {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Column(name = "amc_id")
     private Long amcId;
 
     @Column(name = "amc_number")
@@ -32,19 +35,19 @@ public class Amc {
     private String recurringType;
 
     @Column(name = "recurring_interval")
-    private Long recurringInterval;
+    private Integer recurringInterval;
 
     @Column(name = "recurring_cycle")
-    private Long recurringCycle;
+    private Integer recurringCycle;
 
     @Column(name = "total_cycle")
-    private Long totalCycle;
+    private Integer totalCycle;
 
     @Column(name = "complete_cycle")
-    private Long completeCycle;
+    private Integer completeCycle;
 
     @Column(name = "remain_cycle")
-    private Long remainCycle;
+    private Integer remainCycle;
 
     @Column(name = "contract_start_date")
     private LocalDate contractStartDate;
@@ -85,18 +88,17 @@ public class Amc {
     @Column(name = "auto_generate_invoice")
     private Boolean autoGenerateInvoice;
 
-    @Column(name = "auto_generate_task")
-    private Boolean autoGenerateTask;
-
     @Column(name = "created_by")
     private Long createdBy;
 
     @Column(name = "updated_by")
     private Long updatedBy;
 
+    @CreationTimestamp
     @Column(name = "created_at")
     private LocalDateTime createdAt;
 
+    @UpdateTimestamp
     @Column(name = "updated_at")
     private LocalDateTime updatedAt;
 

@@ -87,7 +87,13 @@ public class InvoiceOrderController {
                 "Invoices List",
                 list
         );
+    }@GetMapping("/getAll/branch")
+    public ResponseEntity<ResponseStructure<ResultDto<InvoiceResponseDto>>> getAllByBranchId(@RequestParam Long branchId){
+        ResultDto<InvoiceResponseDto> resultDto = invoiceService.getAllByBranchId(branchId);
+        return ResponseBuilder.success(HttpStatus.FOUND,"All Invoice found based on Branch",resultDto);
     }
+
+
 
 
     // ✅ DELETE
